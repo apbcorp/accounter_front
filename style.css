@@ -3,3 +3,97 @@
     color: red;
     text-align: center;
 }
+ul.menu {
+    background-color: lightgrey;
+    font-weight: bold;
+    display: block;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+ul.menu:after {
+    display: block;
+    content: ' ';
+    clear: both;
+    float: none;
+}
+ul.menu > li {
+    float: left;
+    position: relative;
+}
+ul.menu > li:hover {
+    float: left;
+    position: relative;
+}
+ul.menu > li > p {
+    margin: 0;
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+}
+ul.menu > li > p:hover {
+    background-color: gray;
+}
+ul.submenu {
+    display: none;
+    position: absolute;
+    width: 100%;
+    top: 37px;
+    left: 0;
+    padding-left: 0px;
+    background-color: lightgray;
+}
+ul.submenu > li {
+    display: block;
+}
+ul.submenu > li > p {
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+}
+ul.submenu > li > p:hover {
+    text-decoration: underline;
+    background-color: gray;
+}
+ul.menu > li:hover > ul.submenu {
+    display: block;
+}
+li {
+    display: inline-block;
+}
+li.menu_element {
+    text-align: center;
+    width: 33%;
+}
+button.add_button {
+    width: 36px;
+    height: 31px;
+    background-image: url(img/add.png);
+    background-repeat: no-repeat;
+    background-position-x: center;
+    background-position-y: 3px;
+}
+div.sheet {
+    margin: 30px auto auto auto;
+    width: 70%;
+    background-color: lightgray;
+}
+div.table {
+    display: inline-block;
+    border: 1px groove black;
+}
+div.table > ul {
+    padding-left: 0px;
+    display: table-row;
+}
+div.table > ul > li {
+    border: 1px double #dadada;
+    display: table-cell;
+}
+ul.table_head {
+    background-color: #dadada;
+    display: table-cell;
+}
+ul.table_row {
+    background-color: white;
+}
