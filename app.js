@@ -175,16 +175,20 @@ function LoginController() {
 
     this.onLogin = function () {
         var requester = kernel.getServiceContainer().get('requester.ajax');
-        requester.setUrl('/api/v1.0/login');
+        //requester.setUrl('/api/v1.0/login');
+        requester.setUrl('/api/index.html');
         requester.setData({'login': $('[name = login]')[0].value, 'password': $('[name = password]')[0].value});
-        requester.setMethod('POST');
+        requester.setMethod('GET');
         requester.setSuccess(this.onLoginSuccessEvent);
         requester.setError(this.onLoginErrorEvent);
         requester.request();
     };
 
-    this.onLoginSuccess = function () {
-        alert('Yes!!!');
+    this.onLoginSuccess = function (data) {
+        var data = JSON.parse(data);
+        var userContainer = kernel.getServiceContainer().get('container.user');
+        userContainer.setUserData(data.result);
+        kernel.getServiceContainer().get('helper.navigator').goTo('index.html');
     };
 
     this.onLoginError = function () {
@@ -197,7 +201,7 @@ function LoginController() {
 function LoginView() {
     this.template = '<table align="center" style="padding-top: 100px;"><tr><td><table><tr><td>Имя пользователя</td><td><input name="login"></td></tr><tr><td>Пароль</td><td><input type="password" name="password"></td></tr></table></td></tr><tr class="login_error"><td>Ввведна неверная комбинация имени и пароля</td></tr><tr><td><center><button class="login_button">Вход</button></center></td></tr></table>';
 
-    this.render= function () {
+    this.render = function () {
         var html = this.buildTemplate();
         $('body').append(html);
     };
@@ -211,7 +215,11 @@ function UserContainer() {
     this.user = undefined;
 
     this.isLogin = function () {
-        return !this.user === undefined;
+        return !(this.user === undefined);
+    };
+
+    this.setUserData = function (data) {
+        this.user = data;
     }
 }
 
