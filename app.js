@@ -79,6 +79,62 @@ function AjaxRequester() {
     }
 }
 
+function AjaxMockRequester() {
+    this.requestData = {
+        'url': '',
+        'data': {},
+        'method': 'GET',
+        'onSuccess': undefined,
+        'onError': undefined
+    };
+
+    this.mocks = [
+        {'result': '{"status":"success","result":{}}', 'url': '/api/v1.0/login', 'data': {'login': 'admin', 'password': 'qwerty'}, 'method': 'GET'}
+    ];
+
+    this.setUrl = function (url) {
+        this.requestData.url = url;
+    };
+
+    this.setData = function (data) {
+        this.requestData.data = data;
+    };
+
+    this.setMethod = function (method) {
+        this.requestData.method = method;
+    };
+
+    this.setSuccess = function(closure) {
+        this.requestData.onSuccess = closure;
+    };
+
+    this.setError = function (closure) {
+        this.requestData.onError = closure;
+    };
+
+    this.request = function () {
+        var isEqual = false;
+        for (var i = 0; i < this.mocks.length; i++) {
+            if (this.mocks[i].url == this.requestData.url && this.requestData.method == this.mocks[i].method) {
+                isEqual = true;
+                for (var key in this.mocks[i].data) {
+                    if (this.mocks[i].data[key] != this.requestData.data[key]) {
+                        isEqual = false;
+
+                        break;
+                    }
+                }
+
+                if (isEqual) {
+                    this.requestData.onSuccess(this.mocks[i].result);
+
+                    break;
+                }
+            }
+        }
+    }
+}
+
 function ServiceContainer() {
     this.servicesList = {
         'helper.url': {'class': 'UrlHelper', 'args': {}},
@@ -89,7 +145,8 @@ function ServiceContainer() {
         'controller.login': {'class': 'LoginController', 'args': {}},
         'view.login': {'class': 'LoginView', 'args': {}},
         'container.event': {'class': 'EventContainer', 'args': {}},
-        'requester.ajax': {'class': 'AjaxRequester', 'args': {}}
+        //'requester.ajax': {'class': 'AjaxRequester', 'args': {}}
+        'requester.ajax': {'class': 'AjaxMockRequester', 'args': {}} //mock
     };
     this.services = {};
 
@@ -175,8 +232,7 @@ function LoginController() {
 
     this.onLogin = function () {
         var requester = kernel.getServiceContainer().get('requester.ajax');
-        //requester.setUrl('/api/v1.0/login');
-        requester.setUrl('/api/index.html');
+        requester.setUrl('/api/v1.0/login');
         requester.setData({'login': $('[name = login]')[0].value, 'password': $('[name = password]')[0].value});
         requester.setMethod('GET');
         requester.setSuccess(this.onLoginSuccessEvent);
