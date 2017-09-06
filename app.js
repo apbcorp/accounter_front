@@ -229,7 +229,7 @@ function Router() {
 function ConsumerDictionaryController() {
     this.events = [];
 
-    this.constructor = function () {
+    this.ConsumerDictionaryController = function () {
         this.onAddRecordEvent = this.onAddRecord.bind(this);
         this.onEditRecordEvent = this.onEditRecord.bind(this);
         this.onDeleteRecordEvent = this.onDeleteRecord.bind(this);
@@ -257,13 +257,13 @@ function ConsumerDictionaryController() {
 
     };
 
-    this.constructor();
+    this.ConsumerDictionaryController();
 }
 
 function MetersDictionaryController() {
     this.events = [];
 
-    this.constructor = function () {
+    this.MetersDictionaryController = function () {
         this.onAddRecordEvent = this.onAddRecord.bind(this);
         this.onEditRecordEvent = this.onEditRecord.bind(this);
         this.onDeleteRecordEvent = this.onDeleteRecord.bind(this);
@@ -291,13 +291,13 @@ function MetersDictionaryController() {
 
     };
 
-    this.constructor();
+    this.MetersDictionaryController();
 }
 
 function ServiceDictionaryController() {
     this.events = [];
 
-    this.constructor = function () {
+    this.ServiceDictionaryController = function () {
         this.onAddRecordEvent = this.onAddRecord.bind(this);
         this.onEditRecordEvent = this.onEditRecord.bind(this);
         this.onDeleteRecordEvent = this.onDeleteRecord.bind(this);
@@ -325,49 +325,86 @@ function ServiceDictionaryController() {
 
     };
 
-    this.constructor();
+    this.ServiceDictionaryController();
+}
+
+function GroundDictionaryModel(params) {
+    this.url = '/api/v1.0/ground';
+    this.creator = undefined;
+    this.data = {};
+    this.dataNames = {
+        "id": "№ п/п",
+        "accNumber": "№ счета",
+        "line": "Линия",
+        "groundNumber": "Номер участка",
+        "area": "Занимаемая площадь, кв. м.",
+        "freeArea": "Не относящаяся к причалу площадь, кв. м.",
+        "commonArea": "Площадь общего пользования, кв. м.",
+        "allArea": "Всего площадь, кв. м."
+    };
+
+    this.GroundDictionaryModel = function (object) {
+        this.creator = object;
+
+        this.onRefreshSuccessEvent = this.onRefreshSuccess.bind(this);
+        this.onRequestErrorEvent = this.onRequestError.bind(this);
+    };
+
+    this.refresh = function () {
+        var requester = kernel.getServiceContainer().get('requester.ajax');
+        requester.setUrl(this.url);
+        requester.setData({});
+        requester.setMethod('GET');
+        requester.setSuccess(this.onRefreshSuccessEvent);
+        requester.setError(this.onRequestErrorEvent);
+        requester.request();
+    };
+
+    this.onRefreshSuccess = function (data) {
+        data = JSON.parse(data);
+        this.data = data.result;
+
+        this.creator.onRefreshComplete(this.getDataWithColumnNames());
+    };
+
+    this.getDataWithColumnNames = function () {
+        var result = [this.dataNames];
+
+        return $.merge(result, this.data);
+    };
+
+    this.onRequestError = function () {
+
+    };
+
+    this.GroundDictionaryModel(params);
 }
 
 function GroundDictionaryController() {
-    this.constructor = function () {
+    MainControllerAbstract.call(this);
+    this.model = new GroundDictionaryModel(this);
+
+    this.GroundDictionaryController = function () {
         this.onAddRecordEvent = this.onAddRecord.bind(this);
         this.onEditRecordEvent = this.onEditRecord.bind(this);
         this.onDeleteRecordEvent = this.onDeleteRecord.bind(this);
-        this.onLoadDataSuccessEvent = this.onLoadDataSuccess.bind(this);
-        this.onLoadErrorEvent = this.onLoadError.bind(this);
 
         this.events.push({'selector': '.add_button', 'action': 'click', 'event': this.onAddRecordEvent});
         this.events.push({'selector': '.edit_button', 'action': 'click', 'event': this.onEditRecordEvent});
         this.events.push({'selector': '.delete_button', 'action': 'click', 'event': this.onDeleteRecordEvent});
-        this.prototypeConstructor();
+        this.MainControllerAbstract();
     };
 
     this.init = function () {
         var eventContainer = kernel.getServiceContainer().get('container.event');
         eventContainer.setEvents(this.events);
 
-        this.sendDataRequest();
+        this.model.refresh();
     };
 
-    this.sendDataRequest = function () {
-        var requester = kernel.getServiceContainer().get('requester.ajax');
-        requester.setUrl('/api/v1.0/ground');
-        requester.setData({});
-        requester.setMethod('GET');
-        requester.setSuccess(this.onLoadDataSuccessEvent);
-        requester.setError(this.onLoadErrorEvent);
-        requester.request();
-    };
-
-    this.onLoadDataSuccess = function (data) {
-        data = JSON.parse(data);
-
+    this.onRefreshComplete = function (data) {
         var view = kernel.getServiceContainer().get('view.groundDictionary');
-        view.render(data.result);
-    };
-
-    this.onLoadError = function () {
-
+        view.render(data);
     };
 
     this.onAddRecord = function () {
@@ -382,22 +419,10 @@ function GroundDictionaryController() {
 
     };
 
-    MainControllerPrototype.call(this);
-    this.constructor();
+    this.GroundDictionaryController();
 }
 
 function GroundDictionaryView() {
-    this.columnNames = [
-        '№ п/п',
-        '№ счета',
-        'Линия',
-        'Номер участка',
-        'Занимаемая площадь, кв. м.',
-        'Не относящаяся к причалу площадь, кв. м.',
-        'Площадь общего пользования, кв. м.',
-        'Всего площадь, кв. м.'
-    ];
-
     this.render = function (data) {
         this.clear();
         var html = this.buildTemplate(data);
@@ -405,7 +430,6 @@ function GroundDictionaryView() {
     };
 
     this.buildTemplate = function (data) {
-        data.unshift(this.columnNames);
         var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
         html += kernel.getServiceContainer().get('view.table').buildTemplate(data);
         html += '</div>';
@@ -431,7 +455,7 @@ function TableView() {
         for (var i = 0; i < data.length; i++) {
             html += i == 0
                 ? kernel.getServiceContainer().get('view.tableHead').buildTemplate(data[i])
-                : kernel.getServiceContainer().get('view.tableRow').buildTemplate(data[i])
+                : kernel.getServiceContainer().get('view.tableRow').buildTemplate(data[i], Object.keys(data[0]))
         }
 
         html += this.template[1];
@@ -469,11 +493,11 @@ function TableRowView() {
         '</ul>'
     ];
 
-    this.buildTemplate = function (data) {
+    this.buildTemplate = function (data, order) {
         var html = this.template[0];
 
-        for (var key in data) {
-            html += this.template[1] + data[key] + this.template[2];
+        for (var i = 0; i < order.length; i++) {
+            html += this.template[1] + data[order[i]] + this.template[2];
         }
 
         html += this.template[3];
@@ -497,14 +521,14 @@ function MainController() {
         var eventContainer = kernel.getServiceContainer().get('container.event');
         eventContainer.setEvents(this.events);
     };
-    MainControllerPrototype.call(this);
-    this.prototypeConstructor();
+    MainControllerAbstract.call(this);
+    this.MainControllerAbstract();
 }
 
-function MainControllerPrototype() {
+function MainControllerAbstract() {
     this.events = [];
 
-    this.prototypeConstructor = function () {
+    this.MainControllerAbstract = function () {
         this.onGetGroundDictionaryEvent = this.onGetGroundDictionary.bind(this);
         this.onGetMetersDictionaryEvent = this.onGetMetersDictionary.bind(this);
         this.onGetConsumerDictionaryEvent = this.onGetConsumerDictionary.bind(this);
@@ -555,7 +579,7 @@ function MainView() {
 function LoginController() {
     this.events = [];
 
-    this.constructor = function () {
+    this.LoginController = function () {
         this.onLoginEvent = this.onLogin.bind(this);
         this.onLoginSuccessEvent = this.onLoginSuccess.bind(this);
         this.onLoginErrorEvent = this.onLoginError.bind(this);
@@ -593,7 +617,7 @@ function LoginController() {
         $('.login_error')[0].style.display = 'block';
     };
 
-    this.constructor();
+    this.LoginController();
 }
 
 function LoginView() {
