@@ -73,6 +73,24 @@ button.add_button {
     background-position-x: center;
     background-position-y: 3px;
 }
+button.edit_button {
+    margin-left: 3px;
+    width: 36px;
+    height: 31px;
+    background-image: url(img/edit.jpg);
+    background-repeat: no-repeat;
+    background-position-x: center;
+    background-position-y: 3px;
+}
+button.delete_button {
+    margin-left: 3px;
+    width: 36px;
+    height: 31px;
+    background-image: url(img/delete.jpg);
+    background-repeat: no-repeat;
+    background-position-x: center;
+    background-position-y: 3px;
+}
 div.sheet {
     margin: 30px auto 30px auto;
     width: 70%;

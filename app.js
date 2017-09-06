@@ -342,6 +342,7 @@ function GroundDictionaryModel(params) {
         "commonArea": "Площадь общего пользования, кв. м.",
         "allArea": "Всего площадь, кв. м."
     };
+    this.currentId = undefined;
 
     this.GroundDictionaryModel = function (object) {
         this.creator = object;
@@ -388,35 +389,47 @@ function GroundDictionaryController() {
         this.onAddRecordEvent = this.onAddRecord.bind(this);
         this.onEditRecordEvent = this.onEditRecord.bind(this);
         this.onDeleteRecordEvent = this.onDeleteRecord.bind(this);
+        this.onSelectRecordEvent = this.onSelectRecord.bind(this);
 
         this.events.push({'selector': '.add_button', 'action': 'click', 'event': this.onAddRecordEvent});
         this.events.push({'selector': '.edit_button', 'action': 'click', 'event': this.onEditRecordEvent});
         this.events.push({'selector': '.delete_button', 'action': 'click', 'event': this.onDeleteRecordEvent});
+        this.events.push({'selector': '.table_row', 'action': 'click', 'event': this.onSelectRecordEvent});
+        this.events.push({'selector': '.table_row', 'action': 'dblclick', 'event': this.onEditRecordEvent});
+
         this.MainControllerAbstract();
     };
 
     this.init = function () {
-        var eventContainer = kernel.getServiceContainer().get('container.event');
-        eventContainer.setEvents(this.events);
-
         this.model.refresh();
     };
 
     this.onRefreshComplete = function (data) {
         var view = kernel.getServiceContainer().get('view.groundDictionary');
         view.render(data);
+
+        var eventContainer = kernel.getServiceContainer().get('container.event');
+        eventContainer.setEvents(this.events);
     };
 
     this.onAddRecord = function () {
-
+        alert('add');
     };
 
-    this.onEditRecord = function () {
-
+    this.onEditRecord = function (event) {
+        if (event.currentTarget.class == 'table_row') {
+            this.model.currentId = event.currentTarget.dataset.id;
+        }
+        
+        alert(this.model.currentId);
     };
 
     this.onDeleteRecord = function () {
+        alert('delete');
+    };
 
+    this.onSelectRecord = function (event) {
+        this.model.currentId = event.currentTarget.dataset.id;
     };
 
     this.GroundDictionaryController();
@@ -445,7 +458,7 @@ function GroundDictionaryView() {
 
 function TableView() {
     this.template = [
-        '<div class="sheet"><li><ul><button class="add_button"></button></ul><ul><div class="table">',
+        '<div class="sheet"><li><ul><button class="add_button"></button><button class="edit_button"></button><button class="delete_button"></button></ul><ul><div class="table">',
         '</div></ul></li></div>'
     ];
 
@@ -487,14 +500,14 @@ function TableHeadView() {
 
 function TableRowView() {
     this.template = [
-        '<ul class="table_row">',
+        '<ul class="table_row" data-id="{id}">',
         '<li>',
         '</li>',
         '</ul>'
     ];
 
     this.buildTemplate = function (data, order) {
-        var html = this.template[0];
+        var html = this.template[0].replace('{id}', data.id);
 
         for (var i = 0; i < order.length; i++) {
             html += this.template[1] + data[order[i]] + this.template[2];
