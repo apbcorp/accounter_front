@@ -879,22 +879,12 @@ function MainControllerAbstract() {
 }
 
 function MainView() {
+    AbstractView.call(this);
     this.template = '<div><ul class="menu"><li class="menu_element"><p>Справочники</p><ul class="submenu"><li class="submenu_element consumer_dictionary_button"><p>Потребители</p></li><li class="submenu_element ground_dictionary_button"><p>Участки</p></li><li class="submenu_element meters_dictionary_button"><p>Счетчики</p></li><li class="submenu_element services_dictionary_button"><p>Усуги</p></li></ul></li><li class="menu_element"><p>Документы</p></li><li class="menu_element"><p>Отчеты</p></li></ul></div>';
-
-    this.render = function () {
-        this.clear();
-        var html = this.buildTemplate();
-        $('body').append(html);
-    };
 
     this.buildTemplate = function () {
         return this.template;
     };
-
-    this.clear = function () {
-        var body = $('body')[0];
-        body.removeChild(body.lastChild);
-    }
 }
 
 function LoginController() {
@@ -942,12 +932,8 @@ function LoginController() {
 }
 
 function LoginView() {
+    AbstractView.call(this);
     this.template = '<table align="center" style="padding-top: 100px;"><tr><td><table><tr><td>Имя пользователя</td><td><input name="login"></td></tr><tr><td>Пароль</td><td><input type="password" name="password"></td></tr></table></td></tr><tr class="login_error"><td>Ввведна неверная комбинация имени и пароля</td></tr><tr><td><center><button class="login_button">Вход</button></center></td></tr></table>';
-
-    this.render = function () {
-        var html = this.buildTemplate();
-        $('body').append(html);
-    };
 
     this.buildTemplate = function () {
         return this.template;
