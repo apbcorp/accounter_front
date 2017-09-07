@@ -145,7 +145,8 @@ function AjaxMockRequester() {
 
     this.mocks = [
         {'result': '{"status":"success","result":{}}', 'url': '/api/v1.0/login', 'data': {'login': 'admin', 'password': 'qwerty'}, 'method': 'GET'},
-        {'url': '/api/v1.0/ground', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":[{"id":1,"accNumber":449,"line":4,"groundNumber":245,"area":"91","freeArea":"0","commonArea":"13,34","allArea":"104,34"}, {"id":2,"accNumber":450,"line":4,"groundNumber":245,"area":"0","freeArea":"0","commonArea":"0","allArea":"0"}]}'}
+        {'url': '/api/v1.0/ground', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":[{"id":1,"accNumber":449,"line":4,"groundNumber":245,"area":"91","freeArea":"0","commonArea":"13,34","allArea":"104,34"}, {"id":2,"accNumber":450,"line":4,"groundNumber":245,"area":"0","freeArea":"0","commonArea":"0","allArea":"0"}]}'},
+        {'url': '/api/v1.0/ground/1', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":{"id":1,"accNumber":449,"line":4,"groundNumber":245,"area":"91","freeArea":"0","commonArea":"13,34","allArea":"104,34"}}'}
     ];
 
     this.setUrl = function (url) {
@@ -211,7 +212,9 @@ function ServiceContainer() {
         'view.groundDictionary': {'class': 'GroundDictionaryView', 'args': {}},
         'view.table': {'class': 'TableView', 'args': {}},
         'view.tableHead': {'class': 'TableHeadView', 'args': {}},
-        'view.tableRow': {'class': 'TableRowView', 'args': {}}
+        'view.tableRow': {'class': 'TableRowView', 'args': {}},
+        'controller.groundCard': {'class': 'GroundCardController', 'args': {}},
+        'view.groundCard': {'class': 'GroundCardView', 'args': {}}
     };
     this.services = {};
 
@@ -241,18 +244,28 @@ function ServiceContainer() {
 
 function Router() {
     this.routes = {
-        '/index.html': 'controller.main',
-        '/login.html': 'controller.login',
-        '/dictionary/consumers.html': 'controller.consumerDictionary',
-        '/dictionary/grounds.html': 'controller.groundDictionary',
-        '/dictionary/meters.html': 'controller.metersDictionary',
-        '/dictionary/services.html': 'controller.serviceDictionary'
+        '/index\.html': 'controller.main',
+        '/login\.html': 'controller.login',
+        '/dictionary/consumers\.html': 'controller.consumerDictionary',
+        '/dictionary/grounds\.html': 'controller.groundDictionary',
+        '/dictionary/meters\.html': 'controller.metersDictionary',
+        '/dictionary/services\.html': 'controller.serviceDictionary',
+        '/dictionary/ground/(.*)\.html': 'controller.groundCard'
     };
     this.getController = function (url) {
         var controllerName = '';
+        var result = null;
+        var params = [];
         for (var routing in this.routes) {
-            if (url == routing) {
+            result = url.match(routing);
+            if (result) {
                 controllerName = this.routes[routing];
+
+                if (result.length > 1) {
+                    for (var i = 1; i < result.length; i++) {
+                        params.push(result[i]);
+                    }
+                }
 
                 break;
             }
@@ -260,118 +273,66 @@ function Router() {
 
         return {
             'name': controllerName,
-            'params': {}
+            'params': params
         };
     };
 }
 
-function ConsumerDictionaryController() {
-    this.events = [];
+function GroundCardView() {
+    AbstractView.call(this);
+    this.template = '';
 
-    this.ConsumerDictionaryController = function () {
-        this.onAddRecordEvent = this.onAddRecord.bind(this);
-        this.onEditRecordEvent = this.onEditRecord.bind(this);
-        this.onDeleteRecordEvent = this.onDeleteRecord.bind(this);
+    this.buildTemplate = function (data) {
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+        html += '</div>';
 
-        this.events = [
-            {'selector': '.add_button', 'action': 'click', 'event': this.onAddRecordEvent},
-            {'selector': '.edit_button', 'action': 'click', 'event': this.onEditRecordEvent},
-            {'selector': '.delete_button', 'action': 'click', 'event': this.onDeleteRecordEvent}
-        ];
+        return html;
     };
-
-    this.init = function () {
-
-    };
-
-    this.onAddRecord = function () {
-
-    };
-
-    this.onEditRecord = function () {
-
-    };
-
-    this.onDeleteRecord = function () {
-
-    };
-
-    this.ConsumerDictionaryController();
 }
 
-function MetersDictionaryController() {
-    this.events = [];
+function GroundCardModel(object) {
+    AbstractModel.call(this);
+    this.baseUrl = '/api/v1.0/ground/';
 
-    this.MetersDictionaryController = function () {
-        this.onAddRecordEvent = this.onAddRecord.bind(this);
-        this.onEditRecordEvent = this.onEditRecord.bind(this);
-        this.onDeleteRecordEvent = this.onDeleteRecord.bind(this);
-
-        this.events = [
-            {'selector': '.add_button', 'action': 'click', 'event': this.onAddRecordEvent},
-            {'selector': '.edit_button', 'action': 'click', 'event': this.onEditRecordEvent},
-            {'selector': '.delete_button', 'action': 'click', 'event': this.onDeleteRecordEvent}
-        ];
+    this.GroundCardModel = function (object) {
+        this.AbstractModel(object);
     };
 
-    this.init = function () {
-
+    this.setId = function (id) {
+        this.url = this.baseUrl + id;
     };
 
-    this.onAddRecord = function () {
-
-    };
-
-    this.onEditRecord = function () {
-
-    };
-
-    this.onDeleteRecord = function () {
-
-    };
-
-    this.MetersDictionaryController();
+    this.GroundCardModel(object);
 }
 
-function ServiceDictionaryController() {
-    this.events = [];
+function GroundCardController() {
+    MainControllerAbstract.call(this);
+    this.model = new GroundCardModel(this);
 
-    this.ServiceDictionaryController = function () {
-        this.onAddRecordEvent = this.onAddRecord.bind(this);
-        this.onEditRecordEvent = this.onEditRecord.bind(this);
-        this.onDeleteRecordEvent = this.onDeleteRecord.bind(this);
-
-        this.events = [
-            {'selector': '.add_button', 'action': 'click', 'event': this.onAddRecordEvent},
-            {'selector': '.edit_button', 'action': 'click', 'event': this.onEditRecordEvent},
-            {'selector': '.delete_button', 'action': 'click', 'event': this.onDeleteRecordEvent}
-        ];
+    this.GroundCardController = function () {
+        this.MainControllerAbstract();
     };
 
-    this.init = function () {
+    this.init = function (params) {
+        this.model.setId(params[0]);
 
+        this.model.refresh();
     };
 
-    this.onAddRecord = function () {
+    this.onRefreshComplete = function (data) {
+        var view = kernel.getServiceContainer().get('view.groundCard');
+        view.render(data);
 
+        var eventContainer = kernel.getServiceContainer().get('container.event');
+        eventContainer.setEvents(this.events);
     };
 
-    this.onEditRecord = function () {
-
-    };
-
-    this.onDeleteRecord = function () {
-
-    };
-
-    this.ServiceDictionaryController();
+    this.GroundCardController();
 }
 
 function GroundDictionaryModel(params) {
+    DictionaryAbstractModel.call(this);
     this.url = '/api/v1.0/ground';
-    this.creator = undefined;
-    this.data = {};
-    this.requestData = {};
     this.dataNames = {
         "id": "№ п/п",
         "accNumber": "№ счета",
@@ -382,9 +343,51 @@ function GroundDictionaryModel(params) {
         "commonArea": "Площадь общего пользования, кв. м.",
         "allArea": "Всего площадь, кв. м."
     };
-    this.currentId = undefined;
 
     this.GroundDictionaryModel = function (object) {
+        this.DictionaryAbstractModel(object);
+    };
+
+    this.getDataForView = function () {
+        var result = {
+            'columns': this.dataNames,
+            'data': this.data
+        };
+        if (this.getRequestData('order_by')) {
+            result['orderBy'] = this.getRequestData('order_by');
+        }
+        if (this.getRequestData('order_type')) {
+            result['orderType'] = this.getRequestData('order_type');
+        }
+
+        return result;
+    };
+
+    this.GroundDictionaryModel(params);
+}
+
+function DictionaryAbstractModel() {
+    AbstractModel.call(this);
+    this.currentId = undefined;
+
+    this.DictionaryAbstractModel = function (object) {
+        this.AbstractModel(object);
+    };
+
+    this.appendDataToRequest = function (data) {
+        for (var key in data) {
+            this.requestData[key] = data[key];
+        }
+    };
+}
+
+function AbstractModel() {
+    this.creator = undefined;
+    this.data = {};
+    this.requestData = {};
+    this.method = 'GET';
+
+    this.AbstractModel = function (object) {
         this.creator = object;
 
         this.onRefreshSuccessEvent = this.onRefreshSuccess.bind(this);
@@ -395,16 +398,10 @@ function GroundDictionaryModel(params) {
         var requester = kernel.getServiceContainer().get('requester.ajax');
         requester.setUrl(this.url);
         requester.setData(this.requestData);
-        requester.setMethod('GET');
+        requester.setMethod(this.method);
         requester.setSuccess(this.onRefreshSuccessEvent);
         requester.setError(this.onRequestErrorEvent);
         requester.request();
-    };
-
-    this.appendDataToRequest = function (data) {
-        for (var key in data) {
-            this.requestData[key] = data[key];
-        }
     };
 
     this.getRequestData = function (paramName) {
@@ -423,25 +420,12 @@ function GroundDictionaryModel(params) {
     };
 
     this.getDataForView = function () {
-        var result = {
-            'columns': this.dataNames,
-            'data': this.data
-        };
-        if (this.getRequestData('order_by')) {
-            result['orderBy'] = this.getRequestData('order_by');
-        }
-        if (this.getRequestData('order_type')) {
-            result['orderType'] = this.getRequestData('order_type');
-        }
-
-        return result;
+        return this.data;
     };
 
     this.onRequestError = function () {
 
     };
-
-    this.GroundDictionaryModel(params);
 }
 
 function GroundDictionaryController() {
@@ -510,7 +494,7 @@ function GroundDictionaryController() {
             return;
         }
 
-        alert(this.model.currentId);
+        kernel.getServiceContainer().get('helper.navigator').goTo('/dictionary/ground/' + this.model.currentId + '.html')
     };
 
     this.onDeleteRecord = function () {
@@ -534,11 +518,7 @@ function GroundDictionaryController() {
 }
 
 function GroundDictionaryView() {
-    this.render = function (data) {
-        this.clear();
-        var html = this.buildTemplate(data);
-        $('body').append(html);
-    };
+    AbstractView.call(this);
 
     this.buildTemplate = function (data) {
         var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
@@ -546,6 +526,16 @@ function GroundDictionaryView() {
         html += '</div>';
 
         return html;
+    };
+}
+
+function AbstractView() {
+    this.template = '';
+
+    this.render = function (data) {
+        this.clear();
+        var html = this.buildTemplate(data);
+        $('body').append(html);
     };
 
     this.clear = function () {
