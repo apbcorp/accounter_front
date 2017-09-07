@@ -145,8 +145,10 @@ function AjaxMockRequester() {
 
     this.mocks = [
         {'result': '{"status":"success","result":{}}', 'url': '/api/v1.0/login', 'data': {'login': 'admin', 'password': 'qwerty'}, 'method': 'GET'},
-        {'url': '/api/v1.0/ground', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":[{"id":1,"accNumber":449,"line":4,"groundNumber":245,"area":"91","freeArea":"0","commonArea":"13,34","allArea":"104,34"}, {"id":2,"accNumber":450,"line":4,"groundNumber":245,"area":"0","freeArea":"0","commonArea":"0","allArea":"0"}]}'},
+        {'url': '/api/v1.0/ground', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":[{"id":1,"accNumber":449,"line":4,"groundNumber":245,"area":"91","freeArea":"0","commonArea":"13,34","allArea":"104,34","owner":"Агафонников И.В."}, {"id":2,"accNumber":450,"line":4,"groundNumber":245,"area":"0","freeArea":"0","commonArea":"0","allArea":"0","owner":"Агафонников И.В."}]}'},
         {'url': '/api/v1.0/consumer', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":[{"id":1,"name":"Игорь","surname":"Агафонников","name2":"Валерьевич","phone":"+380931234567","adress":"г. Одесса ул. М. Арнаутская 1, кв. 1"}]}'},
+        {'url': '/api/v1.0/service', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":[{"id":1,"name":"Членские взносы","type":"Член сообщества","subtype":"Фиксированный"},{"id":2,"name":"Аренда земли","type":"Участок","subtype":"По площади"},{"id":3,"name":"Услуги энергоснабжения","type":"Участок","subtype":"По счетчику (электричество)"}]}'},
+        {'url': '/api/v1.0/meter', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":[{"id":1,"number":"Э1111","type":"Электричество","ground":"4/245"},{"id":2,"number":"Г2222","type":"Газовый","ground":"4/245"}]}'},
         {'url': '/api/v1.0/ground/1', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":{"id":1,"accNumber":449,"line":4,"groundNumber":245,"area":"91","freeArea":"0","commonArea":"13,34","allArea":"104,34"}}'}
     ];
 
@@ -210,10 +212,12 @@ function ServiceContainer() {
         'view.main': {'class': 'MainView', 'args': {}},
         'controller.serviceDictionary': {'class': 'ServiceDictionaryController', 'args': {}},
         'controller.groundDictionary': {'class': 'GroundDictionaryController', 'args': {}},
-        'controller.metersDictionary': {'class': 'MetersDictionaryController', 'args': {}},
+        'controller.meterDictionary': {'class': 'MeterDictionaryController', 'args': {}},
         'controller.consumerDictionary': {'class': 'ConsumerDictionaryController', 'args': {}},
         'view.groundDictionary': {'class': 'GroundDictionaryView', 'args': {}},
         'view.consumerDictionary': {'class': 'ConsumerDictionaryView', 'args': {}},
+        'view.serviceDictionary': {'class': 'ServiceDictionaryView', 'args': {}},
+        'view.meterDictionary': {'class': 'MeterDictionaryView', 'args': {}},
         'view.table': {'class': 'TableView', 'args': {}},
         'view.tableHead': {'class': 'TableHeadView', 'args': {}},
         'view.tableRow': {'class': 'TableRowView', 'args': {}},
@@ -252,7 +256,7 @@ function Router() {
         '/login\.html': 'controller.login',
         '/dictionary/consumers\.html': 'controller.consumerDictionary',
         '/dictionary/grounds\.html': 'controller.groundDictionary',
-        '/dictionary/meters\.html': 'controller.metersDictionary',
+        '/dictionary/meters\.html': 'controller.meterDictionary',
         '/dictionary/services\.html': 'controller.serviceDictionary',
         '/dictionary/ground/(.*)\.html': 'controller.groundCard'
     };
@@ -280,6 +284,66 @@ function Router() {
             'params': params
         };
     };
+}
+
+function ServiceDictionaryModel(params) {
+    DictionaryAbstractModel.call(this);
+    this.url = '/api/v1.0/service';
+    this.dataNames = {
+        "id": "№ п/п",
+        "name": "Название услуги",
+        "type": "Тип потребителя услуги",
+        "subtype": "Тип базы для расчета"
+    };
+
+    this.ServiceDictionaryModel = function (object) {
+        this.DictionaryAbstractModel(object);
+    };
+
+    this.ServiceDictionaryModel(params);
+}
+
+function ServiceDictionaryView() {
+    AbstractDictionaryView.call(this);
+}
+
+function ServiceDictionaryController() {
+    AbstractDictionaryController.call(this);
+    this.model = new ServiceDictionaryModel(this);
+    this.cardPath = '/dictionary/service/';
+    this.viewName = 'view.serviceDictionary';
+
+    this.AbstractDictionaryController();
+}
+
+function MeterDictionaryModel(params) {
+    DictionaryAbstractModel.call(this);
+    this.url = '/api/v1.0/meter';
+    this.dataNames = {
+        "id": "№ п/п",
+        "number": "Номер счетчика",
+        "type": "Тип счетчика",
+        "ground": "Участок установки"
+    };
+
+    this.ServiceDictionaryModel = function (object) {
+        this.DictionaryAbstractModel(object);
+    };
+
+    this.ServiceDictionaryModel(params);
+}
+
+function MeterDictionaryView() {
+    AbstractDictionaryView.call(this);
+}
+
+function MeterDictionaryController() {
+    AbstractDictionaryController.call(this);
+    this.model = new MeterDictionaryModel(this);
+    this.cardPath = '/dictionary/meter/';
+    this.viewName = 'view.meterDictionary';
+
+    this.AbstractDictionaryController();
 }
 
 function ConsumerDictionaryModel(params) {
@@ -377,7 +441,8 @@ function GroundDictionaryModel(params) {
         "area": "Занимаемая площадь, кв. м.",
         "freeArea": "Не относящаяся к причалу площадь, кв. м.",
         "commonArea": "Площадь общего пользования, кв. м.",
-        "allArea": "Всего площадь, кв. м."
+        "allArea": "Всего площадь, кв. м.",
+        "owner": "Собственник"
     };
 
     this.GroundDictionaryModel = function (object) {
@@ -515,9 +580,11 @@ function AbstractDictionaryController() {
         var urlHelper = kernel.getServiceContainer().get('helper.url');
         this.model.appendDataToRequest({
             'order_by': event.currentTarget.dataset.name,
-            'order_type': this.model.getRequestData('order_type') === undefined || this.model.getRequestData('order_type') === 'desc'
-                ? 'asc'
-                : 'desc'
+            'order_type': this.model.getRequestData('order_by') !== event.currentTarget.dataset.name
+                ? 'desc'
+                : this.model.getRequestData('order_type') === 'desc'
+                    ? 'asc'
+                    : 'desc'
         });
 
         kernel.getServiceContainer().get('helper.navigator').goTo(
