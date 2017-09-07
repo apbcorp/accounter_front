@@ -146,6 +146,7 @@ function AjaxMockRequester() {
     this.mocks = [
         {'result': '{"status":"success","result":{}}', 'url': '/api/v1.0/login', 'data': {'login': 'admin', 'password': 'qwerty'}, 'method': 'GET'},
         {'url': '/api/v1.0/ground', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":[{"id":1,"accNumber":449,"line":4,"groundNumber":245,"area":"91","freeArea":"0","commonArea":"13,34","allArea":"104,34"}, {"id":2,"accNumber":450,"line":4,"groundNumber":245,"area":"0","freeArea":"0","commonArea":"0","allArea":"0"}]}'},
+        {'url': '/api/v1.0/consumer', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":[{"id":1,"name":"Игорь","surname":"Агафонников","name2":"Валерьевич","phone":"+380931234567","adress":"г. Одесса ул. М. Арнаутская 1, кв. 1"}]}'},
         {'url': '/api/v1.0/ground/1', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":{"id":1,"accNumber":449,"line":4,"groundNumber":245,"area":"91","freeArea":"0","commonArea":"13,34","allArea":"104,34"}}'}
     ];
 
@@ -185,10 +186,12 @@ function AjaxMockRequester() {
                 if (isEqual) {
                     this.requestData.onSuccess(this.mocks[i].result);
 
-                    break;
+                    return;
                 }
             }
         }
+
+        this.requestData.onError();
     }
 }
 
@@ -210,6 +213,7 @@ function ServiceContainer() {
         'controller.metersDictionary': {'class': 'MetersDictionaryController', 'args': {}},
         'controller.consumerDictionary': {'class': 'ConsumerDictionaryController', 'args': {}},
         'view.groundDictionary': {'class': 'GroundDictionaryView', 'args': {}},
+        'view.consumerDictionary': {'class': 'ConsumerDictionaryView', 'args': {}},
         'view.table': {'class': 'TableView', 'args': {}},
         'view.tableHead': {'class': 'TableHeadView', 'args': {}},
         'view.tableRow': {'class': 'TableRowView', 'args': {}},
@@ -276,6 +280,38 @@ function Router() {
             'params': params
         };
     };
+}
+
+function ConsumerDictionaryModel(params) {
+    DictionaryAbstractModel.call(this);
+    this.url = '/api/v1.0/consumer';
+    this.dataNames = {
+        "id": "№ п/п",
+        "surname": "Фамилия",
+        "name": "Имя",
+        "name2": "Отчество",
+        "phone": "Телефон",
+        "adress": "Адрес"
+    };
+
+    this.ConsumerDictionaryModel = function (object) {
+        this.DictionaryAbstractModel(object);
+    };
+
+    this.ConsumerDictionaryModel(params);
+}
+
+function ConsumerDictionaryView() {
+    AbstractDictionaryView.call(this);
+}
+
+function ConsumerDictionaryController() {
+    AbstractDictionaryController.call(this);
+    this.model = new ConsumerDictionaryModel(this);
+    this.cardPath = '/dictionary/consumer/';
+    this.viewName = 'view.consumerDictionary';
+
+    this.AbstractDictionaryController();
 }
 
 function GroundCardView() {
@@ -348,21 +384,6 @@ function GroundDictionaryModel(params) {
         this.DictionaryAbstractModel(object);
     };
 
-    this.getDataForView = function () {
-        var result = {
-            'columns': this.dataNames,
-            'data': this.data
-        };
-        if (this.getRequestData('order_by')) {
-            result['orderBy'] = this.getRequestData('order_by');
-        }
-        if (this.getRequestData('order_type')) {
-            result['orderType'] = this.getRequestData('order_type');
-        }
-
-        return result;
-    };
-
     this.GroundDictionaryModel(params);
 }
 
@@ -378,6 +399,21 @@ function DictionaryAbstractModel() {
         for (var key in data) {
             this.requestData[key] = data[key];
         }
+    };
+
+    this.getDataForView = function () {
+        var result = {
+            'columns': this.dataNames,
+            'data': this.data
+        };
+        if (this.getRequestData('order_by')) {
+            result['orderBy'] = this.getRequestData('order_by');
+        }
+        if (this.getRequestData('order_type')) {
+            result['orderType'] = this.getRequestData('order_type');
+        }
+
+        return result;
     };
 }
 
@@ -424,15 +460,26 @@ function AbstractModel() {
     };
 
     this.onRequestError = function () {
-
+        alert('Не получилось получить доступ к серверу.');
     };
 }
 
 function GroundDictionaryController() {
-    MainControllerAbstract.call(this);
+    AbstractDictionaryController.call(this);
     this.model = new GroundDictionaryModel(this);
+    this.cardPath = '/dictionary/ground/';
+    this.viewName = 'view.groundDictionary';
 
-    this.GroundDictionaryController = function () {
+    this.AbstractDictionaryController();
+}
+
+function AbstractDictionaryController() {
+    MainControllerAbstract.call(this);
+    this.model = null;
+    this.cardPath = undefined;
+    this.viewName = undefined;
+
+    this.AbstractDictionaryController = function () {
         this.onAddRecordEvent = this.onAddRecord.bind(this);
         this.onEditRecordEvent = this.onEditRecord.bind(this);
         this.onDeleteRecordEvent = this.onDeleteRecord.bind(this);
@@ -457,7 +504,7 @@ function GroundDictionaryController() {
     };
 
     this.onRefreshComplete = function (data) {
-        var view = kernel.getServiceContainer().get('view.groundDictionary');
+        var view = kernel.getServiceContainer().get(this.viewName);
         view.render(data);
 
         var eventContainer = kernel.getServiceContainer().get('container.event');
@@ -494,7 +541,7 @@ function GroundDictionaryController() {
             return;
         }
 
-        kernel.getServiceContainer().get('helper.navigator').goTo('/dictionary/ground/' + this.model.currentId + '.html')
+        kernel.getServiceContainer().get('helper.navigator').goTo(this.cardPath + this.model.currentId + '.html')
     };
 
     this.onDeleteRecord = function () {
@@ -513,11 +560,13 @@ function GroundDictionaryController() {
 
         event.currentTarget.classList.add('active');
     };
-
-    this.GroundDictionaryController();
 }
 
 function GroundDictionaryView() {
+    AbstractDictionaryView.call(this);
+}
+
+function AbstractDictionaryView() {
     AbstractView.call(this);
 
     this.buildTemplate = function (data) {
@@ -667,7 +716,7 @@ function MainControllerAbstract() {
 }
 
 function MainView() {
-    this.template = '<div><ul class="menu"><li class="menu_element"><p>Справочники</p><ul class="submenu"><li class="submenu_element services_consumer_dictionary_button"><p>Потребители</p></li><li class="submenu_element ground_dictionary_button"><p>Участки</p></li><li class="submenu_element meters_dictionary_button"><p>Счетчики</p></li><li class="submenu_element services_dictionary_button"><p>Усуги</p></li></ul></li><li class="menu_element"><p>Документы</p></li><li class="menu_element"><p>Отчеты</p></li></ul></div>';
+    this.template = '<div><ul class="menu"><li class="menu_element"><p>Справочники</p><ul class="submenu"><li class="submenu_element consumer_dictionary_button"><p>Потребители</p></li><li class="submenu_element ground_dictionary_button"><p>Участки</p></li><li class="submenu_element meters_dictionary_button"><p>Счетчики</p></li><li class="submenu_element services_dictionary_button"><p>Усуги</p></li></ul></li><li class="menu_element"><p>Документы</p></li><li class="menu_element"><p>Отчеты</p></li></ul></div>';
 
     this.render = function () {
         this.clear();
