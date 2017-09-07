@@ -12,5 +12,8 @@
             kernel = new Kernel();
             kernel.start();
         });
+        window.onpopstate = function () {
+            kernel.navigate();
+        }
     </script>
 </HTML>

@@ -222,7 +222,13 @@ function ServiceContainer() {
         'view.tableHead': {'class': 'TableHeadView', 'args': {}},
         'view.tableRow': {'class': 'TableRowView', 'args': {}},
         'controller.groundCard': {'class': 'GroundCardController', 'args': {}},
-        'view.groundCard': {'class': 'GroundCardView', 'args': {}}
+        'view.groundCard': {'class': 'GroundCardView', 'args': {}},
+        'controller.serviceCard': {'class': 'ServiceCardController', 'args': {}},
+        'view.serviceCard': {'class': 'ServiceCardView', 'args': {}},
+        'controller.meterCard': {'class': 'MeterCardController', 'args': {}},
+        'view.meterCard': {'class': 'MeterCardView', 'args': {}},
+        'controller.consumerCard': {'class': 'ConsumerCardController', 'args': {}},
+        'view.consumerCard': {'class': 'ConsumerCardView', 'args': {}}
     };
     this.services = {};
 
@@ -258,7 +264,10 @@ function Router() {
         '/dictionary/grounds\.html': 'controller.groundDictionary',
         '/dictionary/meters\.html': 'controller.meterDictionary',
         '/dictionary/services\.html': 'controller.serviceDictionary',
-        '/dictionary/ground/(.*)\.html': 'controller.groundCard'
+        '/dictionary/ground/(.*)\.html': 'controller.groundCard',
+        '/dictionary/meter/(.*)\.html': 'controller.meterCard',
+        '/dictionary/service/(.*)\.html': 'controller.serviceCard',
+        '/dictionary/consumer/(.*)\.html': 'controller.consumerCard'
     };
     this.getController = function (url) {
         var controllerName = '';
@@ -283,6 +292,153 @@ function Router() {
             'name': controllerName,
             'params': params
         };
+    };
+}
+
+function MeterCardView() {
+    AbstractView.call(this);
+    this.template = '';
+
+    this.buildTemplate = function (data) {
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+        html += '</div>';
+
+        return html;
+    };
+}
+
+function MeterCardModel(object) {
+    AbstractModel.call(this);
+    this.baseUrl = '/api/v1.0/meter/';
+
+    this.setId = function (id) {
+        this.url = this.baseUrl + id;
+    };
+
+    this.AbstractModel(object);
+}
+
+function MeterCardController() {
+    AbstractCardController.call(this);
+    this.model = new MeterCardModel(this);
+    this.viewName = 'view.meterCard';
+
+    this.AbstractCardController();
+}
+
+function ServiceCardController() {
+    AbstractCardController.call(this);
+    this.model = new ServiceCardModel(this);
+    this.viewName = 'view.serviceCard';
+
+    this.AbstractCardController();
+}
+
+function ServiceCardView() {
+    AbstractView.call(this);
+    this.template = '';
+
+    this.buildTemplate = function (data) {
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+        html += '</div>';
+
+        return html;
+    };
+}
+
+function ServiceCardModel(object) {
+    AbstractModel.call(this);
+    this.baseUrl = '/api/v1.0/service/';
+
+    this.setId = function (id) {
+        this.url = this.baseUrl + id;
+    };
+
+    this.AbstractModel(object);
+}
+
+function ConsumerCardController() {
+    AbstractCardController.call(this);
+    this.model = new ConsumerCardModel(this);
+    this.viewName = 'view.consumerCard';
+
+    this.AbstractCardController();
+}
+
+function ConsumerCardView() {
+    AbstractView.call(this);
+    this.template = '';
+
+    this.buildTemplate = function (data) {
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+        html += '</div>';
+
+        return html;
+    };
+}
+
+function ConsumerCardModel(object) {
+    AbstractModel.call(this);
+    this.baseUrl = '/api/v1.0/consumer/';
+
+    this.setId = function (id) {
+        this.url = this.baseUrl + id;
+    };
+
+    this.AbstractModel(object);
+}
+
+function GroundCardView() {
+    AbstractView.call(this);
+    this.template = '';
+
+    this.buildTemplate = function (data) {
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+        html += '</div>';
+
+        return html;
+    };
+}
+
+function GroundCardModel(object) {
+    AbstractModel.call(this);
+    this.baseUrl = '/api/v1.0/ground/';
+
+    this.setId = function (id) {
+        this.url = this.baseUrl + id;
+    };
+
+    this.AbstractModel(object);
+}
+
+function GroundCardController() {
+    AbstractCardController.call(this);
+    this.model = new GroundCardModel(this);
+    this.viewName = 'view.groundCard';
+
+    this.AbstractCardController();
+}
+
+function AbstractCardController() {
+    MainControllerAbstract.call(this);
+    this.viewName = undefined;
+
+    this.AbstractCardController = function () {
+        this.MainControllerAbstract();
+    };
+
+    this.init = function (params) {
+        this.model.setId(params[0]);
+
+        this.model.refresh();
+    };
+
+    this.onRefreshComplete = function (data) {
+        var view = kernel.getServiceContainer().get(this.viewName);
+        view.render(data);
+
+        var eventContainer = kernel.getServiceContainer().get('container.event');
+        eventContainer.setEvents(this.events);
     };
 }
 
@@ -376,58 +532,6 @@ function ConsumerDictionaryController() {
     this.viewName = 'view.consumerDictionary';
 
     this.AbstractDictionaryController();
-}
-
-function GroundCardView() {
-    AbstractView.call(this);
-    this.template = '';
-
-    this.buildTemplate = function (data) {
-        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
-        html += '</div>';
-
-        return html;
-    };
-}
-
-function GroundCardModel(object) {
-    AbstractModel.call(this);
-    this.baseUrl = '/api/v1.0/ground/';
-
-    this.GroundCardModel = function (object) {
-        this.AbstractModel(object);
-    };
-
-    this.setId = function (id) {
-        this.url = this.baseUrl + id;
-    };
-
-    this.GroundCardModel(object);
-}
-
-function GroundCardController() {
-    MainControllerAbstract.call(this);
-    this.model = new GroundCardModel(this);
-
-    this.GroundCardController = function () {
-        this.MainControllerAbstract();
-    };
-
-    this.init = function (params) {
-        this.model.setId(params[0]);
-
-        this.model.refresh();
-    };
-
-    this.onRefreshComplete = function (data) {
-        var view = kernel.getServiceContainer().get('view.groundCard');
-        view.render(data);
-
-        var eventContainer = kernel.getServiceContainer().get('container.event');
-        eventContainer.setEvents(this.events);
-    };
-
-    this.GroundCardController();
 }
 
 function GroundDictionaryModel(params) {
@@ -733,14 +837,6 @@ function TableRowView() {
 
 function MainController() {
     this.init = function () {
-        var userContainer = kernel.getServiceContainer().get('container.user');
-
-        if (!userContainer.isLogin()) {
-            kernel.getServiceContainer().get('helper.navigator').goTo('/login.html');
-
-            return;
-        }
-
         var view = kernel.getServiceContainer().get('view.main');
         view.render();
         var eventContainer = kernel.getServiceContainer().get('container.event');
@@ -887,6 +983,16 @@ function Kernel() {
         var urlHelper = this.services.get('helper.url');
 
         var url = urlHelper.getCurrentUrlWithoutDomain(document.location.href);
+
+        if (!(url === '/login.html')) {
+            var userContainer = kernel.getServiceContainer().get('container.user');
+
+            if (!userContainer.isLogin()) {
+                kernel.getServiceContainer().get('helper.navigator').goTo('/login.html');
+
+                return;
+            }
+        }
 
         var controllerInfo = router.getController(url);
 
