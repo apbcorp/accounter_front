@@ -119,3 +119,7 @@ ul.table_row {
 ul.table_row.active{
     background-color: blue;
 }
+img.order_image {
+    width: 20px;
+    height: 12px;
+}

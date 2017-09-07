@@ -419,13 +419,22 @@ function GroundDictionaryModel(params) {
         data = JSON.parse(data);
         this.data = data.result;
 
-        this.creator.onRefreshComplete(this.getDataWithColumnNames());
+        this.creator.onRefreshComplete(this.getDataForView());
     };
 
-    this.getDataWithColumnNames = function () {
-        var result = [this.dataNames];
+    this.getDataForView = function () {
+        var result = {
+            'columns': this.dataNames,
+            'data': this.data
+        };
+        if (this.getRequestData('order_by')) {
+            result['orderBy'] = this.getRequestData('order_by');
+        }
+        if (this.getRequestData('order_type')) {
+            result['orderType'] = this.getRequestData('order_type');
+        }
 
-        return $.merge(result, this.data);
+        return result;
     };
 
     this.onRequestError = function () {
@@ -553,11 +562,10 @@ function TableView() {
 
     this.buildTemplate = function (data) {
         var html = this.template[0];
+        html += kernel.getServiceContainer().get('view.tableHead').buildTemplate(data.columns, data.orderBy, data.orderType);
 
-        for (var i = 0; i < data.length; i++) {
-            html += i == 0
-                ? kernel.getServiceContainer().get('view.tableHead').buildTemplate(data[i])
-                : kernel.getServiceContainer().get('view.tableRow').buildTemplate(data[i], Object.keys(data[0]))
+        for (var i = 0; i < data.data.length; i++) {
+            html += kernel.getServiceContainer().get('view.tableRow').buildTemplate(data.data[i], Object.keys(data.columns));
         }
 
         html += this.template[1];
@@ -570,18 +578,27 @@ function TableHeadView() {
     this.template = [
         '<ul class="table_head">',
         '<li class="column_head" data-name="{name}">',
+        '<li class="column_head" data-name="{name}"><img class="order_image" src="/img/uparrow.png">',
+        '<li class="column_head" data-name="{name}"><img class="order_image" src="/img/downarrow.png">',
         '</li>',
         '</ul>'
     ];
 
-    this.buildTemplate = function (data) {
+    this.buildTemplate = function (data, orderBy, orderType) {
         var html = this.template[0];
+        var template = '';
 
         for (var key in data) {
-            html += this.template[1].replace('{name}', key) + data[key] + this.template[2];
+            if (key === orderBy) {
+                template = orderType === 'asc' ? this.template[2] : this.template[3];
+            } else {
+                template = this.template[1];
+            }
+
+            html += template.replace('{name}', key) + data[key] + this.template[4];
         }
 
-        html += this.template[3];
+        html += this.template[5];
 
         return html;
     };
@@ -709,7 +726,7 @@ function LoginController() {
     };
 
     this.onLoginSuccess = function (data) {
-        var data = JSON.parse(data);
+        data = JSON.parse(data);
         var userContainer = kernel.getServiceContainer().get('container.user');
         userContainer.setUserData(data.result);
         kernel.getServiceContainer().get('helper.navigator').goTo('/index.html');
