@@ -10,6 +10,45 @@ function UrlHelper() {
         parts.splice(3, parts.length);
 
         return parts.join('/');
+    };
+    this.getCurrentUrl = function (url) {
+        var parts = url.split('?');
+
+        return parts[0];
+    };
+    this.getCurrentUrlWithoutDomain = function (url) {
+        return this.getCurrentUrl(this.getUrlWithoutDomain(url));
+    };
+    this.getUrlParamsString = function (url) {
+        var parts = url.split('?');
+
+        return parts.length < 2 ? '' : parts[1];
+    };
+    this.buildUrl = function (url, params) {
+        var paramsArray = [];
+
+        for (var key in params) {
+            paramsArray.push(key + '=' + params[key]);
+        }
+
+        return url + '?' + paramsArray.join('&');
+    };
+    this.getUrlParamsObject = function (url) {
+        var params = this.getUrlParamsString(url);
+        var result = {};
+
+        if (!params) {
+            return result;
+        }
+        var parts = params.split('&');
+        var forParts = [];
+
+        for (var i = 0; i < parts.length; i++) {
+            forParts = parts[i].split('=');
+            result[forParts[0]] = forParts[1];
+        }
+
+        return result;
     }
 }
 
@@ -332,6 +371,7 @@ function GroundDictionaryModel(params) {
     this.url = '/api/v1.0/ground';
     this.creator = undefined;
     this.data = {};
+    this.requestData = {};
     this.dataNames = {
         "id": "№ п/п",
         "accNumber": "№ счета",
@@ -354,11 +394,25 @@ function GroundDictionaryModel(params) {
     this.refresh = function () {
         var requester = kernel.getServiceContainer().get('requester.ajax');
         requester.setUrl(this.url);
-        requester.setData({});
+        requester.setData(this.requestData);
         requester.setMethod('GET');
         requester.setSuccess(this.onRefreshSuccessEvent);
         requester.setError(this.onRequestErrorEvent);
         requester.request();
+    };
+
+    this.appendDataToRequest = function (data) {
+        for (var key in data) {
+            this.requestData[key] = data[key];
+        }
+    };
+
+    this.getRequestData = function (paramName) {
+        if (paramName === undefined) {
+            return this.requestData;
+        }
+
+        return this.requestData[paramName];
     };
 
     this.onRefreshSuccess = function (data) {
@@ -390,17 +444,22 @@ function GroundDictionaryController() {
         this.onEditRecordEvent = this.onEditRecord.bind(this);
         this.onDeleteRecordEvent = this.onDeleteRecord.bind(this);
         this.onSelectRecordEvent = this.onSelectRecord.bind(this);
+        this.onSortRecordsEvent = this.onSortRecords.bind(this);
 
         this.events.push({'selector': '.add_button', 'action': 'click', 'event': this.onAddRecordEvent});
         this.events.push({'selector': '.edit_button', 'action': 'click', 'event': this.onEditRecordEvent});
         this.events.push({'selector': '.delete_button', 'action': 'click', 'event': this.onDeleteRecordEvent});
         this.events.push({'selector': '.table_row', 'action': 'click', 'event': this.onSelectRecordEvent});
         this.events.push({'selector': '.table_row', 'action': 'dblclick', 'event': this.onEditRecordEvent});
+        this.events.push({'selector': '.column_head', 'action': 'click', 'event': this.onSortRecordsEvent});
+
 
         this.MainControllerAbstract();
     };
 
     this.init = function () {
+        this.model.appendDataToRequest(kernel.getServiceContainer().get('helper.url').getUrlParamsObject(document.location.href));
+
         this.model.refresh();
     };
 
@@ -412,24 +471,54 @@ function GroundDictionaryController() {
         eventContainer.setEvents(this.events);
     };
 
+    this.onSortRecords = function (event) {
+        var urlHelper = kernel.getServiceContainer().get('helper.url');
+        this.model.appendDataToRequest({
+            'order_by': event.currentTarget.dataset.name,
+            'order_type': this.model.getRequestData('order_type') === undefined || this.model.getRequestData('order_type') === 'desc'
+                ? 'asc'
+                : 'desc'
+        });
+
+        kernel.getServiceContainer().get('helper.navigator').goTo(
+            urlHelper.buildUrl(
+                urlHelper.getCurrentUrlWithoutDomain(document.location.href),
+                this.model.getRequestData()
+            )
+        );
+    };
+
     this.onAddRecord = function () {
         alert('add');
     };
 
     this.onEditRecord = function (event) {
         if (event.currentTarget.class == 'table_row') {
-            this.model.currentId = event.currentTarget.dataset.id;
+            this.onSelectRecord(event);
         }
-        
+
+        if (this.model.currentId === undefined) {
+            return;
+        }
+
         alert(this.model.currentId);
     };
 
     this.onDeleteRecord = function () {
-        alert('delete');
+        if (this.model.currentId === undefined) {
+            return;
+        }
+
+        alert(this.model.currentId);
     };
 
     this.onSelectRecord = function (event) {
+        if (this.model.currentId !== undefined) {
+            $('.table_row[data-id="' + this.model.currentId + '"]')[0].classList.remove('active');
+        }
         this.model.currentId = event.currentTarget.dataset.id;
+
+        event.currentTarget.classList.add('active');
     };
 
     this.GroundDictionaryController();
@@ -480,7 +569,7 @@ function TableView() {
 function TableHeadView() {
     this.template = [
         '<ul class="table_head">',
-        '<li>',
+        '<li class="column_head" data-name="{name}">',
         '</li>',
         '</ul>'
     ];
@@ -489,7 +578,7 @@ function TableHeadView() {
         var html = this.template[0];
 
         for (var key in data) {
-            html += this.template[1] + data[key] + this.template[2];
+            html += this.template[1].replace('{name}', key) + data[key] + this.template[2];
         }
 
         html += this.template[3];
@@ -674,7 +763,7 @@ function Kernel() {
         var router = this.services.get('service.router');
         var urlHelper = this.services.get('helper.url');
 
-        var url = urlHelper.getUrlWithoutDomain(document.location.href);
+        var url = urlHelper.getCurrentUrlWithoutDomain(document.location.href);
 
         var controllerInfo = router.getController(url);
 

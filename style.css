@@ -116,3 +116,6 @@ ul.table_head {
 ul.table_row {
     background-color: white;
 }
+ul.table_row.active{
+    background-color: blue;
+}
