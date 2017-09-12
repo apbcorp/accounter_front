@@ -1,0 +1,32 @@
+const SERVICES_LIST = {
+    'helper.url': {'class': 'UrlHelper', 'args': {}},
+    'helper.navigator': {'class': 'NavigatorHelper', 'args': {}},
+    'service.router': {'class': 'Router', 'args': {}},
+    'container.user': {'class': 'UserContainer', 'args': {}},
+    'controller.main': {'class': 'MainController', 'args': {}},
+    'controller.login': {'class': 'LoginController', 'args': {}},
+    'view.login': {'class': 'LoginView', 'args': {}},
+    'container.event': {'class': 'EventContainer', 'args': {}},
+    //'requester.ajax': {'class': 'AjaxRequester', 'args': {}}
+    'requester.ajax': {'class': 'AjaxMockRequester', 'args': {}}, //mock
+    'view.main': {'class': 'MainView', 'args': {}},
+    'controller.serviceDictionary': {'class': 'ServiceDictionaryController', 'args': {}},
+    'controller.groundDictionary': {'class': 'GroundDictionaryController', 'args': {}},
+    'controller.meterDictionary': {'class': 'MeterDictionaryController', 'args': {}},
+    'controller.consumerDictionary': {'class': 'ConsumerDictionaryController', 'args': {}},
+    'view.groundDictionary': {'class': 'GroundDictionaryView', 'args': {}},
+    'view.consumerDictionary': {'class': 'ConsumerDictionaryView', 'args': {}},
+    'view.serviceDictionary': {'class': 'ServiceDictionaryView', 'args': {}},
+    'view.meterDictionary': {'class': 'MeterDictionaryView', 'args': {}},
+    'view.table': {'class': 'TableView', 'args': {}},
+    'view.tableHead': {'class': 'TableHeadView', 'args': {}},
+    'view.tableRow': {'class': 'TableRowView', 'args': {}},
+    'controller.groundCard': {'class': 'GroundCardController', 'args': {}},
+    'view.groundCard': {'class': 'GroundCardView', 'args': {}},
+    'controller.serviceCard': {'class': 'ServiceCardController', 'args': {}},
+    'view.serviceCard': {'class': 'ServiceCardView', 'args': {}},
+    'controller.meterCard': {'class': 'MeterCardController', 'args': {}},
+    'view.meterCard': {'class': 'MeterCardView', 'args': {}},
+    'controller.consumerCard': {'class': 'ConsumerCardController', 'args': {}},
+    'view.consumerCard': {'class': 'ConsumerCardView', 'args': {}}
+};
