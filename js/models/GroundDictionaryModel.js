@@ -2,15 +2,15 @@ function GroundDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
     this.url = '/api/v1.0/ground';
     this.dataNames = {
-        "id": "№ п/п",
-        "accNumber": "№ счета",
-        "line": "Линия",
-        "groundNumber": "Номер участка",
-        "area": "Занимаемая площадь, кв. м.",
-        "freeArea": "Не относящаяся к причалу площадь, кв. м.",
-        "commonArea": "Площадь общего пользования, кв. м.",
-        "allArea": "Всего площадь, кв. м.",
-        "owner": "Собственник"
+        "id": RECORD_NUMBER_LANG,
+        "accNumber": ACCOUNT_NUMBER_LANG,
+        "line": GROUND_LINE_LANG,
+        "groundNumber": GROUND_NUMBER_LANG,
+        "area": GROUND_AREA_LANG,
+        "freeArea": GROUND_FREE_AREA_LANG,
+        "commonArea": GROUND_COMMON_AREA_LANG,
+        "allArea": GROUND_ALL_AREA_LANG,
+        "owner": OWNER_FULL_NAME_LANG
     };
 
     this.GroundDictionaryModel = function (object) {

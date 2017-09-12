@@ -32,7 +32,9 @@ function LoginController() {
         data = JSON.parse(data);
         var userContainer = kernel.getServiceContainer().get('container.user');
         userContainer.setUserData(data.result);
-        kernel.getServiceContainer().get('helper.navigator').goTo('/index.html');
+        var url = kernel.getServiceContainer().get('helper.url').getUrlParamsString(document.location.href);
+        url = !url ? '/index.html' : url;
+        kernel.getServiceContainer().get('helper.navigator').goTo(url);
     };
 
     this.onLoginError = function () {

@@ -123,3 +123,20 @@ img.order_image {
     width: 20px;
     height: 12px;
 }
+ul.card_row {
+    padding-top: 10px;
+}
+li.card_cell {
+    width: 50%;
+    font-weight: bold;
+}
+li.card_cell_full {
+    width: 100%;
+    font-weight: bold;
+}
+li.card_cell > input {
+    margin-left: 20px;
+}
+li.card_cell_full > input {
+    margin-left: 20px;
+}

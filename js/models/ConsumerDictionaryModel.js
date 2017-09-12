@@ -2,12 +2,12 @@ function ConsumerDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
     this.url = '/api/v1.0/consumer';
     this.dataNames = {
-        "id": "№ п/п",
-        "surname": "Фамилия",
-        "name": "Имя",
-        "name2": "Отчество",
-        "phone": "Телефон",
-        "adress": "Адрес"
+        "id": RECORD_NUMBER_LANG,
+        "surname": SURNAME_LANG,
+        "name": NAME_LANG,
+        "name2": NAME2_LANG,
+        "phone": PHONE_LANG,
+        "adress": ADRESS_LANG
     };
 
     this.ConsumerDictionaryModel = function (object) {

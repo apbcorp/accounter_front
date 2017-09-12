@@ -344,7 +344,9 @@ function LoginController() {
         data = JSON.parse(data);
         var userContainer = kernel.getServiceContainer().get('container.user');
         userContainer.setUserData(data.result);
-        kernel.getServiceContainer().get('helper.navigator').goTo('/index.html');
+        var url = kernel.getServiceContainer().get('helper.url').getUrlParamsString(document.location.href);
+        url = !url ? '/index.html' : url;
+        kernel.getServiceContainer().get('helper.navigator').goTo(url);
     };
 
     this.onLoginError = function () {
@@ -424,15 +426,25 @@ function ServiceDictionaryController() {
 
     this.AbstractDictionaryController();
 }
-/**
- * Created by User on 10.09.2017.
- */
-
 const HTTP_METHOD_GET    = 'GET';
 const HTTP_METHOD_POST   = 'POST';
 const HTTP_METHOD_PUT    = 'PUT';
 const HTTP_METHOD_PATCH  = 'PATCH';
 const HTTP_METHOD_DELETE = 'DELETE';
+var RECORD_NUMBER_LANG = "№ п/п";
+var ACCOUNT_NUMBER_LANG = "№ счета";
+var GROUND_LINE_LANG = "Линия";
+var GROUND_NUMBER_LANG = "Номер участка";
+var GROUND_AREA_LANG = "Занимаемая площадь, кв. м.";
+var GROUND_FREE_AREA_LANG = "Не относящаяся к причалу площадь, кв. м.";
+var GROUND_COMMON_AREA_LANG = "Площадь общего пользования, кв. м.";
+var GROUND_ALL_AREA_LANG = "Всего площадь, кв. м.";
+var OWNER_FULL_NAME_LANG = "ФИО собственника";
+var SURNAME_LANG = "Фамилия";
+var NAME_LANG = "Имя";
+var NAME2_LANG = "Отчество";
+var PHONE_LANG = "Телефон";
+var ADRESS_LANG = "Адрес";
 const ROUTES = {
     '/index\.html': 'controller.main',
     '/login\.html': 'controller.login',
@@ -601,12 +613,12 @@ function ConsumerDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
     this.url = '/api/v1.0/consumer';
     this.dataNames = {
-        "id": "№ п/п",
-        "surname": "Фамилия",
-        "name": "Имя",
-        "name2": "Отчество",
-        "phone": "Телефон",
-        "adress": "Адрес"
+        "id": RECORD_NUMBER_LANG,
+        "surname": SURNAME_LANG,
+        "name": NAME_LANG,
+        "name2": NAME2_LANG,
+        "phone": PHONE_LANG,
+        "adress": ADRESS_LANG
     };
 
     this.ConsumerDictionaryModel = function (object) {
@@ -658,15 +670,15 @@ function GroundDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
     this.url = '/api/v1.0/ground';
     this.dataNames = {
-        "id": "№ п/п",
-        "accNumber": "№ счета",
-        "line": "Линия",
-        "groundNumber": "Номер участка",
-        "area": "Занимаемая площадь, кв. м.",
-        "freeArea": "Не относящаяся к причалу площадь, кв. м.",
-        "commonArea": "Площадь общего пользования, кв. м.",
-        "allArea": "Всего площадь, кв. м.",
-        "owner": "Собственник"
+        "id": RECORD_NUMBER_LANG,
+        "accNumber": ACCOUNT_NUMBER_LANG,
+        "line": GROUND_LINE_LANG,
+        "groundNumber": GROUND_NUMBER_LANG,
+        "area": GROUND_AREA_LANG,
+        "freeArea": GROUND_FREE_AREA_LANG,
+        "commonArea": GROUND_COMMON_AREA_LANG,
+        "allArea": GROUND_ALL_AREA_LANG,
+        "owner": OWNER_FULL_NAME_LANG
     };
 
     this.GroundDictionaryModel = function (object) {
@@ -742,7 +754,8 @@ function AjaxMockRequester() {
         {'url': '/api/v1.0/consumer', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":[{"id":1,"name":"Игорь","surname":"Агафонников","name2":"Валерьевич","phone":"+380931234567","adress":"г. Одесса ул. М. Арнаутская 1, кв. 1"}]}'},
         {'url': '/api/v1.0/service', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":[{"id":1,"name":"Членские взносы","type":"Член сообщества","subtype":"Фиксированный"},{"id":2,"name":"Аренда земли","type":"Участок","subtype":"По площади"},{"id":3,"name":"Услуги энергоснабжения","type":"Участок","subtype":"По счетчику (электричество)"}]}'},
         {'url': '/api/v1.0/meter', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":[{"id":1,"number":"Э1111","type":"Электричество","ground":"4/245"},{"id":2,"number":"Г2222","type":"Газовый","ground":"4/245"}]}'},
-        {'url': '/api/v1.0/ground/1', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":{"id":1,"accNumber":449,"line":4,"groundNumber":245,"area":"91","freeArea":"0","commonArea":"13,34","allArea":"104,34"}}'}
+        {'url': '/api/v1.0/ground/1', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":{"id":1,"accNumber":449,"line":4,"groundNumber":245,"area":"91","freeArea":"0","commonArea":"13,34","allArea":"104,34"}}'},
+        {'url': '/api/v1.0/consumer/1', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":{"id":1,"name":"Игорь","surname":"Агафонников","name2":"Валерьевич","phone":"+380931234567","adress":"г. Одесса ул. М. Арнаутская 1, кв. 1"}}'}
     ];
 
     this.setUrl = function (url) {
@@ -855,13 +868,43 @@ function AbstractView() {
 }
 function ConsumerCardView() {
     AbstractView.call(this);
-    this.template = '';
+    this.template = '<div class="sheet"><ul class="card_row"><li class="card_cell">{SURNAME_LANG}<input name="surname" value="{surname}"></li><li class="card_cell">{NAME_LANG}<input name="name" value="{name}"></li></ul><ul class="card_row"><li class="card_cell">{NAME2_LANG}<input name="name2" value="{name2}"></li><li class="card_cell">{PHONE_LANG}<input name="phone" value="{phone}"></li></ul><ul class="card_row"><li class="card_cell_full">{ADRESS_LANG}<input name="adress" value="{adress}" size="100"></li></ul></ul></div>';
 
     this.buildTemplate = function (data) {
         var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
-        html += '</div>';
+        html += this.addData(this.template, data) + '</div>';
 
         return html;
+    };
+
+    this.addData = function (template, data) {
+        for (var key in data) {
+            template = template.replace('{' + key + '}', data[key]);
+        }
+
+        template = this.addLangs(template);
+
+        return template;
+    };
+
+    this.addLangs = function (template) {
+        var matches = template.match(/{.*?}/g);
+
+        if (!matches.length) {
+            return template;
+        }
+
+        var key = '';
+        for (var i = 0; i < matches.length; i++) {
+            key = matches[i].replace('{', '').replace('}', '');
+            if (/_LANG/.test(key)) {
+                template = template.replace(matches[i], window[key] === undefined ? key : window[key]);
+            } else {
+                template = template.replace(matches[i], '');
+            }
+        }
+
+        return template;
     };
 }
 function ConsumerDictionaryView() {
@@ -873,6 +916,7 @@ function GroundCardView() {
 
     this.buildTemplate = function (data) {
         var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+        html += this.template;
         html += '</div>';
 
         return html;
