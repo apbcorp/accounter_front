@@ -91,6 +91,24 @@ button.delete_button {
     background-position-x: center;
     background-position-y: 3px;
 }
+button.save_button {
+    margin-left: 3px;
+    width: 36px;
+    height: 31px;
+    background-image: url(img/save.png);
+    background-repeat: no-repeat;
+    background-position-x: center;
+    background-position-y: 3px;
+}
+button.cancel_button {
+    margin-left: 3px;
+    width: 36px;
+    height: 31px;
+    background-image: url(img/cancel.png);
+    background-repeat: no-repeat;
+    background-position-x: center;
+    background-position-y: 3px;
+}
 div.sheet {
     margin: 30px auto 30px auto;
     width: 70%;

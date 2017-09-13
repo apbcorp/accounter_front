@@ -56,7 +56,7 @@ function AbstractDictionaryController() {
     };
 
     this.onAddRecord = function () {
-        alert('add');
+        kernel.getServiceContainer().get('helper.navigator').goTo(this.cardPath + 'new.html')
     };
 
     this.onEditRecord = function (event) {

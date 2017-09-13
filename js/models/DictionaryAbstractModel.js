@@ -6,12 +6,6 @@ function DictionaryAbstractModel() {
         this.AbstractModel(object);
     };
 
-    this.appendDataToRequest = function (data) {
-        for (var key in data) {
-            this.requestData[key] = data[key];
-        }
-    };
-
     this.getDataForView = function () {
         var result = {
             'columns': this.dataNames,

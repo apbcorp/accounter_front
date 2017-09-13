@@ -171,8 +171,16 @@ function UserContainer() {
 function AbstractCardController() {
     MainControllerAbstract.call(this);
     this.viewName = undefined;
+    this.submodels = {};
+    this.backUrl = '/index.html';
 
     this.AbstractCardController = function () {
+        this.onSaveEvent = this.onSave.bind(this);
+        this.onCancelEvent = this.onCancel.bind(this);
+
+        this.events.push({'selector': '.save_button', 'action': 'click', 'event': this.onSaveEvent});
+        this.events.push({'selector': '.cancel_button', 'action': 'click', 'event': this.onCancelEvent});
+
         this.MainControllerAbstract();
     };
 
@@ -188,7 +196,27 @@ function AbstractCardController() {
 
         var eventContainer = kernel.getServiceContainer().get('container.event');
         eventContainer.setEvents(this.events);
+
+        if (this.model.recordId != 0) {
+            for (var key in this.submodels) {
+                this.submodels[key].refresh();
+            }
+        }
     };
+
+    this.onSave = function () {
+        this.fillModel();
+        this.model.save();
+    };
+
+    this.onCancel = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo(this.backUrl);
+    };
+
+    this.fillModel = function () {
+
+    };
+
 }
 function AbstractDictionaryController() {
     MainControllerAbstract.call(this);
@@ -248,7 +276,7 @@ function AbstractDictionaryController() {
     };
 
     this.onAddRecord = function () {
-        alert('add');
+        kernel.getServiceContainer().get('helper.navigator').goTo(this.cardPath + 'new.html')
     };
 
     this.onEditRecord = function (event) {
@@ -284,8 +312,58 @@ function ConsumerCardController() {
     AbstractCardController.call(this);
     this.model = new ConsumerCardModel(this);
     this.viewName = 'view.consumerCard';
+    this.submodels = {
+        ground: new GroundDictionaryModel(this)
+    };
+    this.backUrl = '/dictionary/consumers.html';
 
-    this.AbstractCardController();
+    this.ConsumerCardController = function () {
+        this.AbstractCardController();
+    };
+
+    this.init = function (params) {
+        if (params === undefined || params[0] === undefined || params[0] == 'new') {
+            this.onRefreshComplete({});
+
+            return;
+        }
+
+        this.showGroundTableEvent = this.showGroundTable.bind(this);
+        this.submodels.ground.setSuccessCallback(this.showGroundTableEvent);
+        this.submodels.ground.appendDataToRequest({'owner_id': params[0]});
+
+        this.model.setId(params[0]);
+
+        this.model.refresh();
+    };
+
+    this.showGroundTable = function (data) {
+        delete data.columns.owner;
+
+        for (var key in data.data) {
+            delete data.data[key].owner;
+        }
+        data.hideButtons = true;
+        data.isSubview = true;
+
+        var view = kernel.getServiceContainer().get('view.table');
+        var html = view.buildTemplate(data);
+        $('.table_ground')[0].innerHTML = html;
+    };
+
+    this.fillModel = function () {
+        var data = {
+            name: $('[name="name"]')[0].value,
+            surname: $('[name="surname"]')[0].value,
+            name2: $('[name="name2"]')[0].value,
+            phone: $('[name="phone"]')[0].value,
+            adress: $('[name="adress"]')[0].value
+        };
+
+        this.model.appendDataToRequest(data);
+    };
+
+    this.ConsumerCardController();
 }
 function ConsumerDictionaryController() {
     AbstractDictionaryController.call(this);
@@ -553,17 +631,68 @@ function UrlHelper() {
         return result;
     }
 }
+function AbstractCardModel(object) {
+    AbstractModel.call(this);
+    this.recordId = 0;
+
+    this.AbstractCardModel = function (object) {
+        this.onSaveSuccessEvent = this.onSaveSuccess.bind(this);
+        this.onSaveErrorEvent = this.onSaveError.bind(this);
+
+        this.AbstractModel(object);
+    };
+
+    this.setId = function (id) {
+        this.recordId = id;
+        this.url = this.baseUrl + '/' + id;
+    };
+
+    this.save = function () {
+        var method = this.recordId ? HTTP_METHOD_PUT : HTTP_METHOD_POST;
+        var url = this.url ? this.url : this.baseUrl;
+
+        var requester = kernel.getServiceContainer().get('requester.ajax');
+        requester.setUrl(url);
+        requester.setData(this.requestData);
+        requester.setMethod(method);
+        requester.setSuccess(this.onSaveSuccessEvent);
+        requester.setError(this.onSaveErrorEvent);
+        requester.request();
+    };
+
+    this.onSaveSuccess = function () {
+        alert('Сохранение прошло успешно');
+
+        kernel.getServiceContainer().get('helper.navigator').goTo(this.backUrl);
+    };
+
+    this.onSaveError = function () {
+        alert('Ошибка соединения с сервером. Повторите попытку позднее');
+    };
+}
 function AbstractModel() {
     this.creator = undefined;
     this.data = {};
     this.requestData = {};
     this.method = 'GET';
+    this.successCallback = undefined;
+    this.url = '';
 
     this.AbstractModel = function (object) {
         this.creator = object;
 
         this.onRefreshSuccessEvent = this.onRefreshSuccess.bind(this);
         this.onRequestErrorEvent = this.onRequestError.bind(this);
+    };
+
+    this.setSuccessCallback = function (callback) {
+        this.successCallback = callback;
+    };
+
+    this.appendDataToRequest = function (data) {
+        for (var key in data) {
+            this.requestData[key] = data[key];
+        }
     };
 
     this.refresh = function () {
@@ -588,7 +717,11 @@ function AbstractModel() {
         data = JSON.parse(data);
         this.data = data.result;
 
-        this.creator.onRefreshComplete(this.getDataForView());
+        if (this.successCallback !== undefined) {
+            this.successCallback(this.getDataForView())
+        } else {
+            this.creator.onRefreshComplete(this.getDataForView());
+        }
     };
 
     this.getDataForView = function () {
@@ -600,14 +733,10 @@ function AbstractModel() {
     };
 }
 function ConsumerCardModel(object) {
-    AbstractModel.call(this);
-    this.baseUrl = '/api/v1.0/consumer/';
+    AbstractCardModel.call(this);
+    this.baseUrl = '/api/v1.0/consumer';
 
-    this.setId = function (id) {
-        this.url = this.baseUrl + id;
-    };
-
-    this.AbstractModel(object);
+    this.AbstractCardModel(object);
 }
 function ConsumerDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
@@ -635,12 +764,6 @@ function DictionaryAbstractModel() {
         this.AbstractModel(object);
     };
 
-    this.appendDataToRequest = function (data) {
-        for (var key in data) {
-            this.requestData[key] = data[key];
-        }
-    };
-
     this.getDataForView = function () {
         var result = {
             'columns': this.dataNames,
@@ -657,14 +780,10 @@ function DictionaryAbstractModel() {
     };
 }
 function GroundCardModel(object) {
-    AbstractModel.call(this);
-    this.baseUrl = '/api/v1.0/ground/';
+    AbstractCardModel.call(this);
+    this.baseUrl = '/api/v1.0/ground';
 
-    this.setId = function (id) {
-        this.url = this.baseUrl + id;
-    };
-
-    this.AbstractModel(object);
+    this.AbstractCardModel(object);
 }
 function GroundDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
@@ -688,14 +807,10 @@ function GroundDictionaryModel(params) {
     this.GroundDictionaryModel(params);
 }
 function MeterCardModel(object) {
-    AbstractModel.call(this);
-    this.baseUrl = '/api/v1.0/meter/';
+    AbstractCardModel.call(this);
+    this.baseUrl = '/api/v1.0/meter';
 
-    this.setId = function (id) {
-        this.url = this.baseUrl + id;
-    };
-
-    this.AbstractModel(object);
+    this.AbstractCardModel(object);
 }
 function MeterDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
@@ -714,14 +829,10 @@ function MeterDictionaryModel(params) {
     this.ServiceDictionaryModel(params);
 }
 function ServiceCardModel(object) {
-    AbstractModel.call(this);
-    this.baseUrl = '/api/v1.0/service/';
+    AbstractCardModel.call(this);
+    this.baseUrl = '/api/v1.0/service';
 
-    this.setId = function (id) {
-        this.url = this.baseUrl + id;
-    };
-
-    this.AbstractModel(object);
+    this.AbstractCardModel(object);
 }
 function ServiceDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
@@ -868,7 +979,7 @@ function AbstractView() {
 }
 function ConsumerCardView() {
     AbstractView.call(this);
-    this.template = '<div class="sheet"><ul class="card_row"><li class="card_cell">{SURNAME_LANG}<input name="surname" value="{surname}"></li><li class="card_cell">{NAME_LANG}<input name="name" value="{name}"></li></ul><ul class="card_row"><li class="card_cell">{NAME2_LANG}<input name="name2" value="{name2}"></li><li class="card_cell">{PHONE_LANG}<input name="phone" value="{phone}"></li></ul><ul class="card_row"><li class="card_cell_full">{ADRESS_LANG}<input name="adress" value="{adress}" size="100"></li></ul></ul></div>';
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{SURNAME_LANG}<input name="surname" value="{surname}"></li><li class="card_cell">{NAME_LANG}<input name="name" value="{name}"></li></ul><ul class="card_row"><li class="card_cell">{NAME2_LANG}<input name="name2" value="{name2}"></li><li class="card_cell">{PHONE_LANG}<input name="phone" value="{phone}"></li></ul><ul class="card_row"><li class="card_cell_full">{ADRESS_LANG}<input name="adress" value="{adress}" size="100"></li></ul></ul><div class="table_ground"></div></div>';
 
     this.buildTemplate = function (data) {
         var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
@@ -1020,19 +1131,28 @@ function TableRowView() {
 }
 function TableView() {
     this.template = [
-        '<div class="sheet"><li><ul><button class="add_button"></button><button class="edit_button"></button><button class="delete_button"></button></ul><ul><div class="table">',
+        '<div class="sheet"><li>',
+        '',
+        '<ul><button class="add_button"></button><button class="edit_button"></button><!--<button class="delete_button"></button>--></ul>',
+        '<ul><div class="table">',
         '</div></ul></li></div>'
     ];
 
     this.buildTemplate = function (data) {
-        var html = this.template[0];
+        var html = data.isSubview === undefined || data.isSubview === false ? this.template[0] : this.template[1];
+
+        if (data.hideButtons === undefined || data.hideButtons === false) {
+            html += this.template[2];
+        }
+
+        html += this.template[3];
         html += kernel.getServiceContainer().get('view.tableHead').buildTemplate(data.columns, data.orderBy, data.orderType);
 
         for (var i = 0; i < data.data.length; i++) {
             html += kernel.getServiceContainer().get('view.tableRow').buildTemplate(data.data[i], Object.keys(data.columns));
         }
 
-        html += this.template[1];
+        html += this.template[4];
 
         return html;
     };
