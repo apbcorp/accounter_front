@@ -364,6 +364,19 @@ function ServiceCardController() {
 
     this.ServiceCardController();
 }
+function AccurringDocumentsController() {
+    
+}
+function MetersDocumentsController() {
+    
+}
+function PayDocumentsController() {
+
+}
+
+function TarifsDocumentsController() {
+    
+}
 function LoginController() {
     this.events = [];
 
@@ -420,6 +433,18 @@ function MainController() {
     MainControllerAbstract.call(this);
 
     this.MainControllerAbstract();
+}
+function BalanceReportController() {
+    
+}
+function MainReportController() {
+    
+}
+function MetersReportController() {
+    
+}
+function SmsReportController() {
+    
 }
 function AbstractCardController() {
     MainControllerAbstract.call(this);
@@ -675,7 +700,15 @@ const ROUTES = {
     '/dictionary/ground/(.*)\.html': 'controller.groundCard',
     '/dictionary/meter/(.*)\.html': 'controller.meterCard',
     '/dictionary/service/(.*)\.html': 'controller.serviceCard',
-    '/dictionary/consumer/(.*)\.html': 'controller.consumerCard'
+    '/dictionary/consumer/(.*)\.html': 'controller.consumerCard',
+    '/document/pays\.html': 'controller.payDocuments',
+    '/document/accurring\.html': 'controller.accurringDocuments',
+    '/document/meters\.html': 'controller.metersDocuments',
+    '/document/tarifs\.html': 'controller.tarifsDocuments',
+    '/report/main\.html': 'controller.mainReport',
+    '/report/meters\.html': 'controller.metersReport',
+    '/report/balance\.html': 'controller.balanceReport',
+    '/report/sms\.html': 'controller.smsReport'
 };
 
 LOGIN_ROUTE = '/login.html';
@@ -867,6 +900,30 @@ function ServiceCardModel(object) {
     this.baseUrl = '/api/v1.0/service';
 
     this.AbstractCardModel(object);
+}
+function AccurringDocumentsModel() {
+    
+}
+function MetersDocumentsModel() {
+    
+}
+function PayDocumentsModel() {
+    
+}
+function TarifsDocumentsModel() {
+    
+}
+function BalanceReportModel() {
+    
+}
+function MainReportModel() {
+
+}
+function MetersReportModel() {
+    
+}
+function SmsReportModel() {
+    
 }
 function AbstractCardModel(object) {
     AbstractModel.call(this);
@@ -1124,6 +1181,18 @@ function ServiceCardView() {
     AbstractCardView.call(this);
     this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{SERVICE_NAME_LANG}<input name="name" value="{name}"></li><li class="card_cell">{SERVICE_TYPE_LANG}<input name="type" value="{type}"></li></ul><ul class="card_row"><li class="card_cell">{SERVICE_CALC_BASE_LANG}<input name="subtype" value="{subtype}"></li></ul></div>';
 }
+function AccurringDocumentsView() {
+    
+}
+function MetersDocumentsView() {
+    
+}
+function PayDocumentsView() {
+    
+}
+function TarifsDocumentsView() {
+    
+}
 function LoginView() {
     AbstractView.call(this);
     this.template = '<table align="center" style="padding-top: 100px;"><tr><td><table><tr><td>Имя пользователя</td><td><input name="login"></td></tr><tr><td>Пароль</td><td><input type="password" name="password"></td></tr></table></td></tr><tr class="login_error"><td>Ввведна неверная комбинация имени и пароля</td></tr><tr><td><center><button class="login_button">Вход</button></center></td></tr></table>';
@@ -1139,6 +1208,18 @@ function MainView() {
     this.buildTemplate = function () {
         return this.template;
     };
+}
+function BalanceReportView() {
+    
+}
+function MainReportView() {
+    
+}
+function MetersReportView() {
+    
+}
+function SmsReportView() {
+    
 }
 function TableHeadView() {
     this.template = [
