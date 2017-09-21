@@ -5,6 +5,8 @@ function MainController() {
         var eventContainer = kernel.getServiceContainer().get('container.event');
         eventContainer.setEvents(this.events);
     };
+
     MainControllerAbstract.call(this);
+
     this.MainControllerAbstract();
 }

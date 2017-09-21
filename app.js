@@ -168,6 +168,259 @@ function UserContainer() {
 
     this.UserContainer();
 }
+function ConsumerDictionaryController() {
+    AbstractDictionaryController.call(this);
+    this.model = new ConsumerDictionaryModel(this);
+    this.cardPath = '/dictionary/consumer/';
+    this.viewName = 'view.consumerDictionary';
+
+    this.AbstractDictionaryController();
+}
+function GroundDictionaryController() {
+    AbstractDictionaryController.call(this);
+    this.model = new GroundDictionaryModel(this);
+    this.cardPath = '/dictionary/ground/';
+    this.viewName = 'view.groundDictionary';
+
+    this.AbstractDictionaryController();
+}
+function MeterDictionaryController() {
+    AbstractDictionaryController.call(this);
+    this.model = new MeterDictionaryModel(this);
+    this.cardPath = '/dictionary/meter/';
+    this.viewName = 'view.meterDictionary';
+
+    this.AbstractDictionaryController();
+}
+function ServiceDictionaryController() {
+    AbstractDictionaryController.call(this);
+    this.model = new ServiceDictionaryModel(this);
+    this.cardPath = '/dictionary/service/';
+    this.viewName = 'view.serviceDictionary';
+
+    this.AbstractDictionaryController();
+}
+function ConsumerCardController() {
+    AbstractCardController.call(this);
+    this.model = new ConsumerCardModel(this);
+    this.viewName = 'view.consumerCard';
+    this.submodels = {
+        ground: new GroundDictionaryModel(this)
+    };
+    this.backUrl = '/dictionary/consumers.html';
+
+    this.ConsumerCardController = function () {
+        this.AbstractCardController();
+    };
+
+    this.init = function (params) {
+        if (params === undefined || params[0] === undefined || params[0] == 'new') {
+            this.onRefreshComplete({});
+
+            return;
+        }
+
+        this.showGroundTableEvent = this.showGroundTable.bind(this);
+        this.submodels.ground.setSuccessCallback(this.showGroundTableEvent);
+        this.submodels.ground.appendDataToRequest({'owner_id': params[0]});
+
+        this.model.setId(params[0]);
+
+        this.model.refresh();
+    };
+
+    this.showGroundTable = function (data) {
+        delete data.columns.owner;
+
+        for (var key in data.data) {
+            delete data.data[key].owner;
+        }
+        data.hideButtons = true;
+        data.isSubview = true;
+
+        var view = kernel.getServiceContainer().get('view.table');
+        var html = view.buildTemplate(data);
+        $('.table_ground')[0].innerHTML = html;
+    };
+
+    this.fillModel = function () {
+        var data = {
+            name: $('[name="name"]')[0].value,
+            surname: $('[name="surname"]')[0].value,
+            name2: $('[name="name2"]')[0].value,
+            phone: $('[name="phone"]')[0].value,
+            adress: $('[name="adress"]')[0].value
+        };
+
+        this.model.appendDataToRequest(data);
+    };
+
+    this.ConsumerCardController();
+}
+function GroundCardController() {
+    AbstractCardController.call(this);
+    this.model = new GroundCardModel(this);
+    this.viewName = 'view.groundCard';
+    this.backUrl = 'dictionary/grounds.html';
+
+    this.GroundCardController = function () {
+        this.AbstractCardController();
+    };
+
+    this.init = function (params) {
+        if (params === undefined || params[0] === undefined || params[0] == 'new') {
+            this.onRefreshComplete({});
+
+            return;
+        }
+
+        this.model.setId(params[0]);
+
+        this.model.refresh();
+    };
+
+    this.fillModel = function () {
+        var data = {
+            accNumber: $('[name="accNumber"]')[0].value,
+            line: $('[name="line"]')[0].value,
+            groundNumber: $('[name="groundNumber"]')[0].value,
+            area: $('[name="area"]')[0].value,
+            freeArea: $('[name="freeArea"]')[0].value,
+            commonArea: $('[name="commonArea"]')[0].value,
+            allArea: $('[name="allArea"]')[0].value,
+            owner: $('[name="owner"]')[0].attribute('id')
+        };
+
+        this.model.appendDataToRequest(data);
+    };
+
+    this.GroundCardController();
+}
+function MeterCardController() {
+    AbstractCardController.call(this);
+    this.model = new MeterCardModel(this);
+    this.viewName = 'view.meterCard';
+    this.backUrl = 'dictionary/meters.html';
+
+    this.MeterCardController = function () {
+        this.AbstractCardController();
+    };
+
+    this.init = function (params) {
+        if (params === undefined || params[0] === undefined || params[0] == 'new') {
+            this.onRefreshComplete({});
+
+            return;
+        }
+
+        this.model.setId(params[0]);
+
+        this.model.refresh();
+    };
+
+    this.fillModel = function () {
+        var data = {
+            number: $('[name="number"]')[0].value,
+            type: $('[name="type"]')[0].value,
+            ground: $('[name="ground"]')[0].attribute('id')
+        };
+
+        this.model.appendDataToRequest(data);
+    };
+
+    this.MeterCardController();
+}
+function ServiceCardController() {
+    AbstractCardController.call(this);
+    this.model = new ServiceCardModel(this);
+    this.viewName = 'view.serviceCard';
+    this.backUrl = 'dictionary/services.html';
+
+    this.ServiceCardController = function () {
+        this.AbstractCardController();
+    };
+
+    this.init = function (params) {
+        if (params === undefined || params[0] === undefined || params[0] == 'new') {
+            this.onRefreshComplete({});
+
+            return;
+        }
+
+        this.model.setId(params[0]);
+
+        this.model.refresh();
+    };
+
+    this.fillModel = function () {
+        var data = {
+            name: $('[name="name"]')[0].value,
+            type: $('[name="type"]')[0].value,
+            subtype: $('[name="subtype"]')[0].value
+        };
+
+        this.model.appendDataToRequest(data);
+    };
+
+    this.ServiceCardController();
+}
+function LoginController() {
+    this.events = [];
+
+    this.LoginController = function () {
+        this.onLoginEvent = this.onLogin.bind(this);
+        this.onLoginSuccessEvent = this.onLoginSuccess.bind(this);
+        this.onLoginErrorEvent = this.onLoginError.bind(this);
+
+        this.events = [
+            {'selector': '.login_button', 'action': 'click', 'event': this.onLoginEvent}
+        ];
+    };
+
+    this.init = function () {
+        var view = kernel.getServiceContainer().get('view.login');
+        view.render();
+        var eventContainer = kernel.getServiceContainer().get('container.event');
+        eventContainer.setEvents(this.events);
+    };
+
+    this.onLogin = function () {
+        var requester = kernel.getServiceContainer().get('requester.ajax');
+        requester.setUrl('/api/v1.0/login');
+        requester.setData({'login': $('[name = login]')[0].value, 'password': $('[name = password]')[0].value});
+        requester.setMethod('GET');
+        requester.setSuccess(this.onLoginSuccessEvent);
+        requester.setError(this.onLoginErrorEvent);
+        requester.request();
+    };
+
+    this.onLoginSuccess = function (data) {
+        data = JSON.parse(data);
+        var userContainer = kernel.getServiceContainer().get('container.user');
+        userContainer.setUserData(data.result);
+        var url = kernel.getServiceContainer().get('helper.url').getUrlParamsString(document.location.href);
+        url = !url ? '/index.html' : url;
+        kernel.getServiceContainer().get('helper.navigator').goTo(url);
+    };
+
+    this.onLoginError = function () {
+        $('.login_error')[0].style.display = 'block';
+    };
+
+    this.LoginController();
+}
+function MainController() {
+    this.init = function () {
+        var view = kernel.getServiceContainer().get('view.main');
+        view.render();
+        var eventContainer = kernel.getServiceContainer().get('container.event');
+        eventContainer.setEvents(this.events);
+    };
+
+    MainControllerAbstract.call(this);
+
+    this.MainControllerAbstract();
+}
 function AbstractCardController() {
     MainControllerAbstract.call(this);
     this.viewName = undefined;
@@ -308,141 +561,6 @@ function AbstractDictionaryController() {
         event.currentTarget.classList.add('active');
     };
 }
-function ConsumerCardController() {
-    AbstractCardController.call(this);
-    this.model = new ConsumerCardModel(this);
-    this.viewName = 'view.consumerCard';
-    this.submodels = {
-        ground: new GroundDictionaryModel(this)
-    };
-    this.backUrl = '/dictionary/consumers.html';
-
-    this.ConsumerCardController = function () {
-        this.AbstractCardController();
-    };
-
-    this.init = function (params) {
-        if (params === undefined || params[0] === undefined || params[0] == 'new') {
-            this.onRefreshComplete({});
-
-            return;
-        }
-
-        this.showGroundTableEvent = this.showGroundTable.bind(this);
-        this.submodels.ground.setSuccessCallback(this.showGroundTableEvent);
-        this.submodels.ground.appendDataToRequest({'owner_id': params[0]});
-
-        this.model.setId(params[0]);
-
-        this.model.refresh();
-    };
-
-    this.showGroundTable = function (data) {
-        delete data.columns.owner;
-
-        for (var key in data.data) {
-            delete data.data[key].owner;
-        }
-        data.hideButtons = true;
-        data.isSubview = true;
-
-        var view = kernel.getServiceContainer().get('view.table');
-        var html = view.buildTemplate(data);
-        $('.table_ground')[0].innerHTML = html;
-    };
-
-    this.fillModel = function () {
-        var data = {
-            name: $('[name="name"]')[0].value,
-            surname: $('[name="surname"]')[0].value,
-            name2: $('[name="name2"]')[0].value,
-            phone: $('[name="phone"]')[0].value,
-            adress: $('[name="adress"]')[0].value
-        };
-
-        this.model.appendDataToRequest(data);
-    };
-
-    this.ConsumerCardController();
-}
-function ConsumerDictionaryController() {
-    AbstractDictionaryController.call(this);
-    this.model = new ConsumerDictionaryModel(this);
-    this.cardPath = '/dictionary/consumer/';
-    this.viewName = 'view.consumerDictionary';
-
-    this.AbstractDictionaryController();
-}
-function GroundCardController() {
-    AbstractCardController.call(this);
-    this.model = new GroundCardModel(this);
-    this.viewName = 'view.groundCard';
-
-    this.AbstractCardController();
-}
-function GroundDictionaryController() {
-    AbstractDictionaryController.call(this);
-    this.model = new GroundDictionaryModel(this);
-    this.cardPath = '/dictionary/ground/';
-    this.viewName = 'view.groundDictionary';
-
-    this.AbstractDictionaryController();
-}
-function LoginController() {
-    this.events = [];
-
-    this.LoginController = function () {
-        this.onLoginEvent = this.onLogin.bind(this);
-        this.onLoginSuccessEvent = this.onLoginSuccess.bind(this);
-        this.onLoginErrorEvent = this.onLoginError.bind(this);
-
-        this.events = [
-            {'selector': '.login_button', 'action': 'click', 'event': this.onLoginEvent}
-        ];
-    };
-
-    this.init = function () {
-        var view = kernel.getServiceContainer().get('view.login');
-        view.render();
-        var eventContainer = kernel.getServiceContainer().get('container.event');
-        eventContainer.setEvents(this.events);
-    };
-
-    this.onLogin = function () {
-        var requester = kernel.getServiceContainer().get('requester.ajax');
-        requester.setUrl('/api/v1.0/login');
-        requester.setData({'login': $('[name = login]')[0].value, 'password': $('[name = password]')[0].value});
-        requester.setMethod('GET');
-        requester.setSuccess(this.onLoginSuccessEvent);
-        requester.setError(this.onLoginErrorEvent);
-        requester.request();
-    };
-
-    this.onLoginSuccess = function (data) {
-        data = JSON.parse(data);
-        var userContainer = kernel.getServiceContainer().get('container.user');
-        userContainer.setUserData(data.result);
-        var url = kernel.getServiceContainer().get('helper.url').getUrlParamsString(document.location.href);
-        url = !url ? '/index.html' : url;
-        kernel.getServiceContainer().get('helper.navigator').goTo(url);
-    };
-
-    this.onLoginError = function () {
-        $('.login_error')[0].style.display = 'block';
-    };
-
-    this.LoginController();
-}
-function MainController() {
-    this.init = function () {
-        var view = kernel.getServiceContainer().get('view.main');
-        view.render();
-        var eventContainer = kernel.getServiceContainer().get('container.event');
-        eventContainer.setEvents(this.events);
-    };
-    MainControllerAbstract.call(this);
-    this.MainControllerAbstract();
-}
 function MainControllerAbstract() {
     this.events = [];
 
@@ -451,11 +569,27 @@ function MainControllerAbstract() {
         this.onGetMetersDictionaryEvent = this.onGetMetersDictionary.bind(this);
         this.onGetConsumerDictionaryEvent = this.onGetConsumerDictionary.bind(this);
         this.onGetServicesDictionaryEvent = this.onGetServicesDictionary.bind(this);
+        this.onGetPayDocumentsEvent = this.onGetPayDocuments.bind(this);
+        this.onGetAccuringDocumentsEvent = this.onGetAccurringDocuments.bind(this);
+        this.onGetMetersDocumentsEvent = this.onGetMetersDocuments.bind(this);
+        this.onGetTarifsDocumentsEvent = this.onGetTarifDocuments.bind(this);
+        this.onGetMainReportEvent = this.onGetMainReport.bind(this);
+        this.onGetMetersReportEvent = this.onGetMetersReport.bind(this);
+        this.onGetBalanceReportEvent = this.onGetBalanceReport.bind(this);
+        this.onGetSmsReportEvent = this.onGetSmsReport.bind(this);
 
         this.events.push({'selector': '.ground_dictionary_button', 'action': 'click', 'event': this.onGetGroundDictionaryEvent});
         this.events.push({'selector': '.services_dictionary_button', 'action': 'click', 'event': this.onGetServicesDictionaryEvent});
         this.events.push({'selector': '.meters_dictionary_button', 'action': 'click', 'event': this.onGetMetersDictionaryEvent});
         this.events.push({'selector': '.consumer_dictionary_button', 'action': 'click', 'event': this.onGetConsumerDictionaryEvent});
+        this.events.push({'selector': '.pay_documents_button', 'action': 'click', 'event': this.onGetPayDocumentsEvent});
+        this.events.push({'selector': '.accuring_documents_button', 'action': 'click', 'event': this.onGetAccuringDocumentsEvent});
+        this.events.push({'selector': '.meters_documents_button', 'action': 'click', 'event': this.onGetMetersDocumentsEvent});
+        this.events.push({'selector': '.tarifs_documents_button', 'action': 'click', 'event': this.onGetTarifsDocumentsEvent});
+        this.events.push({'selector': '.main_report_button', 'action': 'click', 'event': this.onGetMainReportEvent});
+        this.events.push({'selector': '.meters_report_button', 'action': 'click', 'event': this.onGetMetersReportEvent});
+        this.events.push({'selector': '.balance_report_button', 'action': 'click', 'event': this.onGetBalanceReportEvent});
+        this.events.push({'selector': '.sms_report_button', 'action': 'click', 'event': this.onGetSmsReportEvent});
     };
 
     this.onGetConsumerDictionary = function () {
@@ -473,36 +607,38 @@ function MainControllerAbstract() {
     this.onGetServicesDictionary = function () {
         kernel.getServiceContainer().get('helper.navigator').goTo('/dictionary/services.html');
     };
-}
-function MeterCardController() {
-    AbstractCardController.call(this);
-    this.model = new MeterCardModel(this);
-    this.viewName = 'view.meterCard';
 
-    this.AbstractCardController();
-}
-function MeterDictionaryController() {
-    AbstractDictionaryController.call(this);
-    this.model = new MeterDictionaryModel(this);
-    this.cardPath = '/dictionary/meter/';
-    this.viewName = 'view.meterDictionary';
+    this.onGetPayDocuments = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo('/document/pays.html');
+    };
 
-    this.AbstractDictionaryController();
-}
-function ServiceCardController() {
-    AbstractCardController.call(this);
-    this.model = new ServiceCardModel(this);
-    this.viewName = 'view.serviceCard';
+    this.onGetAccurringDocuments = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo('/document/accurring.html');
+    };
 
-    this.AbstractCardController();
-}
-function ServiceDictionaryController() {
-    AbstractDictionaryController.call(this);
-    this.model = new ServiceDictionaryModel(this);
-    this.cardPath = '/dictionary/service/';
-    this.viewName = 'view.serviceDictionary';
+    this.onGetMetersDocuments = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo('/document/meters.html');
+    };
 
-    this.AbstractDictionaryController();
+    this.onGetTarifDocuments = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo('/document/tarifs.html');
+    };
+
+    this.onGetMainReport = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo('/report/main.html');
+    };
+
+    this.onGetMetersReport = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo('/report/meters.html');
+    };
+
+    this.onGetBalanceReport = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo('/report/balance.html');
+    };
+
+    this.onGetSmsReport = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo('/report/sms.html');
+    };
 }
 const HTTP_METHOD_GET    = 'GET';
 const HTTP_METHOD_POST   = 'POST';
@@ -523,6 +659,12 @@ var NAME_LANG = "Имя";
 var NAME2_LANG = "Отчество";
 var PHONE_LANG = "Телефон";
 var ADRESS_LANG = "Адрес";
+var METER_NUMBER_LANG = "Номер счетчика";
+var METER_TYPE_LANG = "Тип счетчика";
+var METER_GROUND_OWNER_LANG = "Участок установки";
+var SERVICE_NAME_LANG = "Название услуги";
+var SERVICE_TYPE_LANG = "Тип потребителя услуги";
+var SERVICE_CALC_BASE_LANG = "Тип базы для расчета";
 const ROUTES = {
     '/index\.html': 'controller.main',
     '/login\.html': 'controller.login',
@@ -631,6 +773,101 @@ function UrlHelper() {
         return result;
     }
 }
+function ConsumerDictionaryModel(params) {
+    DictionaryAbstractModel.call(this);
+    this.url = '/api/v1.0/consumer';
+    this.dataNames = {
+        "id": RECORD_NUMBER_LANG,
+        "surname": SURNAME_LANG,
+        "name": NAME_LANG,
+        "name2": NAME2_LANG,
+        "phone": PHONE_LANG,
+        "adress": ADRESS_LANG
+    };
+
+    this.ConsumerDictionaryModel = function (object) {
+        this.DictionaryAbstractModel(object);
+    };
+
+    this.ConsumerDictionaryModel(params);
+}
+function GroundDictionaryModel(params) {
+    DictionaryAbstractModel.call(this);
+    this.url = '/api/v1.0/ground';
+    this.dataNames = {
+        "id": RECORD_NUMBER_LANG,
+        "accNumber": ACCOUNT_NUMBER_LANG,
+        "line": GROUND_LINE_LANG,
+        "groundNumber": GROUND_NUMBER_LANG,
+        "area": GROUND_AREA_LANG,
+        "freeArea": GROUND_FREE_AREA_LANG,
+        "commonArea": GROUND_COMMON_AREA_LANG,
+        "allArea": GROUND_ALL_AREA_LANG,
+        "owner": OWNER_FULL_NAME_LANG
+    };
+
+    this.GroundDictionaryModel = function (object) {
+        this.DictionaryAbstractModel(object);
+    };
+
+    this.GroundDictionaryModel(params);
+}
+function MeterDictionaryModel(params) {
+    DictionaryAbstractModel.call(this);
+    this.url = '/api/v1.0/meter';
+    this.dataNames = {
+        "id": RECORD_NUMBER_LANG,
+        "number": METER_NUMBER_LANG,
+        "type": METER_TYPE_LANG,
+        "ground": METER_GROUND_OWNER_LANG
+    };
+
+    this.ServiceDictionaryModel = function (object) {
+        this.DictionaryAbstractModel(object);
+    };
+
+    this.ServiceDictionaryModel(params);
+}
+function ServiceDictionaryModel(params) {
+    DictionaryAbstractModel.call(this);
+    this.url = '/api/v1.0/service';
+    this.dataNames = {
+        "id": RECORD_NUMBER_LANG,
+        "name": SERVICE_NAME_LANG,
+        "type": SERVICE_TYPE_LANG,
+        "subtype": SERVICE_CALC_BASE_LANG
+    };
+
+    this.ServiceDictionaryModel = function (object) {
+        this.DictionaryAbstractModel(object);
+    };
+
+    this.ServiceDictionaryModel(params);
+}
+function ConsumerCardModel(object) {
+    AbstractCardModel.call(this);
+    this.baseUrl = '/api/v1.0/consumer';
+
+    this.AbstractCardModel(object);
+}
+function GroundCardModel(object) {
+    AbstractCardModel.call(this);
+    this.baseUrl = '/api/v1.0/ground';
+
+    this.AbstractCardModel(object);
+}
+function MeterCardModel(object) {
+    AbstractCardModel.call(this);
+    this.baseUrl = '/api/v1.0/meter';
+
+    this.AbstractCardModel(object);
+}
+function ServiceCardModel(object) {
+    AbstractCardModel.call(this);
+    this.baseUrl = '/api/v1.0/service';
+
+    this.AbstractCardModel(object);
+}
 function AbstractCardModel(object) {
     AbstractModel.call(this);
     this.recordId = 0;
@@ -732,30 +969,6 @@ function AbstractModel() {
         alert('Не получилось получить доступ к серверу.');
     };
 }
-function ConsumerCardModel(object) {
-    AbstractCardModel.call(this);
-    this.baseUrl = '/api/v1.0/consumer';
-
-    this.AbstractCardModel(object);
-}
-function ConsumerDictionaryModel(params) {
-    DictionaryAbstractModel.call(this);
-    this.url = '/api/v1.0/consumer';
-    this.dataNames = {
-        "id": RECORD_NUMBER_LANG,
-        "surname": SURNAME_LANG,
-        "name": NAME_LANG,
-        "name2": NAME2_LANG,
-        "phone": PHONE_LANG,
-        "adress": ADRESS_LANG
-    };
-
-    this.ConsumerDictionaryModel = function (object) {
-        this.DictionaryAbstractModel(object);
-    };
-
-    this.ConsumerDictionaryModel(params);
-}
 function DictionaryAbstractModel() {
     AbstractModel.call(this);
     this.currentId = undefined;
@@ -779,77 +992,6 @@ function DictionaryAbstractModel() {
         return result;
     };
 }
-function GroundCardModel(object) {
-    AbstractCardModel.call(this);
-    this.baseUrl = '/api/v1.0/ground';
-
-    this.AbstractCardModel(object);
-}
-function GroundDictionaryModel(params) {
-    DictionaryAbstractModel.call(this);
-    this.url = '/api/v1.0/ground';
-    this.dataNames = {
-        "id": RECORD_NUMBER_LANG,
-        "accNumber": ACCOUNT_NUMBER_LANG,
-        "line": GROUND_LINE_LANG,
-        "groundNumber": GROUND_NUMBER_LANG,
-        "area": GROUND_AREA_LANG,
-        "freeArea": GROUND_FREE_AREA_LANG,
-        "commonArea": GROUND_COMMON_AREA_LANG,
-        "allArea": GROUND_ALL_AREA_LANG,
-        "owner": OWNER_FULL_NAME_LANG
-    };
-
-    this.GroundDictionaryModel = function (object) {
-        this.DictionaryAbstractModel(object);
-    };
-
-    this.GroundDictionaryModel(params);
-}
-function MeterCardModel(object) {
-    AbstractCardModel.call(this);
-    this.baseUrl = '/api/v1.0/meter';
-
-    this.AbstractCardModel(object);
-}
-function MeterDictionaryModel(params) {
-    DictionaryAbstractModel.call(this);
-    this.url = '/api/v1.0/meter';
-    this.dataNames = {
-        "id": "№ п/п",
-        "number": "Номер счетчика",
-        "type": "Тип счетчика",
-        "ground": "Участок установки"
-    };
-
-    this.ServiceDictionaryModel = function (object) {
-        this.DictionaryAbstractModel(object);
-    };
-
-    this.ServiceDictionaryModel(params);
-}
-function ServiceCardModel(object) {
-    AbstractCardModel.call(this);
-    this.baseUrl = '/api/v1.0/service';
-
-    this.AbstractCardModel(object);
-}
-function ServiceDictionaryModel(params) {
-    DictionaryAbstractModel.call(this);
-    this.url = '/api/v1.0/service';
-    this.dataNames = {
-        "id": "№ п/п",
-        "name": "Название услуги",
-        "type": "Тип потребителя услуги",
-        "subtype": "Тип базы для расчета"
-    };
-
-    this.ServiceDictionaryModel = function (object) {
-        this.DictionaryAbstractModel(object);
-    };
-
-    this.ServiceDictionaryModel(params);
-}
 function AjaxMockRequester() {
     this.requestData = {
         'url': '',
@@ -865,8 +1007,10 @@ function AjaxMockRequester() {
         {'url': '/api/v1.0/consumer', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":[{"id":1,"name":"Игорь","surname":"Агафонников","name2":"Валерьевич","phone":"+380931234567","adress":"г. Одесса ул. М. Арнаутская 1, кв. 1"}]}'},
         {'url': '/api/v1.0/service', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":[{"id":1,"name":"Членские взносы","type":"Член сообщества","subtype":"Фиксированный"},{"id":2,"name":"Аренда земли","type":"Участок","subtype":"По площади"},{"id":3,"name":"Услуги энергоснабжения","type":"Участок","subtype":"По счетчику (электричество)"}]}'},
         {'url': '/api/v1.0/meter', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":[{"id":1,"number":"Э1111","type":"Электричество","ground":"4/245"},{"id":2,"number":"Г2222","type":"Газовый","ground":"4/245"}]}'},
-        {'url': '/api/v1.0/ground/1', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":{"id":1,"accNumber":449,"line":4,"groundNumber":245,"area":"91","freeArea":"0","commonArea":"13,34","allArea":"104,34"}}'},
-        {'url': '/api/v1.0/consumer/1', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":{"id":1,"name":"Игорь","surname":"Агафонников","name2":"Валерьевич","phone":"+380931234567","adress":"г. Одесса ул. М. Арнаутская 1, кв. 1"}}'}
+        {'url': '/api/v1.0/ground/1', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":{"id":1,"accNumber":449,"line":4,"groundNumber":245,"area":"91","freeArea":"0","commonArea":"13,34","allArea":"104,34","owner":"Агафонников И.В."}}'},
+        {'url': '/api/v1.0/consumer/1', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":{"id":1,"name":"Игорь","surname":"Агафонников","name2":"Валерьевич","phone":"+380931234567","adress":"г. Одесса ул. М. Арнаутская 1, кв. 1"}}'},
+        {'url': '/api/v1.0/meter/1', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":{"id":1,"number":"Э1111","type":"Электричество","ground":"4/245"}}'},
+        {'url': '/api/v1.0/service/1', 'data': {}, 'method': 'GET', 'result': '{"status":"success","result":{"id":1,"name":"Членские взносы","type":"Член сообщества","subtype":"Фиксированный"}}'},
     ];
 
     this.setUrl = function (url) {
@@ -952,89 +1096,33 @@ function AjaxRequester() {
         });
     }
 }
-function AbstractDictionaryView() {
-    AbstractView.call(this);
-
-    this.buildTemplate = function (data) {
-        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
-        html += kernel.getServiceContainer().get('view.table').buildTemplate(data);
-        html += '</div>';
-
-        return html;
-    };
-}
-function AbstractView() {
-    this.template = '';
-
-    this.render = function (data) {
-        this.clear();
-        var html = this.buildTemplate(data);
-        $('body').append(html);
-    };
-
-    this.clear = function () {
-        var body = $('body')[0];
-        body.removeChild(body.lastChild);
-    }
-}
-function ConsumerCardView() {
-    AbstractView.call(this);
-    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{SURNAME_LANG}<input name="surname" value="{surname}"></li><li class="card_cell">{NAME_LANG}<input name="name" value="{name}"></li></ul><ul class="card_row"><li class="card_cell">{NAME2_LANG}<input name="name2" value="{name2}"></li><li class="card_cell">{PHONE_LANG}<input name="phone" value="{phone}"></li></ul><ul class="card_row"><li class="card_cell_full">{ADRESS_LANG}<input name="adress" value="{adress}" size="100"></li></ul></ul><div class="table_ground"></div></div>';
-
-    this.buildTemplate = function (data) {
-        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
-        html += this.addData(this.template, data) + '</div>';
-
-        return html;
-    };
-
-    this.addData = function (template, data) {
-        for (var key in data) {
-            template = template.replace('{' + key + '}', data[key]);
-        }
-
-        template = this.addLangs(template);
-
-        return template;
-    };
-
-    this.addLangs = function (template) {
-        var matches = template.match(/{.*?}/g);
-
-        if (!matches.length) {
-            return template;
-        }
-
-        var key = '';
-        for (var i = 0; i < matches.length; i++) {
-            key = matches[i].replace('{', '').replace('}', '');
-            if (/_LANG/.test(key)) {
-                template = template.replace(matches[i], window[key] === undefined ? key : window[key]);
-            } else {
-                template = template.replace(matches[i], '');
-            }
-        }
-
-        return template;
-    };
-}
 function ConsumerDictionaryView() {
     AbstractDictionaryView.call(this);
 }
-function GroundCardView() {
-    AbstractView.call(this);
-    this.template = '';
-
-    this.buildTemplate = function (data) {
-        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
-        html += this.template;
-        html += '</div>';
-
-        return html;
-    };
-}
 function GroundDictionaryView() {
     AbstractDictionaryView.call(this);
+}
+function MeterDictionaryView() {
+    AbstractDictionaryView.call(this);
+}
+function ServiceDictionaryView() {
+    AbstractDictionaryView.call(this);
+}
+function ConsumerCardView() {
+    AbstractCardView.call(this);
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{SURNAME_LANG}<input name="surname" value="{surname}"></li><li class="card_cell">{NAME_LANG}<input name="name" value="{name}"></li></ul><ul class="card_row"><li class="card_cell">{NAME2_LANG}<input name="name2" value="{name2}"></li><li class="card_cell">{PHONE_LANG}<input name="phone" value="{phone}"></li></ul><ul class="card_row"><li class="card_cell_full">{ADRESS_LANG}<input name="adress" value="{adress}" size="100"></li></ul><div class="table_ground"></div></div>';
+}
+function GroundCardView() {
+    AbstractCardView.call(this);
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{ACCOUNT_NUMBER_LANG}<input name="accNumber" value="{accNumber}"></li><li class="card_cell">{GROUND_LINE_LANG}<input name="line" value="{line}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_NUMBER_LANG}<input name="groundNumber" value="{groundNumber}"></li><li class="card_cell">{GROUND_AREA_LANG}<input name="area" value="{area}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_FREE_AREA_LANG}<input name="freeArea" value="{freeArea}"></li><li class="card_cell">{GROUND_COMMON_AREA_LANG}<input name="commonArea" value="{commonArea}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_ALL_AREA_LANG}<input name="allArea" value="{allArea}"></li><li class="card_cell">{OWNER_FULL_NAME_LANG}<input name="owner" value="{owner}"></li></ul></div>';
+}
+function MeterCardView() {
+    AbstractCardView.call(this);
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{METER_NUMBER_LANG}<input name="number" value="{number}"></li><li class="card_cell">{METER_TYPE_LANG}<input name="type" value="{type}"></li></ul><ul class="card_row"><li class="card_cell">{METER_GROUND_OWNER_LANG}<input name="ground" value="{ground}"></li></ul></div>';
+}
+function ServiceCardView() {
+    AbstractCardView.call(this);
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{SERVICE_NAME_LANG}<input name="name" value="{name}"></li><li class="card_cell">{SERVICE_TYPE_LANG}<input name="type" value="{type}"></li></ul><ul class="card_row"><li class="card_cell">{SERVICE_CALC_BASE_LANG}<input name="subtype" value="{subtype}"></li></ul></div>';
 }
 function LoginView() {
     AbstractView.call(this);
@@ -1046,39 +1134,11 @@ function LoginView() {
 }
 function MainView() {
     AbstractView.call(this);
-    this.template = '<div><ul class="menu"><li class="menu_element"><p>Справочники</p><ul class="submenu"><li class="submenu_element consumer_dictionary_button"><p>Потребители</p></li><li class="submenu_element ground_dictionary_button"><p>Участки</p></li><li class="submenu_element meters_dictionary_button"><p>Счетчики</p></li><li class="submenu_element services_dictionary_button"><p>Усуги</p></li></ul></li><li class="menu_element"><p>Документы</p></li><li class="menu_element"><p>Отчеты</p></li></ul></div>';
+    this.template = '<div><ul class="menu"><li class="menu_element"><p>Справочники</p><ul class="submenu"><li class="submenu_element consumer_dictionary_button"><p>Потребители</p></li><li class="submenu_element ground_dictionary_button"><p>Участки</p></li><li class="submenu_element meters_dictionary_button"><p>Счетчики</p></li><li class="submenu_element services_dictionary_button"><p>Усуги</p></li></ul></li><li class="menu_element"><p>Документы</p><ul class="submenu"><li class="submenu_element pay_documents_button"><p>Оплаты</p></li><li class="submenu_element accuring_documents_button"><p>Начисления</p></li><li class="submenu_element meters_documents_button"><p>Показания счетчиков</p></li><li class="submenu_element tarifs_documents_button"><p>Тарифы</p></li></ul></li><li class="menu_element"><p>Отчеты</p><ul class="submenu"><li class="submenu_element main_report_button"><p>Основной отчет</p></li><li class="submenu_element meters_report_button"><p>Отчет по счетчикам</p></li><li class="submenu_element balance_report_button"><p>Баланс расчетов</p></li><li class="submenu_element sms_report_button"><p>Отчет о смс</p></li></ul></li></ul></div>';
 
     this.buildTemplate = function () {
         return this.template;
     };
-}
-function MeterCardView() {
-    AbstractView.call(this);
-    this.template = '';
-
-    this.buildTemplate = function (data) {
-        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
-        html += '</div>';
-
-        return html;
-    };
-}
-function MeterDictionaryView() {
-    AbstractDictionaryView.call(this);
-}
-function ServiceCardView() {
-    AbstractView.call(this);
-    this.template = '';
-
-    this.buildTemplate = function (data) {
-        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
-        html += '</div>';
-
-        return html;
-    };
-}
-function ServiceDictionaryView() {
-    AbstractDictionaryView.call(this);
 }
 function TableHeadView() {
     this.template = [
@@ -1156,4 +1216,69 @@ function TableView() {
 
         return html;
     };
+}
+function AbstractCardView() {
+    AbstractView.call(this);
+
+    this.buildTemplate = function (data) {
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+        html += this.addData(this.template, data) + '</div>';
+
+        return html;
+    };
+
+    this.addData = function (template, data) {
+        for (var key in data) {
+            template = template.replace('{' + key + '}', data[key]);
+        }
+
+        template = this.addLangs(template);
+
+        return template;
+    };
+
+    this.addLangs = function (template) {
+        var matches = template.match(/{.*?}/g);
+
+        if (!matches.length) {
+            return template;
+        }
+
+        var key = '';
+        for (var i = 0; i < matches.length; i++) {
+            key = matches[i].replace('{', '').replace('}', '');
+            if (/_LANG/.test(key)) {
+                template = template.replace(matches[i], window[key] === undefined ? key : window[key]);
+            } else {
+                template = template.replace(matches[i], '');
+            }
+        }
+
+        return template;
+    };
+}
+function AbstractDictionaryView() {
+    AbstractView.call(this);
+
+    this.buildTemplate = function (data) {
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+        html += kernel.getServiceContainer().get('view.table').buildTemplate(data);
+        html += '</div>';
+
+        return html;
+    };
+}
+function AbstractView() {
+    this.template = '';
+
+    this.render = function (data) {
+        this.clear();
+        var html = this.buildTemplate(data);
+        $('body').append(html);
+    };
+
+    this.clear = function () {
+        var body = $('body')[0];
+        body.removeChild(body.lastChild);
+    }
 }
