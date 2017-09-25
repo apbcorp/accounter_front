@@ -2,7 +2,7 @@ function ServiceCardController() {
     AbstractCardController.call(this);
     this.model = new ServiceCardModel(this);
     this.viewName = 'view.serviceCard';
-    this.backUrl = 'dictionary/services.html';
+    this.backUrl = '/dictionary/services.html';
 
     this.ServiceCardController = function () {
         this.AbstractCardController();

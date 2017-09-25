@@ -261,7 +261,7 @@ function GroundCardController() {
     AbstractCardController.call(this);
     this.model = new GroundCardModel(this);
     this.viewName = 'view.groundCard';
-    this.backUrl = 'dictionary/grounds.html';
+    this.backUrl = '/dictionary/grounds.html';
 
     this.GroundCardController = function () {
         this.AbstractCardController();
@@ -300,7 +300,7 @@ function MeterCardController() {
     AbstractCardController.call(this);
     this.model = new MeterCardModel(this);
     this.viewName = 'view.meterCard';
-    this.backUrl = 'dictionary/meters.html';
+    this.backUrl = '/dictionary/meters.html';
 
     this.MeterCardController = function () {
         this.AbstractCardController();
@@ -334,7 +334,7 @@ function ServiceCardController() {
     AbstractCardController.call(this);
     this.model = new ServiceCardModel(this);
     this.viewName = 'view.serviceCard';
-    this.backUrl = 'dictionary/services.html';
+    this.backUrl = '/dictionary/services.html';
 
     this.ServiceCardController = function () {
         this.AbstractCardController();
@@ -365,17 +365,17 @@ function ServiceCardController() {
     this.ServiceCardController();
 }
 function AccurringDocumentsController() {
-    
+    MainControllerAbstract.call(this);
 }
 function MetersDocumentsController() {
-    
+    MainControllerAbstract.call(this);
 }
 function PayDocumentsController() {
-
+    MainControllerAbstract.call(this);
 }
 
 function TarifsDocumentsController() {
-    
+    MainControllerAbstract.call(this);
 }
 function LoginController() {
     this.events = [];
@@ -435,16 +435,16 @@ function MainController() {
     this.MainControllerAbstract();
 }
 function BalanceReportController() {
-    
+    MainControllerAbstract.call(this);
 }
 function MainReportController() {
-    
+    MainControllerAbstract.call(this);
 }
 function MetersReportController() {
-    
+    MainControllerAbstract.call(this);
 }
 function SmsReportController() {
-    
+    MainControllerAbstract.call(this);
 }
 function AbstractCardController() {
     MainControllerAbstract.call(this);
@@ -742,7 +742,23 @@ const SERVICES_LIST = {
     'controller.meterCard': {'class': 'MeterCardController', 'args': {}},
     'view.meterCard': {'class': 'MeterCardView', 'args': {}},
     'controller.consumerCard': {'class': 'ConsumerCardController', 'args': {}},
-    'view.consumerCard': {'class': 'ConsumerCardView', 'args': {}}
+    'view.consumerCard': {'class': 'ConsumerCardView', 'args': {}},
+    'controller.accuringDocuments': {'class': 'AccurringDocumentsController', 'args': {}},
+    'controller.metersDocuments': {'class': 'MetersDocumentsController', 'args': {}},
+    'controller.payDocuments': {'class': 'PayDocumentsController', 'args': {}},
+    'controller.tarifsDocuments': {'class': 'TarifsDocumentsController', 'args': {}},
+    'controller.balanceReport': {'class': 'BalanceReportController', 'args': {}},
+    'controller.mainReport': {'class': 'MainReportController', 'args': {}},
+    'controller.metersReport': {'class': 'MetersReportController', 'args': {}},
+    'controller.smsReport': {'class': 'SmsReportController', 'args': {}},
+    'view.accuringDocuments': {'class': 'AccurringDictionaryView', 'args': {}},
+    'view.metersDocuments': {'class': 'MetersDictionaryView', 'args': {}},
+    'view.payDocuments': {'class': 'PayDictionaryView', 'args': {}},
+    'view.tarifsDocuments': {'class': 'TarifsDictionaryView', 'args': {}},
+    'view.balanceReports': {'class': 'BalanceReportsView', 'args': {}},
+    'view.mainReports': {'class': 'MainReportsView', 'args': {}},
+    'view.metersReports': {'class': 'MetersReportsView', 'args': {}},
+    'view.smsReports': {'class': 'SmsReportsView', 'args': {}}
 };
 
 function NavigatorHelper() {

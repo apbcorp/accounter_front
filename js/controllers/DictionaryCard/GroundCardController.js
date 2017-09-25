@@ -2,7 +2,7 @@ function GroundCardController() {
     AbstractCardController.call(this);
     this.model = new GroundCardModel(this);
     this.viewName = 'view.groundCard';
-    this.backUrl = 'dictionary/grounds.html';
+    this.backUrl = '/dictionary/grounds.html';
 
     this.GroundCardController = function () {
         this.AbstractCardController();
