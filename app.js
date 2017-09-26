@@ -365,17 +365,17 @@ function ServiceCardController() {
     this.ServiceCardController();
 }
 function AccurringDocumentsController() {
-    MainControllerAbstract.call(this);
+    AbstractDocumentsController.call(this);
 }
 function MetersDocumentsController() {
-    MainControllerAbstract.call(this);
+    AbstractDocumentsController.call(this);
 }
 function PayDocumentsController() {
-    MainControllerAbstract.call(this);
+    AbstractDocumentsController.call(this);
 }
 
 function TarifsDocumentsController() {
-    MainControllerAbstract.call(this);
+    AbstractDocumentsController.call(this);
 }
 function LoginController() {
     this.events = [];
@@ -435,16 +435,16 @@ function MainController() {
     this.MainControllerAbstract();
 }
 function BalanceReportController() {
-    MainControllerAbstract.call(this);
+    AbstractReportController.call(this);
 }
 function MainReportController() {
-    MainControllerAbstract.call(this);
+    AbstractReportController.call(this);
 }
 function MetersReportController() {
-    MainControllerAbstract.call(this);
+    AbstractReportController.call(this);
 }
 function SmsReportController() {
-    MainControllerAbstract.call(this);
+    AbstractReportController.call(this);
 }
 function AbstractCardController() {
     MainControllerAbstract.call(this);
@@ -585,6 +585,12 @@ function AbstractDictionaryController() {
 
         event.currentTarget.classList.add('active');
     };
+}
+function AbstractDocumentsController() {
+    MainControllerAbstract.call(this);
+}
+function AbstractReportController() {
+    MainControllerAbstract.call(this);
 }
 function MainControllerAbstract() {
     this.events = [];
