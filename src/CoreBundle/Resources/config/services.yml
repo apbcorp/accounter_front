@@ -1,0 +1,22 @@
+services:
+    auth.factory.entity:
+        class: CoreBundle\Factory\EntityFactory
+
+    auth.service.token:
+        class: CoreBundle\Service\TokenService
+        arguments: ['@doctrine.orm.entity_manager', '@auth.factory.entity']
+
+    auth.provider.user:
+        class: CoreBundle\Service\ApiKeyUserProvider
+        arguments: ['@doctrine.orm.entity_manager', '@auth.factory.entity']
+
+    auth.authenticator:
+        class: CoreBundle\Authenticator\ApiKeyAuthenticator
+        public: false
+
+    security.access_listener:
+        class: CoreBundle\EventListner\AccessListner
+        arguments: ['@doctrine.orm.entity_manager', '@security.token_storage', '@auth.service.token', '@core.container.cookie']
+
+    core.container.cookie:
+        class: CoreBundle\Container\CookieContainer

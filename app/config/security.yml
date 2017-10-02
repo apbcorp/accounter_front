@@ -1,0 +1,13 @@
+security:
+
+    providers:
+        auth.provider.user:
+            id: auth.provider.user
+
+    firewalls:
+        secured_area:
+            pattern: ^/api/1.0(?!/login)
+            stateless: true
+            simple_preauth:
+                authenticator: auth.authenticator
+            provider: auth.provider.user
