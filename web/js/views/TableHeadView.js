@@ -2,8 +2,8 @@ function TableHeadView() {
     this.template = [
         '<ul class="table_head">',
         '<li class="column_head" data-name="{name}">',
-        '<li class="column_head" data-name="{name}"><img class="order_image" src="/img/uparrow.png">',
         '<li class="column_head" data-name="{name}"><img class="order_image" src="/img/downarrow.png">',
+        '<li class="column_head" data-name="{name}"><img class="order_image" src="/img/uparrow.png">',
         '</li>',
         '</ul>'
     ];

@@ -204,9 +204,6 @@ function ConsumerCardController() {
     AbstractCardController.call(this);
     this.model = new ConsumerCardModel(this);
     this.viewName = 'view.consumerCard';
-    this.submodels = {
-        ground: new GroundDictionaryModel(this)
-    };
     this.backUrl = '/dictionary/consumers.html';
 
     this.ConsumerCardController = function () {
@@ -214,15 +211,15 @@ function ConsumerCardController() {
     };
 
     this.init = function (params) {
+        this.model.requestData = {};
         if (params === undefined || params[0] === undefined || params[0] == 'new') {
             this.onRefreshComplete({});
+            this.model.setId(0);
 
             return;
         }
 
         this.showGroundTableEvent = this.showGroundTable.bind(this);
-        this.submodels.ground.setSuccessCallback(this.showGroundTableEvent);
-        this.submodels.ground.appendDataToRequest({'owner_id': params[0]});
 
         this.model.setId(params[0]);
 
@@ -268,8 +265,10 @@ function GroundCardController() {
     };
 
     this.init = function (params) {
+        this.model.requestData = {};
         if (params === undefined || params[0] === undefined || params[0] == 'new') {
             this.onRefreshComplete({});
+            this.model.setId(0);
 
             return;
         }
@@ -282,13 +281,14 @@ function GroundCardController() {
     this.fillModel = function () {
         var data = {
             accNumber: $('[name="accNumber"]')[0].value,
+            number: $('[name="number"]')[0].value,
             line: $('[name="line"]')[0].value,
             groundNumber: $('[name="groundNumber"]')[0].value,
             area: $('[name="area"]')[0].value,
             freeArea: $('[name="freeArea"]')[0].value,
             commonArea: $('[name="commonArea"]')[0].value,
-            allArea: $('[name="allArea"]')[0].value,
-            owner: $('[name="owner"]')[0].attribute('id')
+            allArea: $('[name="allArea"]')[0].value//,
+            //owner: $('[name="owner"]')[0].attribute('id')
         };
 
         this.model.appendDataToRequest(data);
@@ -307,8 +307,10 @@ function MeterCardController() {
     };
 
     this.init = function (params) {
+        this.model.requestData = {};
         if (params === undefined || params[0] === undefined || params[0] == 'new') {
             this.onRefreshComplete({});
+            this.model.setId(0);
 
             return;
         }
@@ -341,8 +343,10 @@ function ServiceCardController() {
     };
 
     this.init = function (params) {
+        this.model.requestData = {};
         if (params === undefined || params[0] === undefined || params[0] == 'new') {
             this.onRefreshComplete({});
+            this.model.setId(0);
 
             return;
         }
@@ -464,6 +468,7 @@ function AbstractCardController() {
 
     this.init = function (params) {
         this.model.setId(params[0]);
+        this.model.requestData = {};
 
         this.model.refresh();
     };
@@ -678,6 +683,7 @@ const HTTP_METHOD_PATCH  = 'PATCH';
 const HTTP_METHOD_DELETE = 'DELETE';
 var RECORD_NUMBER_LANG = "№ п/п";
 var ACCOUNT_NUMBER_LANG = "№ счета";
+var NUMBER_LANG = "№ куреня";
 var GROUND_LINE_LANG = "Линия";
 var GROUND_NUMBER_LANG = "Номер участка";
 var GROUND_AREA_LANG = "Занимаемая площадь, кв. м.";
@@ -830,7 +836,7 @@ function UrlHelper() {
 }
 function ConsumerDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
-    this.url = '/api/v1.0/consumer';
+    this.url = '/api/v1.0/list/kontragent';
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
         "surname": SURNAME_LANG,
@@ -848,10 +854,11 @@ function ConsumerDictionaryModel(params) {
 }
 function GroundDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
-    this.url = '/api/v1.0/ground';
+    this.url = '/api/v1.0/list/ground';
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
         "accNumber": ACCOUNT_NUMBER_LANG,
+        "number": NUMBER_LANG,
         "line": GROUND_LINE_LANG,
         "groundNumber": GROUND_NUMBER_LANG,
         "area": GROUND_AREA_LANG,
@@ -901,7 +908,7 @@ function ServiceDictionaryModel(params) {
 }
 function ConsumerCardModel(object) {
     AbstractCardModel.call(this);
-    this.baseUrl = '/api/v1.0/consumer';
+    this.baseUrl = '/api/v1.0/kontragent';
 
     this.AbstractCardModel(object);
 }
@@ -960,11 +967,11 @@ function AbstractCardModel(object) {
 
     this.setId = function (id) {
         this.recordId = id;
-        this.url = this.baseUrl + '/' + id;
+        this.url = id ? this.baseUrl + '/' + id : this.baseUrl;
     };
 
     this.save = function () {
-        var method = this.recordId ? HTTP_METHOD_PUT : HTTP_METHOD_POST;
+        var method = this.recordId ? HTTP_METHOD_PATCH : HTTP_METHOD_POST;
         var url = this.url ? this.url : this.baseUrl;
 
         var requester = kernel.getServiceContainer().get('requester.ajax');
@@ -1030,7 +1037,6 @@ function AbstractModel() {
     };
 
     this.onRefreshSuccess = function (data) {
-        data = JSON.parse(data);
         this.data = data.result;
 
         if (this.successCallback !== undefined) {
@@ -1193,7 +1199,7 @@ function ConsumerCardView() {
 }
 function GroundCardView() {
     AbstractCardView.call(this);
-    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{ACCOUNT_NUMBER_LANG}<input name="accNumber" value="{accNumber}"></li><li class="card_cell">{GROUND_LINE_LANG}<input name="line" value="{line}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_NUMBER_LANG}<input name="groundNumber" value="{groundNumber}"></li><li class="card_cell">{GROUND_AREA_LANG}<input name="area" value="{area}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_FREE_AREA_LANG}<input name="freeArea" value="{freeArea}"></li><li class="card_cell">{GROUND_COMMON_AREA_LANG}<input name="commonArea" value="{commonArea}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_ALL_AREA_LANG}<input name="allArea" value="{allArea}"></li><li class="card_cell">{OWNER_FULL_NAME_LANG}<input name="owner" value="{owner}"></li></ul></div>';
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{ACCOUNT_NUMBER_LANG}<input name="accNumber" value="{accNumber}"></li><li class="card_cell">{NUMBER_LANG}<input name="number" value="{number}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_LINE_LANG}<input name="line" value="{line}"></li><li class="card_cell">{GROUND_NUMBER_LANG}<input name="groundNumber" value="{groundNumber}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_AREA_LANG}<input name="area" value="{area}"></li><li class="card_cell">{GROUND_FREE_AREA_LANG}<input name="freeArea" value="{freeArea}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_COMMON_AREA_LANG}<input name="commonArea" value="{commonArea}"></li><li class="card_cell">{GROUND_ALL_AREA_LANG}<input name="allArea" value="{allArea}"></li></ul><ul class="card_row"><li class="card_cell">{OWNER_FULL_NAME_LANG}<input name="owner" value="{owner}"></li></ul></div>';
 }
 function MeterCardView() {
     AbstractCardView.call(this);
@@ -1247,8 +1253,8 @@ function TableHeadView() {
     this.template = [
         '<ul class="table_head">',
         '<li class="column_head" data-name="{name}">',
-        '<li class="column_head" data-name="{name}"><img class="order_image" src="/img/uparrow.png">',
         '<li class="column_head" data-name="{name}"><img class="order_image" src="/img/downarrow.png">',
+        '<li class="column_head" data-name="{name}"><img class="order_image" src="/img/uparrow.png">',
         '</li>',
         '</ul>'
     ];

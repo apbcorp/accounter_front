@@ -4,6 +4,8 @@ namespace CoreBundle\Factory;
 
 use CoreBundle\Entity\Users;
 use CoreBundle\Entity\Token;
+use KontragentBundle\Entity\Ground;
+use KontragentBundle\Entity\Kontragent;
 
 class EntityFactory
 {
@@ -21,5 +23,21 @@ class EntityFactory
     public function createUser()
     {
         return new Users();
+    }
+
+    /**
+     * @return Kontragent
+     */
+    public function createKontragent()
+    {
+        return new Kontragent();
+    }
+
+    /**
+     * @return Ground
+     */
+    public function createGround()
+    {
+        return new Ground();
     }
 } 

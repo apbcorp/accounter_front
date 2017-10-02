@@ -9,8 +9,10 @@ function ServiceCardController() {
     };
 
     this.init = function (params) {
+        this.model.requestData = {};
         if (params === undefined || params[0] === undefined || params[0] == 'new') {
             this.onRefreshComplete({});
+            this.model.setId(0);
 
             return;
         }

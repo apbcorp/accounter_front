@@ -2,9 +2,6 @@ function ConsumerCardController() {
     AbstractCardController.call(this);
     this.model = new ConsumerCardModel(this);
     this.viewName = 'view.consumerCard';
-    this.submodels = {
-        ground: new GroundDictionaryModel(this)
-    };
     this.backUrl = '/dictionary/consumers.html';
 
     this.ConsumerCardController = function () {
@@ -12,15 +9,15 @@ function ConsumerCardController() {
     };
 
     this.init = function (params) {
+        this.model.requestData = {};
         if (params === undefined || params[0] === undefined || params[0] == 'new') {
             this.onRefreshComplete({});
+            this.model.setId(0);
 
             return;
         }
 
         this.showGroundTableEvent = this.showGroundTable.bind(this);
-        this.submodels.ground.setSuccessCallback(this.showGroundTableEvent);
-        this.submodels.ground.appendDataToRequest({'owner_id': params[0]});
 
         this.model.setId(params[0]);
 

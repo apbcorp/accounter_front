@@ -1,0 +1,4 @@
+kontragent:
+    resource: "@KontragentBundle/Controller"
+    prefix: /
+    type:     annotation

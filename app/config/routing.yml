@@ -1,3 +1,7 @@
+kontragent:
+    resource: "@KontragentBundle/Resources/config/routing.yml"
+    prefix:   /api/v1.0
+
 user:
     resource: "@UserBundle/Resources/config/routing.yml"
     prefix:   /api

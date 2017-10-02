@@ -42,7 +42,6 @@ function AbstractModel() {
     };
 
     this.onRefreshSuccess = function (data) {
-        data = JSON.parse(data);
         this.data = data.result;
 
         if (this.successCallback !== undefined) {

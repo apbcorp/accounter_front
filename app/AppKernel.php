@@ -18,6 +18,7 @@ class AppKernel extends Kernel
             new \Doctrine\Bundle\MigrationsBundle\DoctrineMigrationsBundle(),
             new CoreBundle\CoreBundle(),
             new UserBundle\UserBundle(),
+            new KontragentBundle\KontragentBundle(),
         );
 
         if (in_array($this->getEnvironment(), array('dev', 'test'), true)) {

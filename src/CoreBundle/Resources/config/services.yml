@@ -1,14 +1,14 @@
 services:
-    auth.factory.entity:
+    core.factory.entity:
         class: CoreBundle\Factory\EntityFactory
 
     auth.service.token:
         class: CoreBundle\Service\TokenService
-        arguments: ['@doctrine.orm.entity_manager', '@auth.factory.entity']
+        arguments: ['@doctrine.orm.entity_manager', '@core.factory.entity']
 
     auth.provider.user:
         class: CoreBundle\Service\ApiKeyUserProvider
-        arguments: ['@doctrine.orm.entity_manager', '@auth.factory.entity']
+        arguments: ['@doctrine.orm.entity_manager', '@core.factory.entity']
 
     auth.authenticator:
         class: CoreBundle\Authenticator\ApiKeyAuthenticator
@@ -20,3 +20,12 @@ services:
 
     core.container.cookie:
         class: CoreBundle\Container\CookieContainer
+
+    core.factory.struct:
+        class: CoreBundle\Factory\StructFactory
+
+    core.factory.entity_formatter:
+        class: CoreBundle\Factory\EntityFormatterFactory
+        arguments:
+            - @core.factory.entity
+            - @doctrine.orm.entity_manager

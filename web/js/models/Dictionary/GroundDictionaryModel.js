@@ -1,9 +1,10 @@
 function GroundDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
-    this.url = '/api/v1.0/ground';
+    this.url = '/api/v1.0/list/ground';
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
         "accNumber": ACCOUNT_NUMBER_LANG,
+        "number": NUMBER_LANG,
         "line": GROUND_LINE_LANG,
         "groundNumber": GROUND_NUMBER_LANG,
         "area": GROUND_AREA_LANG,

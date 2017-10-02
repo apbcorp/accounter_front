@@ -1,5 +1,6 @@
 var RECORD_NUMBER_LANG = "№ п/п";
 var ACCOUNT_NUMBER_LANG = "№ счета";
+var NUMBER_LANG = "№ куреня";
 var GROUND_LINE_LANG = "Линия";
 var GROUND_NUMBER_LANG = "Номер участка";
 var GROUND_AREA_LANG = "Занимаемая площадь, кв. м.";

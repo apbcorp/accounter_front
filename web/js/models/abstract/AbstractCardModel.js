@@ -11,11 +11,11 @@ function AbstractCardModel(object) {
 
     this.setId = function (id) {
         this.recordId = id;
-        this.url = this.baseUrl + '/' + id;
+        this.url = id ? this.baseUrl + '/' + id : this.baseUrl;
     };
 
     this.save = function () {
-        var method = this.recordId ? HTTP_METHOD_PUT : HTTP_METHOD_POST;
+        var method = this.recordId ? HTTP_METHOD_PATCH : HTTP_METHOD_POST;
         var url = this.url ? this.url : this.baseUrl;
 
         var requester = kernel.getServiceContainer().get('requester.ajax');

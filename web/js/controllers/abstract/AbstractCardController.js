@@ -16,6 +16,7 @@ function AbstractCardController() {
 
     this.init = function (params) {
         this.model.setId(params[0]);
+        this.model.requestData = {};
 
         this.model.refresh();
     };
