@@ -399,7 +399,7 @@ function LoginController() {
 
     this.onLogin = function () {
         var requester = kernel.getServiceContainer().get('requester.ajax');
-        requester.setUrl('/api/v1.0/login');
+        requester.setUrl('/api/auth/login');
         requester.setData({'login': $('[name = login]')[0].value, 'password': $('[name = password]')[0].value});
         requester.setMethod(HTTP_METHOD_POST);
         requester.setSuccess(this.onLoginSuccessEvent);
@@ -408,9 +408,9 @@ function LoginController() {
     };
 
     this.onLoginSuccess = function (data) {
-        data = JSON.parse(data);
         var userContainer = kernel.getServiceContainer().get('container.user');
         userContainer.setUserData(data.result);
+        document.cookie = 'token=' + data.result.token;
         var url = kernel.getServiceContainer().get('helper.url').getUrlParamsString(document.location.href);
         url = !url ? '/index.html' : url;
         kernel.getServiceContainer().get('helper.navigator').goTo(url);

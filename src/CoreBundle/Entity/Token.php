@@ -3,7 +3,6 @@
 namespace CoreBundle\Entity;
 
 use Doctrine\ORM\Mapping as ORM;
-use CoreBundle\Entity\User;
 
 /**
  * User
@@ -25,9 +24,9 @@ class Token
     protected $id;
 
     /**
-     * @var User
+     * @var Users
      *
-     * @ORM\OneToOne(targetEntity="User")
+     * @ORM\OneToOne(targetEntity="Users")
      * @ORM\JoinColumn(name="user_id", referencedColumnName="id")
      */
     protected $user;
@@ -55,7 +54,7 @@ class Token
     }
 
     /**
-     * @return User
+     * @return Users
      */
     public function getUser()
     {
@@ -63,10 +62,10 @@ class Token
     }
 
     /**
-     * @param User $user
+     * @param Users $user
      * @return $this
      */
-    public function setUser(User $user)
+    public function setUser(Users $user)
     {
         $this->user = $user;
 

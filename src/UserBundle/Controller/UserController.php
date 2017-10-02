@@ -4,7 +4,7 @@ namespace UserBundle\Controller;
 
 use CoreBundle\Container\CookieContainer;
 use CoreBundle\Controller\BaseController;
-use CoreBundle\Entity\User;
+use CoreBundle\Entity\Users;
 use CoreBundle\Service\TokenService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
@@ -17,7 +17,7 @@ class UserController extends BaseController
     const USER_NOT_FOUND = 'User not found';
 
     /**
-     * @Route("/user/current")
+     * @Route("/v1.0/user/current")
      * @Method("GET")
      * @return JsonResponse
      */
@@ -27,11 +27,11 @@ class UserController extends BaseController
         $tokenService = $this->get('auth.service.token');
         $user = $tokenService->getTokenEntity()->getUser();
 
-        return $this->sendResponse(['userId' => $user], Response::HTTP_OK);
+        return $this->sendResponse(['userId' => $user->getId()], Response::HTTP_OK);
     }
 
     /**
-     * @Route("/login")
+     * @Route("/auth/login")
      * @Method("POST")
      */
     public function LoginAction(Request $request)
@@ -41,12 +41,12 @@ class UserController extends BaseController
             'password' => md5($request->request->get('password')),
             'active' => true
         ];
-var_dump($params);exit();
-        /** @var User $user */
-        $user = $this->getDoctrine()->getEntityManager()->getRepository(User::class)->findOneBy($params);
+
+        /** @var Users $user */
+        $user = $this->getDoctrine()->getManager()->getRepository(Users::class)->findOneBy($params);
 
         if (!$user) {
-            return $this->sendResponse([self::USER_NOT_FOUND], Response::HTTP_FORBIDDEN);
+            return $this->sendResponse(['message' => self::USER_NOT_FOUND], Response::HTTP_FORBIDDEN);
         }
 
         /** @var TokenService $tokenService */
@@ -57,11 +57,11 @@ var_dump($params);exit();
         $cookieContainer = $this->get('core.container.cookie');
         $cookieContainer->add('token', $token);
 
-        return $this->sendResponse([], Response::HTTP_OK);
+        return $this->sendResponse(['userId' => $user->getId(), 'token' => $token], Response::HTTP_OK);
     }
 
     /**
-     * @Route("/logout")
+     * @Route("/v1.0/logout")
      * @Method("GET")
      */
     public function logoutAction(Request $request)

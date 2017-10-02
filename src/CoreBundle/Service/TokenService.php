@@ -2,7 +2,7 @@
 
 namespace CoreBundle\Service;
 
-use CoreBundle\Entity\User;
+use CoreBundle\Entity\Users;
 use CoreBundle\Factory\EntityFactory;
 use Doctrine\ORM\EntityManager;
 use CoreBundle\Entity\Token;
@@ -34,10 +34,10 @@ class TokenService
     }
 
     /**
-     * @param User $user
+     * @param Users $user
      * @return string
      */
-    public function generateNewToken(User $user)
+    public function generateNewToken(Users $user)
     {
         $this->destroyCurrentToken();
 
@@ -81,7 +81,7 @@ class TokenService
     }
 
     /**
-     * @param User $user
+     * @param Users $user
      * @return string
      */
     public function refreshToken()

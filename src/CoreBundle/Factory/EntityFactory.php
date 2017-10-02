@@ -2,7 +2,7 @@
 
 namespace CoreBundle\Factory;
 
-use CoreBundle\Entity\User;
+use CoreBundle\Entity\Users;
 use CoreBundle\Entity\Token;
 
 class EntityFactory
@@ -16,10 +16,10 @@ class EntityFactory
     }
 
     /**
-     * @return User
+     * @return Users
      */
     public function createUser()
     {
-        return new User();
+        return new Users();
     }
 } 

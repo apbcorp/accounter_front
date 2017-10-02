@@ -6,7 +6,7 @@ security:
 
     firewalls:
         secured_area:
-            pattern: ^/api/1.0(?!/login)
+            pattern: ^/api(?!/auth/login)
             stateless: true
             simple_preauth:
                 authenticator: auth.authenticator
