@@ -4,7 +4,8 @@ function TableView() {
         '',
         '<ul><button class="add_button"></button><button class="edit_button"></button><!--<button class="delete_button"></button>--></ul>',
         '<ul><div class="table">',
-        '</div></ul></li></div>'
+        '</div></ul>',
+        '</li><div>'
     ];
 
     this.buildTemplate = function (data) {
@@ -17,11 +18,13 @@ function TableView() {
         html += this.template[3];
         html += kernel.getServiceContainer().get('view.tableHead').buildTemplate(data.columns, data.orderBy, data.orderType);
 
-        for (var i = 0; i < data.data.length; i++) {
-            html += kernel.getServiceContainer().get('view.tableRow').buildTemplate(data.data[i], Object.keys(data.columns));
+        for (var i = 0; i < data.data.result.length; i++) {
+            html += kernel.getServiceContainer().get('view.tableRow').buildTemplate(data.data.result[i], Object.keys(data.columns));
         }
 
         html += this.template[4];
+
+        html += kernel.getServiceContainer().get('view.tablePaginator').buildTemplate(data.data) + this.template[5];
 
         return html;
     };

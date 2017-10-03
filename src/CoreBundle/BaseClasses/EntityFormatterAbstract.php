@@ -80,7 +80,7 @@ abstract class EntityFormatterAbstract
     /**
      * @param int $id
      * @param array $data
-     * @return EntityInterface
+     * @return EntityInterface|bool
      */
     public abstract function setData($id, array $data);
 

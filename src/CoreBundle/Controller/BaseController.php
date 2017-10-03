@@ -3,6 +3,7 @@
 namespace CoreBundle\Controller;
 
 use CoreBundle\BaseClasses\Interfaces\EntityInterface;
+use CoreBundle\BaseClasses\ListRepositoryAbstract;
 use CoreBundle\Factory\EntityFormatterFactory;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -75,9 +76,18 @@ class BaseController extends Controller
      */
     private function convertObject($var, $type)
     {
+        if (is_array($var)) {
+            foreach ($var as &$record) {
+                $record = $this->convertObject($record, 'list');
+            }
+
+            return $var;
+        }
+
         if (!is_object($var)) {
             return $var;
         }
+        
         if (! $var instanceof EntityInterface) {
             return (array) $var;
         }
@@ -89,7 +99,7 @@ class BaseController extends Controller
     }
 
     /**
-     * @return EntityRepository
+     * @return ListRepositoryAbstract
      */
     protected function getRepository()
     {

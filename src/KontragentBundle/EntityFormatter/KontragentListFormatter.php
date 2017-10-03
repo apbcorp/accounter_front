@@ -3,6 +3,7 @@
 namespace KontragentBundle\EntityFormatter;
 
 use CoreBundle\BaseClasses\EntityFormatterAbstract;
+use CoreBundle\BaseClasses\Interfaces\EntityInterface;
 use KontragentBundle\Entity\Kontragent;
 
 class KontragentListFormatter extends EntityFormatterAbstract
@@ -23,8 +24,13 @@ class KontragentListFormatter extends EntityFormatterAbstract
         ];
     }
 
+    /**
+     * @param int $id
+     * @param array $data
+     * @return EntityInterface|bool
+     */
     public function setData($id, array $data)
     {
-
+        return false;
     }
 }

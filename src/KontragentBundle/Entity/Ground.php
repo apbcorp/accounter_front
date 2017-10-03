@@ -24,41 +24,39 @@ class Ground implements EntityInterface
     private $id;
 
     /**
-     * @var int
+     * @var string
      *
-     * @Assert\NotBlank()
-     * @ORM\Column(name="acc_number", type="integer")
+     * @ORM\Column(name="acc_number", type="string", length=255)
      */
     private $accNumber;
 
     /**
-     * @var int
+     * @var string
      *
      * @Assert\NotBlank()
-     * @ORM\Column(name="number", type="integer")
+     * @ORM\Column(name="number", type="string", length=255)
      */
     private $number;
 
     /**
-     * @var int
+     * @var string
      *
      * @Assert\NotBlank()
-     * @ORM\Column(name="line", type="integer")
+     * @ORM\Column(name="line", type="string", length=255)
      */
     private $line;
 
     /**
-     * @var int
+     * @var string
      *
      * @Assert\NotBlank()
-     * @ORM\Column(name="ground_number", type="integer")
+     * @ORM\Column(name="ground_number", type="string", length=255)
      */
     private $groundNumber;
 
     /**
      * @var float
      *
-     * @Assert\NotBlank()
      * @ORM\Column(name="area", type="decimal", precision=7, scale=3)
      */
     private $area;
@@ -66,7 +64,6 @@ class Ground implements EntityInterface
     /**
      * @var float
      *
-     * @Assert\NotBlank()
      * @ORM\Column(name="free_area", type="decimal", precision=7, scale=3)
      */
     private $freeArea;
@@ -74,7 +71,6 @@ class Ground implements EntityInterface
     /**
      * @var float
      *
-     * @Assert\NotBlank()
      * @ORM\Column(name="common_area", type="decimal", precision=7, scale=3)
      */
     private $commonArea;
@@ -82,7 +78,6 @@ class Ground implements EntityInterface
     /**
      * @var float
      *
-     * @Assert\NotBlank()
      * @ORM\Column(name="all_area", type="decimal", precision=7, scale=3)
      */
     private $allArea;
@@ -200,7 +195,7 @@ class Ground implements EntityInterface
      */
     public function setArea($area)
     {
-        $this->area = $area;
+        $this->area = $this->toFloat($area);
 
         return $this;
     }
@@ -219,7 +214,7 @@ class Ground implements EntityInterface
      */
     public function setFreeArea($area)
     {
-        $this->freeArea = $area;
+        $this->freeArea = $this->toFloat($area);
 
         return $this;
     }
@@ -238,7 +233,7 @@ class Ground implements EntityInterface
      */
     public function setCommonArea($area)
     {
-        $this->commonArea = $area;
+        $this->commonArea = $this->toFloat($area);
 
         return $this;
     }
@@ -257,7 +252,7 @@ class Ground implements EntityInterface
      */
     public function setAllArea($area)
     {
-        $this->allArea = $area;
+        $this->allArea = $this->toFloat($area);
 
         return $this;
     }
@@ -287,5 +282,21 @@ class Ground implements EntityInterface
     public function getKontragent()
     {
         return $this->kontragent;
+    }
+
+    public function setKontragent(Kontragent $kontragent)
+    {
+        $this->kontragent = $kontragent;
+
+        return $this;
+    }
+
+    /**
+     * @param string $value
+     * @return string
+     */
+    private function toFloat($value)
+    {
+        return str_replace(',', '.', $value);
     }
 }

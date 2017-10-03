@@ -155,6 +155,29 @@ li.card_cell_full {
 li.card_cell > input {
     margin-left: 20px;
 }
+li.card_cell > select {
+    margin-left: 20px;
+}
 li.card_cell_full > input {
     margin-left: 20px;
+}
+li.card_cell_full > select {
+    margin-left: 20px;
+}
+div.selectbox {
+    display: inline-table;
+    margin-left: 20px;
+}
+p.selectbox-list {
+    display: table-row;
+    background-color: white;
+}
+p.selectbox-list-hide {
+    display: none;
+}
+button.paginator-button {
+    margin-right: 5px;
+}
+button.paginator-button.active {
+    font-weight: bold;
 }

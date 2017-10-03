@@ -1,6 +1,6 @@
 function ServiceDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
-    this.url = '/api/v1.0/service';
+    this.url = '/api/v1.0/dictionary/list/service';
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
         "name": SERVICE_NAME_LANG,

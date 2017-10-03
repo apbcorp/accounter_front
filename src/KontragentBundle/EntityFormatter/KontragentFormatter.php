@@ -38,7 +38,7 @@ class KontragentFormatter extends EntityFormatterAbstract
     /**
      * @param int $id
      * @param array $data
-     * @return EntityInterface|false
+     * @return EntityInterface|bool
      */
     public function setData($id, array $data)
     {

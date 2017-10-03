@@ -1,6 +1,6 @@
 function ConsumerDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
-    this.url = '/api/v1.0/list/kontragent';
+    this.url = '/api/v1.0/dictionary/list/kontragent';
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
         "surname": SURNAME_LANG,

@@ -1,6 +1,6 @@
 function MeterDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
-    this.url = '/api/v1.0/meter';
+    this.url = '/api/v1.0/dictionary/list/meter';
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
         "number": METER_NUMBER_LANG,

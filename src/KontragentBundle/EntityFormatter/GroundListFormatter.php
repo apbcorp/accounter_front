@@ -2,6 +2,7 @@
 
 namespace KontragentBundle\EntityFormatter;
 
+use CoreBundle\BaseClasses\Interfaces\EntityInterface;
 use KontragentBundle\Entity\Ground;
 
 class GroundListFormatter
@@ -36,9 +37,10 @@ class GroundListFormatter
     /**
      * @param int $id
      * @param array $data
+     * @return EntityInterface|bool
      */
     public function setData($id, array $data)
     {
-
+        return false;
     }
 }

@@ -31,8 +31,8 @@ function GroundCardController() {
             area: $('[name="area"]')[0].value,
             freeArea: $('[name="freeArea"]')[0].value,
             commonArea: $('[name="commonArea"]')[0].value,
-            allArea: $('[name="allArea"]')[0].value//,
-            //owner: $('[name="owner"]')[0].attribute('id')
+            allArea: $('[name="allArea"]')[0].value,
+            kontragentId: $('[name="owner"]')[0].dataset.id
         };
 
         this.model.appendDataToRequest(data);

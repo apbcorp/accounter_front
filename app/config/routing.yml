@@ -1,6 +1,10 @@
+document:
+    resource: "@DocumentBundle/Resources/config/routing.yml"
+    prefix:   /api/v1.0/document
+
 kontragent:
     resource: "@KontragentBundle/Resources/config/routing.yml"
-    prefix:   /api/v1.0
+    prefix:   /api/v1.0/dictionary
 
 user:
     resource: "@UserBundle/Resources/config/routing.yml"

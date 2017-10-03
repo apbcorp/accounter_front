@@ -5,6 +5,7 @@ function AbstractModel() {
     this.method = 'GET';
     this.successCallback = undefined;
     this.url = '';
+    this.collectionFields = {};
 
     this.AbstractModel = function (object) {
         this.creator = object;
@@ -43,11 +44,21 @@ function AbstractModel() {
 
     this.onRefreshSuccess = function (data) {
         this.data = data.result;
+        
+        this.saveDataToCollection();
 
         if (this.successCallback !== undefined) {
             this.successCallback(this.getDataForView())
         } else {
             this.creator.onRefreshComplete(this.getDataForView());
+        }
+    };
+    
+    this.saveDataToCollection = function (data) {
+        var container = kernel.getServiceContainer().get('container.collection');
+        
+        for (var key in this.collectionFields) {
+            container.addDataRow(key, this.data[this.collectionFields[key].id], this.data[this.collectionFields[key].name]);
         }
     };
 

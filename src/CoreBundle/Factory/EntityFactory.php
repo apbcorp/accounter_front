@@ -4,8 +4,11 @@ namespace CoreBundle\Factory;
 
 use CoreBundle\Entity\Users;
 use CoreBundle\Entity\Token;
+use DocumentBundle\Entity\TarifDocument;
 use KontragentBundle\Entity\Ground;
 use KontragentBundle\Entity\Kontragent;
+use KontragentBundle\Entity\Meter;
+use KontragentBundle\Entity\Service;
 
 class EntityFactory
 {
@@ -39,5 +42,29 @@ class EntityFactory
     public function createGround()
     {
         return new Ground();
+    }
+
+    /**
+     * @return Meter
+     */
+    public function createMeter()
+    {
+        return new Meter();
+    }
+
+    /**
+     * @return Service
+     */
+    public function createService()
+    {
+        return new Service();
+    }
+
+    /**
+     * @return TarifDocument
+     */
+    public function createTarifDocument()
+    {
+        return new TarifDocument();
     }
 } 

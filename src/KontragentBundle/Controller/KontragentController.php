@@ -71,4 +71,15 @@ class KontragentController extends BaseEntityController
     {
         return parent::postAction($request);
     }
+
+    /**
+     * @Route("/supply/kontragent")
+     * @Method("GET")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function supplyAction(Request $request)
+    {
+        return parent::suppplyAction($request);
+    }
 }

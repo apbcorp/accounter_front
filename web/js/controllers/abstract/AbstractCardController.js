@@ -1,5 +1,6 @@
 function AbstractCardController() {
     MainControllerAbstract.call(this);
+    SelectBoxElement.call(this);
     this.viewName = undefined;
     this.submodels = {};
     this.backUrl = '/index.html';
@@ -10,6 +11,11 @@ function AbstractCardController() {
 
         this.events.push({'selector': '.save_button', 'action': 'click', 'event': this.onSaveEvent});
         this.events.push({'selector': '.cancel_button', 'action': 'click', 'event': this.onCancelEvent});
+
+        var events = this.generateActions();
+        for (var i = 0; i < events.length; i++) {
+            this.events.push(events[i]);
+        }
 
         this.MainControllerAbstract();
     };

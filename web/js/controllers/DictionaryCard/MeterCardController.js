@@ -26,7 +26,7 @@ function MeterCardController() {
         var data = {
             number: $('[name="number"]')[0].value,
             type: $('[name="type"]')[0].value,
-            ground: $('[name="ground"]')[0].attribute('id')
+            groundId: $('[name="ground"]')[0].dataset.id
         };
 
         this.model.appendDataToRequest(data);

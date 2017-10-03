@@ -28,14 +28,19 @@ class GroundFormatter extends EntityFormatterAbstract
             'area' => $entity->getArea(),
             'freeArea' => $entity->getFreeArea(),
             'commonArea' => $entity->getCommonArea(),
-            'allArea' => $entity->getAllArea()
+            'allArea' => $entity->getAllArea(),
+            'owner' => implode(' ', [
+                $entity->getKontragent()->getSurname(),
+                $entity->getKontragent()->getName(),
+                $entity->getKontragent()->getName2(),
+            ])
         ];
     }
 
     /**
      * @param int $id
      * @param array $data
-     * @return EntityInterface|false
+     * @return EntityInterface|bool
      */
     public function setData($id, array $data)
     {
@@ -43,6 +48,11 @@ class GroundFormatter extends EntityFormatterAbstract
 
         if (!$entity) {
             return false;
+        }
+
+        if (isset($data['kontragentId'])) {
+            $data['kontragent'] = $this->entityManager->getReference(Kontragent::class, $data['kontragentId']);
+            unset($data['kontragentId']);
         }
 
         $this->fillEntity($data, $entity);

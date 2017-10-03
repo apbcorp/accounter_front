@@ -64,6 +64,69 @@ function Router() {
         };
     };
 }
+function CollectionContainer() {
+    this.data = collections;
+    this.event = undefined;
+    this.thisCollection = undefined;
+    
+    this.getDataById = function (collectionName, id) {
+        var name = collectionName + 'Collection';
+        var collection = this.data[name];
+
+        return collection.data[id];
+    };
+    
+    this.getDataForSelect = function (collectionName, id) {
+        var name = collectionName + 'Collection';
+        var collection = this.data[name];
+        var result = '';
+
+        for (var key in collection.data) {
+            result += '<option value="' + key + '"' + (key == id ? ' selected' : '') + '>' + collection.data[key] + '</option>'
+        }
+
+        return result;
+    };
+
+    this.getDataBySupply = function (collectionName, searchString, event) {
+        this.event = event;
+        var name = collectionName + 'SupplyCollection';
+        this.thisCollection = this.data[name];
+        this.thisCollection.data = {};
+        var requester = kernel.getServiceContainer().get('requester.ajax');
+        requester.setUrl(this.thisCollection.url);
+        requester.setData({search: searchString});
+        requester.setMethod(HTTP_METHOD_GET);
+        requester.setSuccess(this.onGetDataSuccess.bind(this));
+        requester.request();
+    };
+
+    this.onGetDataSuccess = function (data) {
+        var staticCollection = this.data[this.thisCollection.staticCollection];
+
+        for (var i = 0; i < data.result.length; i++) {
+            this.thisCollection.data[data.result[i].id] = data.result[i].name;
+            staticCollection.data[data.result[i].id] = data.result[i].name;
+        }
+
+        this.event();
+    };
+
+    this.getDataFromSupply = function (collectionName) {
+        var name = collectionName + 'SupplyCollection';
+        var collection = this.data[name];
+
+        return collection.data;
+    };
+
+    this.addDataRow = function (collectionName, id, value) {
+        var name = collectionName + 'Collection';
+        var collection = this.data[name];
+
+        collection.data[id] = value;
+    }
+}
+
 function EventContainer() {
     this.currentEvents = {};
 
@@ -287,8 +350,8 @@ function GroundCardController() {
             area: $('[name="area"]')[0].value,
             freeArea: $('[name="freeArea"]')[0].value,
             commonArea: $('[name="commonArea"]')[0].value,
-            allArea: $('[name="allArea"]')[0].value//,
-            //owner: $('[name="owner"]')[0].attribute('id')
+            allArea: $('[name="allArea"]')[0].value,
+            kontragentId: $('[name="owner"]')[0].dataset.id
         };
 
         this.model.appendDataToRequest(data);
@@ -324,7 +387,7 @@ function MeterCardController() {
         var data = {
             number: $('[name="number"]')[0].value,
             type: $('[name="type"]')[0].value,
-            ground: $('[name="ground"]')[0].attribute('id')
+            groundId: $('[name="ground"]')[0].dataset.id
         };
 
         this.model.appendDataToRequest(data);
@@ -380,6 +443,11 @@ function PayDocumentsController() {
 
 function TarifsDocumentsController() {
     AbstractDocumentsController.call(this);
+    this.model = new TarifsDocumentsModel(this);
+    this.cardPath = '/document/tarifs/';
+    this.viewName = 'view.tarifsDocuments';
+
+    this.AbstractDocumentsController();
 }
 function LoginController() {
     this.events = [];
@@ -452,6 +520,7 @@ function SmsReportController() {
 }
 function AbstractCardController() {
     MainControllerAbstract.call(this);
+    SelectBoxElement.call(this);
     this.viewName = undefined;
     this.submodels = {};
     this.backUrl = '/index.html';
@@ -462,6 +531,11 @@ function AbstractCardController() {
 
         this.events.push({'selector': '.save_button', 'action': 'click', 'event': this.onSaveEvent});
         this.events.push({'selector': '.cancel_button', 'action': 'click', 'event': this.onCancelEvent});
+
+        var events = this.generateActions();
+        for (var i = 0; i < events.length; i++) {
+            this.events.push(events[i]);
+        }
 
         this.MainControllerAbstract();
     };
@@ -535,6 +609,8 @@ function AbstractDictionaryController() {
         var view = kernel.getServiceContainer().get(this.viewName);
         view.render(data);
 
+        $('.paginator-button').on('click', this.pageChanged.bind(this));
+
         var eventContainer = kernel.getServiceContainer().get('container.event');
         eventContainer.setEvents(this.events);
     };
@@ -590,9 +666,27 @@ function AbstractDictionaryController() {
 
         event.currentTarget.classList.add('active');
     };
+    
+    this.pageChanged = function (event) {
+        var urlHelper = kernel.getServiceContainer().get('helper.url');
+        this.model.appendDataToRequest({
+            'page': event.currentTarget.dataset.page
+        });
+
+        kernel.getServiceContainer().get('helper.navigator').goTo(
+            urlHelper.buildUrl(
+                urlHelper.getCurrentUrlWithoutDomain(document.location.href),
+                this.model.getRequestData()
+            )
+        );
+    }
 }
 function AbstractDocumentsController() {
-    MainControllerAbstract.call(this);
+    AbstractDictionaryController.call(this);
+
+    this.AbstractDocumentsController = function () {
+        this.AbstractDictionaryController()
+    }
 }
 function AbstractReportController() {
     MainControllerAbstract.call(this);
@@ -676,6 +770,51 @@ function MainControllerAbstract() {
         kernel.getServiceContainer().get('helper.navigator').goTo('/report/sms.html');
     };
 }
+var collections = {
+    kontragentCollection: {
+        type: 'static',
+        data: {}
+    },
+    kontragentSupplyCollection: {
+        type: 'dynamic',
+        url: '/api/v1.0/supply/dictionary/kontragent',
+        staticCollection: 'kontragentCollection',
+        data: {}
+    },
+    groundCollection: {
+        type: 'static',
+        data: {}
+    },
+    groundSupplyCollection: {
+        type: 'dynamic',
+        url: '/api/v1.0/supply/dictionary/ground',
+        staticCollection: 'groundCollection',
+        data: {}
+    },
+    meterTypesCollection: {
+        type: 'static',
+        data: {
+            1: 'Электричество',
+            2: 'Газ'
+        }
+    },
+    serviceTypesCollection: {
+        type: 'static',
+        data: {
+            1: 'Член сообщества',
+            2: 'Участок'
+        }
+    },
+    serviceSubtypesCollection: {
+        type: 'static',
+        data: {
+            1: 'Фиксированный',
+            2: 'По площади',
+            3: 'По счетчику (электричество)',
+            4: 'По счетчику (газ)'
+        }
+    }
+};
 const HTTP_METHOD_GET    = 'GET';
 const HTTP_METHOD_POST   = 'POST';
 const HTTP_METHOD_PUT    = 'PUT';
@@ -702,6 +841,8 @@ var METER_GROUND_OWNER_LANG = "Участок установки";
 var SERVICE_NAME_LANG = "Название услуги";
 var SERVICE_TYPE_LANG = "Тип потребителя услуги";
 var SERVICE_CALC_BASE_LANG = "Тип базы для расчета";
+var TARIFS_DATE_START_LANG = "Дата начала действия";
+var DOCUMENT_DATE_LANG = "Дата документа";
 const ROUTES = {
     '/index\.html': 'controller.main',
     '/login\.html': 'controller.login',
@@ -733,6 +874,7 @@ const SERVICES_LIST = {
     'controller.login': {'class': 'LoginController', 'args': {}},
     'view.login': {'class': 'LoginView', 'args': {}},
     'container.event': {'class': 'EventContainer', 'args': {}},
+    'container.collection': {'class': 'CollectionContainer', 'args': {}},
     'requester.ajax': {'class': 'AjaxRequester', 'args': {}},
     //'requester.ajax': {'class': 'AjaxMockRequester', 'args': {}}, //mock
     'view.main': {'class': 'MainView', 'args': {}},
@@ -747,6 +889,7 @@ const SERVICES_LIST = {
     'view.table': {'class': 'TableView', 'args': {}},
     'view.tableHead': {'class': 'TableHeadView', 'args': {}},
     'view.tableRow': {'class': 'TableRowView', 'args': {}},
+    'view.tablePaginator': {'class': 'TablePaginatorView', 'args': {}},
     'controller.groundCard': {'class': 'GroundCardController', 'args': {}},
     'view.groundCard': {'class': 'GroundCardView', 'args': {}},
     'controller.serviceCard': {'class': 'ServiceCardController', 'args': {}},
@@ -766,7 +909,7 @@ const SERVICES_LIST = {
     'view.accuringDocuments': {'class': 'AccurringDictionaryView', 'args': {}},
     'view.metersDocuments': {'class': 'MetersDictionaryView', 'args': {}},
     'view.payDocuments': {'class': 'PayDictionaryView', 'args': {}},
-    'view.tarifsDocuments': {'class': 'TarifsDictionaryView', 'args': {}},
+    'view.tarifsDocuments': {'class': 'TarifsDocumentsView', 'args': {}},
     'view.balanceReports': {'class': 'BalanceReportsView', 'args': {}},
     'view.mainReports': {'class': 'MainReportsView', 'args': {}},
     'view.metersReports': {'class': 'MetersReportsView', 'args': {}},
@@ -836,7 +979,7 @@ function UrlHelper() {
 }
 function ConsumerDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
-    this.url = '/api/v1.0/list/kontragent';
+    this.url = '/api/v1.0/dictionary/list/kontragent';
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
         "surname": SURNAME_LANG,
@@ -854,7 +997,7 @@ function ConsumerDictionaryModel(params) {
 }
 function GroundDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
-    this.url = '/api/v1.0/list/ground';
+    this.url = '/api/v1.0/dictionary/list/ground';
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
         "accNumber": ACCOUNT_NUMBER_LANG,
@@ -876,7 +1019,7 @@ function GroundDictionaryModel(params) {
 }
 function MeterDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
-    this.url = '/api/v1.0/meter';
+    this.url = '/api/v1.0/dictionary/list/meter';
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
         "number": METER_NUMBER_LANG,
@@ -892,7 +1035,7 @@ function MeterDictionaryModel(params) {
 }
 function ServiceDictionaryModel(params) {
     DictionaryAbstractModel.call(this);
-    this.url = '/api/v1.0/service';
+    this.url = '/api/v1.0/dictionary/list/service';
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
         "name": SERVICE_NAME_LANG,
@@ -908,25 +1051,31 @@ function ServiceDictionaryModel(params) {
 }
 function ConsumerCardModel(object) {
     AbstractCardModel.call(this);
-    this.baseUrl = '/api/v1.0/kontragent';
+    this.baseUrl = '/api/v1.0/dictionary/kontragent';
 
     this.AbstractCardModel(object);
 }
 function GroundCardModel(object) {
     AbstractCardModel.call(this);
-    this.baseUrl = '/api/v1.0/ground';
+    this.baseUrl = '/api/v1.0/dictionary/ground';
+    this.collectionFields = {
+        kontragent: {
+            id: 'kontragentId',
+            name: 'owner'
+        }
+    };
 
     this.AbstractCardModel(object);
 }
 function MeterCardModel(object) {
     AbstractCardModel.call(this);
-    this.baseUrl = '/api/v1.0/meter';
+    this.baseUrl = '/api/v1.0/dictionary/meter';
 
     this.AbstractCardModel(object);
 }
 function ServiceCardModel(object) {
     AbstractCardModel.call(this);
-    this.baseUrl = '/api/v1.0/service';
+    this.baseUrl = '/api/v1.0/dictionary/service';
 
     this.AbstractCardModel(object);
 }
@@ -939,8 +1088,21 @@ function MetersDocumentsModel() {
 function PayDocumentsModel() {
     
 }
-function TarifsDocumentsModel() {
-    
+function TarifsDocumentsModel(params) {
+    DocumentAbstractModel.call(this);
+
+    this.url = '/api/v1.0/document/list/tarif';
+    this.dataNames = {
+        "id": RECORD_NUMBER_LANG,
+        "date": DOCUMENT_DATE_LANG,
+        "dateStart": TARIFS_DATE_START_LANG
+    };
+
+    this.TarifsDocumentsModel = function (object) {
+        this.DocumentAbstractModel(object);
+    };
+
+    this.TarifsDocumentsModel(params);
 }
 function BalanceReportModel() {
     
@@ -1000,6 +1162,7 @@ function AbstractModel() {
     this.method = 'GET';
     this.successCallback = undefined;
     this.url = '';
+    this.collectionFields = {};
 
     this.AbstractModel = function (object) {
         this.creator = object;
@@ -1038,11 +1201,21 @@ function AbstractModel() {
 
     this.onRefreshSuccess = function (data) {
         this.data = data.result;
+        
+        this.saveDataToCollection();
 
         if (this.successCallback !== undefined) {
             this.successCallback(this.getDataForView())
         } else {
             this.creator.onRefreshComplete(this.getDataForView());
+        }
+    };
+    
+    this.saveDataToCollection = function (data) {
+        var container = kernel.getServiceContainer().get('container.collection');
+        
+        for (var key in this.collectionFields) {
+            container.addDataRow(key, this.data[this.collectionFields[key].id], this.data[this.collectionFields[key].name]);
         }
     };
 
@@ -1076,6 +1249,13 @@ function DictionaryAbstractModel() {
 
         return result;
     };
+}
+function DocumentAbstractModel() {
+    DictionaryAbstractModel.call(this);
+
+    this.DocumentAbstractModel = function (object) {
+        this.DictionaryAbstractModel(object);
+    }
 }
 function AjaxMockRequester() {
     this.requestData = {
@@ -1181,6 +1361,75 @@ function AjaxRequester() {
         });
     }
 }
+function SelectBoxElement() {
+    this.element = undefined;
+    this.text = 'Введите информацию для поиска';
+    this.failText = 'По вашему запросу ничего не найдено';
+
+    this.generateActions = function () {
+        this.onActivateSelectBoxEvent = this.onActivateSelectBox.bind(this);
+        this.onBlurSelectBoxEvent = this.onBlurSelectBox.bind(this);
+        this.onKeyPressSelectBoxEvent = this.onKeyPressSelectBox.bind(this);
+        this.onGetDataSuccessEvent = this.onGetDataSuccess.bind(this);
+        this.onSelectSelectBoxItemEvent = this.onSelectSelectBoxItem.bind(this);
+
+        return [
+            {'selector': '.selectbox > :input', 'action': 'focus', 'event': this.onActivateSelectBoxEvent},
+            {'selector': '.selectbox > :input', 'action': 'keydown', 'event': this.onKeyPressSelectBoxEvent},
+            {'selector': '.selectbox', 'action': 'blur', 'event': this.onBlurSelectBoxEvent}
+        ];
+    };
+
+    this.onKeyPressSelectBox = function (event) {
+        this.element = $(event.target.parentElement.childNodes[0])[0];
+        if (this.element.value.length < 2) {
+            return;
+        }
+
+        var container = kernel.getServiceContainer().get('container.collection');
+        container.getDataBySupply(this.element.dataset.type, this.element.value, this.onGetDataSuccessEvent);
+    };
+
+    this.onGetDataSuccess = function () {
+        var data = kernel.getServiceContainer().get('container.collection').getDataFromSupply(this.element.dataset.type);
+
+        var html = data == {} ? this.failText : this.text;
+        for (var key in data) {
+            html += '<p class="selectbox-item" data-id="' + key + '">' + data[key] + ' (' + key + ')</p>';
+        }
+
+        $(this.element)[0].nextSibling.innerHTML = html;
+        $('.selectbox-item').bind('click', this.onSelectSelectBoxItemEvent);
+    };
+
+    this.onSelectSelectBoxItem = function (event) {
+        this.element.dataset.id = event.target.dataset.id;
+        var blurEvent = {target: this.element.parentElement};
+        this.onBlurSelectBox(blurEvent);
+    };
+
+    this.onActivateSelectBox = function (event) {
+        $(event.target.parentElement.childNodes[1]).removeClass();
+        $(event.target.parentElement.childNodes[1]).addClass('selectbox-list');
+        $(event.target.parentElement.childNodes[1])[0].innerHTML = this.text;
+
+        this.element = $(event.target.parentElement.childNodes[0])[0];
+        this.element.value = '';
+    };
+
+    this.onBlurSelectBox = function (event) {
+        $(event.target.childNodes[1]).removeClass();
+        $(event.target.childNodes[1]).addClass('selectbox-list-hide');
+
+        var container = kernel.getServiceContainer().get('container.collection');
+        var input = $(event.target.childNodes[0])[0];
+        var collection = input.dataset.type;
+        var id = input.dataset.id;
+
+        input.value = container.getDataById(collection, id);
+    };
+}
+
 function ConsumerDictionaryView() {
     AbstractDictionaryView.call(this);
 }
@@ -1199,15 +1448,34 @@ function ConsumerCardView() {
 }
 function GroundCardView() {
     AbstractCardView.call(this);
-    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{ACCOUNT_NUMBER_LANG}<input name="accNumber" value="{accNumber}"></li><li class="card_cell">{NUMBER_LANG}<input name="number" value="{number}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_LINE_LANG}<input name="line" value="{line}"></li><li class="card_cell">{GROUND_NUMBER_LANG}<input name="groundNumber" value="{groundNumber}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_AREA_LANG}<input name="area" value="{area}"></li><li class="card_cell">{GROUND_FREE_AREA_LANG}<input name="freeArea" value="{freeArea}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_COMMON_AREA_LANG}<input name="commonArea" value="{commonArea}"></li><li class="card_cell">{GROUND_ALL_AREA_LANG}<input name="allArea" value="{allArea}"></li></ul><ul class="card_row"><li class="card_cell">{OWNER_FULL_NAME_LANG}<input name="owner" value="{owner}"></li></ul></div>';
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{ACCOUNT_NUMBER_LANG}<input name="accNumber" value="{accNumber}"></li><li class="card_cell">{NUMBER_LANG}<input name="number" value="{number}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_LINE_LANG}<input name="line" value="{line}"></li><li class="card_cell">{GROUND_NUMBER_LANG}<input name="groundNumber" value="{groundNumber}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_AREA_LANG}<input name="area" value="{area}"></li><li class="card_cell">{GROUND_FREE_AREA_LANG}<input name="freeArea" value="{freeArea}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_COMMON_AREA_LANG}<input name="commonArea" value="{commonArea}"></li><li class="card_cell">{GROUND_ALL_AREA_LANG}<input name="allArea" value="{allArea}"></li></ul><ul class="card_row"><li class="card_cell">{OWNER_FULL_NAME_LANG}<div class="selectbox" tabindex="-1"><input name="owner" data-id="{kontragentId}" data-type="kontragent" value="{owner}"><p class="selectbox-list-hide"></p></div></li></ul></div>';
 }
 function MeterCardView() {
     AbstractCardView.call(this);
-    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{METER_NUMBER_LANG}<input name="number" value="{number}"></li><li class="card_cell">{METER_TYPE_LANG}<input name="type" value="{type}"></li></ul><ul class="card_row"><li class="card_cell">{METER_GROUND_OWNER_LANG}<input name="ground" value="{ground}"></li></ul></div>';
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{METER_NUMBER_LANG}<input name="number" value="{number}"></li><li class="card_cell">{METER_TYPE_LANG}<select name="type">{type}</select></li></ul><ul class="card_row"><li class="card_cell">{METER_GROUND_OWNER_LANG}<div class="selectbox" tabindex="-1"><input name="ground" data-id="{groundId}" data-type="ground" value="{ground}"><p class="selectbox-list-hide"></p></div></li></ul></div>';
+
+    this.buildTemplate = function (data) {
+        var container = kernel.getServiceContainer().get('container.collection');
+        data['type'] = container.getDataForSelect('meterTypes', data['type']);
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+        html += this.addData(this.template, data) + '</div>';
+
+        return html;
+    };
 }
 function ServiceCardView() {
     AbstractCardView.call(this);
-    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{SERVICE_NAME_LANG}<input name="name" value="{name}"></li><li class="card_cell">{SERVICE_TYPE_LANG}<input name="type" value="{type}"></li></ul><ul class="card_row"><li class="card_cell">{SERVICE_CALC_BASE_LANG}<input name="subtype" value="{subtype}"></li></ul></div>';
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{SERVICE_NAME_LANG}<input name="name" value="{name}"></li><li class="card_cell">{SERVICE_TYPE_LANG}<select name="type">{type}</select></li></ul><ul class="card_row"><li class="card_cell">{SERVICE_CALC_BASE_LANG}<select name="subtype">{subtype}</select></li></ul></div>';
+
+    this.buildTemplate = function (data) {
+        var container = kernel.getServiceContainer().get('container.collection');
+        data['type'] = container.getDataForSelect('serviceTypes', data['type']);
+        data['subtype'] = container.getDataForSelect('serviceSubtypes', data['subtype']);
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+        html += this.addData(this.template, data) + '</div>';
+
+        return html;
+    };
 }
 function AccurringDocumentsView() {
     
@@ -1219,7 +1487,7 @@ function PayDocumentsView() {
     
 }
 function TarifsDocumentsView() {
-    
+    AbstractDocumentsView.call(this);
 }
 function LoginView() {
     AbstractView.call(this);
@@ -1278,6 +1546,26 @@ function TableHeadView() {
         return html;
     };
 }
+function TablePaginatorView() {
+    this.buildTemplate = function (data) {
+        if (data.pageCount == 1) {
+            return '';
+        }
+
+        var startPage = data.page - 1 > 0 ? data.page - 1 : 1;
+        var endPage = startPage + 5 < data.pageCount ? startPage + 5 : data.pageCount;
+        var result = '<ul>';
+
+        for (var i = startPage; i <= endPage; i++) {
+            result += '<button class="paginator-button' + (data.page == i ? ' active' : '') + '" data-page="' + i + '">' + i + '</button>';
+        }
+
+        result += '</ul>';
+
+        return result;
+    };
+}
+
 function TableRowView() {
     this.template = [
         '<ul class="table_row" data-id="{id}">',
@@ -1304,7 +1592,8 @@ function TableView() {
         '',
         '<ul><button class="add_button"></button><button class="edit_button"></button><!--<button class="delete_button"></button>--></ul>',
         '<ul><div class="table">',
-        '</div></ul></li></div>'
+        '</div></ul>',
+        '</li><div>'
     ];
 
     this.buildTemplate = function (data) {
@@ -1317,11 +1606,13 @@ function TableView() {
         html += this.template[3];
         html += kernel.getServiceContainer().get('view.tableHead').buildTemplate(data.columns, data.orderBy, data.orderType);
 
-        for (var i = 0; i < data.data.length; i++) {
-            html += kernel.getServiceContainer().get('view.tableRow').buildTemplate(data.data[i], Object.keys(data.columns));
+        for (var i = 0; i < data.data.result.length; i++) {
+            html += kernel.getServiceContainer().get('view.tableRow').buildTemplate(data.data.result[i], Object.keys(data.columns));
         }
 
         html += this.template[4];
+
+        html += kernel.getServiceContainer().get('view.tablePaginator').buildTemplate(data.data) + this.template[5];
 
         return html;
     };
@@ -1377,6 +1668,10 @@ function AbstractDictionaryView() {
         return html;
     };
 }
+function AbstractDocumentsView() {
+    AbstractDictionaryView.call(this);
+}
+
 function AbstractView() {
     this.template = '';
 

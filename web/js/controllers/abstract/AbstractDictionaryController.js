@@ -32,6 +32,8 @@ function AbstractDictionaryController() {
         var view = kernel.getServiceContainer().get(this.viewName);
         view.render(data);
 
+        $('.paginator-button').on('click', this.pageChanged.bind(this));
+
         var eventContainer = kernel.getServiceContainer().get('container.event');
         eventContainer.setEvents(this.events);
     };
@@ -87,4 +89,18 @@ function AbstractDictionaryController() {
 
         event.currentTarget.classList.add('active');
     };
+    
+    this.pageChanged = function (event) {
+        var urlHelper = kernel.getServiceContainer().get('helper.url');
+        this.model.appendDataToRequest({
+            'page': event.currentTarget.dataset.page
+        });
+
+        kernel.getServiceContainer().get('helper.navigator').goTo(
+            urlHelper.buildUrl(
+                urlHelper.getCurrentUrlWithoutDomain(document.location.href),
+                this.model.getRequestData()
+            )
+        );
+    }
 }

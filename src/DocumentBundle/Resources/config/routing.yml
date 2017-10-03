@@ -1,0 +1,4 @@
+document:
+    resource: "@DocumentBundle/Controller"
+    prefix: /
+    type:     annotation

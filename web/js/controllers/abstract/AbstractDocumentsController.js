@@ -1,3 +1,7 @@
 function AbstractDocumentsController() {
-    MainControllerAbstract.call(this);
+    AbstractDictionaryController.call(this);
+
+    this.AbstractDocumentsController = function () {
+        this.AbstractDictionaryController()
+    }
 }

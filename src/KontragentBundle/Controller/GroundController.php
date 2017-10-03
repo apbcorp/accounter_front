@@ -71,4 +71,15 @@ class GroundController extends BaseEntityController
     {
         return parent::postAction($request);
     }
+
+    /**
+     * @Route("/supply/ground")
+     * @Method("GET")
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function supplyAction(Request $request)
+    {
+        return parent::suppplyAction($request);
+    }
 }
