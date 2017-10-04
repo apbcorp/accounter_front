@@ -5,6 +5,7 @@ namespace CoreBundle\Factory;
 use CoreBundle\Entity\Users;
 use CoreBundle\Entity\Token;
 use DocumentBundle\Entity\TarifDocument;
+use DocumentBundle\Entity\TarifRow;
 use KontragentBundle\Entity\Ground;
 use KontragentBundle\Entity\Kontragent;
 use KontragentBundle\Entity\Meter;
@@ -66,5 +67,13 @@ class EntityFactory
     public function createTarifDocument()
     {
         return new TarifDocument();
+    }
+
+    /**
+     * @return TarifRow
+     */
+    public function createTarifRow()
+    {
+        return new TarifRow();
     }
 } 

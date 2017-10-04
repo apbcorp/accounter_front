@@ -282,25 +282,9 @@ function ConsumerCardController() {
             return;
         }
 
-        this.showGroundTableEvent = this.showGroundTable.bind(this);
-
         this.model.setId(params[0]);
 
         this.model.refresh();
-    };
-
-    this.showGroundTable = function (data) {
-        delete data.columns.owner;
-
-        for (var key in data.data) {
-            delete data.data[key].owner;
-        }
-        data.hideButtons = true;
-        data.isSubview = true;
-
-        var view = kernel.getServiceContainer().get('view.table');
-        var html = view.buildTemplate(data);
-        $('.table_ground')[0].innerHTML = html;
     };
 
     this.fillModel = function () {
@@ -431,6 +415,36 @@ function ServiceCardController() {
 
     this.ServiceCardController();
 }
+function TarifsDocumentController() {
+    AbstractDocumentController.call(this);
+    this.model = new TarifsDocumentModel(this);
+    this.viewName = 'view.tarifDocument';
+    this.backUrl = '/document/tarifs.html';
+
+    this.TarifsDocumentController = function () {
+        this.AbstractDocumentController();
+    };
+
+    this.fillModel = function () {
+        var rows = [];
+        var elements = $('.table_row');
+
+        for (var i = 0; i < elements.length; i++) {
+            rows.push({
+                id: elements[i].dataset.id,
+                serviceId: elements[i].childNodes[1].childNodes[0].childNodes[0].dataset.id,
+                price: elements[i].childNodes[2].childNodes[0].value
+            })
+        }
+
+        var data = {
+            dateStart: $('[name="dateStart"]')[0].value,
+            rows: rows
+        };
+
+        this.model.appendDataToRequest(data);
+    };
+}
 function AccurringDocumentsController() {
     AbstractDocumentsController.call(this);
 }
@@ -553,12 +567,6 @@ function AbstractCardController() {
 
         var eventContainer = kernel.getServiceContainer().get('container.event');
         eventContainer.setEvents(this.events);
-
-        if (this.model.recordId != 0) {
-            for (var key in this.submodels) {
-                this.submodels[key].refresh();
-            }
-        }
     };
 
     this.onSave = function () {
@@ -681,6 +689,65 @@ function AbstractDictionaryController() {
         );
     }
 }
+function AbstractDocumentController() {
+    AbstractCardController.call(this);
+
+    this.AbstractDocumentController = function () {
+        this.onAddRowEvent = this.onAddRow.bind(this);
+        this.onDeleteRowEvent = this.onDeleteRow.bind(this);
+
+        this.events.push({'selector': '.add_button', 'action': 'click', 'event': this.onAddRowEvent});
+        this.events.push({'selector': '.delete_button', 'action': 'click', 'event': this.onDeleteRowEvent});
+
+        this.AbstractCardController();
+    };
+
+    this.init = function (params) {
+        this.model.requestData = {};
+        if (params === undefined || params[0] === undefined || params[0] == 'new') {
+            this.onRefreshComplete(this.model.defaultData);
+            this.model.setId(0);
+
+            return;
+        }
+
+        this.model.setId(params[0]);
+
+        this.model.refresh();
+    };
+
+    this.onAddRow = function () {
+        var view = kernel.getServiceContainer().get(this.viewName);
+        var html = $(view.addData(view.rowTemplate, {}))[0];
+        
+        $('.subtable')[0].append(html);
+
+        var eventContainer = kernel.getServiceContainer().get('container.event');
+        eventContainer.setEvents(this.events);
+    };
+
+    this.onDeleteRow = function () {
+        var elements = $('[name=checker]');
+        var result = [];
+        for (var i = 0; i < elements.length; i++) {
+            if (elements[i].checked) {
+                result.push(elements[i]);
+            }
+        }
+
+        if (!result.length) {
+            alert('Нечего удалять. Пожалуйста, выделите строки.')
+
+            return;
+        }
+
+        for (i = 0; i < result.length; i++) {
+            result[i].parentElement.parentElement.remove()
+        }
+    };
+
+    this.AbstractDocumentController();
+}
 function AbstractDocumentsController() {
     AbstractDictionaryController.call(this);
 
@@ -777,7 +844,7 @@ var collections = {
     },
     kontragentSupplyCollection: {
         type: 'dynamic',
-        url: '/api/v1.0/supply/dictionary/kontragent',
+        url: '/api/v1.0/dictionary/supply/kontragent',
         staticCollection: 'kontragentCollection',
         data: {}
     },
@@ -787,8 +854,18 @@ var collections = {
     },
     groundSupplyCollection: {
         type: 'dynamic',
-        url: '/api/v1.0/supply/dictionary/ground',
+        url: '/api/v1.0/dictionary/supply/ground',
         staticCollection: 'groundCollection',
+        data: {}
+    },
+    meterCollection: {
+        type: 'static',
+        data: {}
+    },
+    meterSupplyCollection: {
+        type: 'dynamic',
+        url: '/api/v1.0/dictionary/supply/meter',
+        staticCollection: 'meterCollection',
         data: {}
     },
     meterTypesCollection: {
@@ -813,6 +890,16 @@ var collections = {
             3: 'По счетчику (электричество)',
             4: 'По счетчику (газ)'
         }
+    },
+    serviceCollection: {
+        type: 'static',
+        data: {}
+    },
+    serviceSupplyCollection: {
+        type: 'dynamic',
+        url: '/api/v1.0/dictionary/supply/service',
+        staticCollection: 'serviceCollection',
+        data: {}
     }
 };
 const HTTP_METHOD_GET    = 'GET';
@@ -843,6 +930,7 @@ var SERVICE_TYPE_LANG = "Тип потребителя услуги";
 var SERVICE_CALC_BASE_LANG = "Тип базы для расчета";
 var TARIFS_DATE_START_LANG = "Дата начала действия";
 var DOCUMENT_DATE_LANG = "Дата документа";
+var TARIF_LANG = "Тариф, грн";
 const ROUTES = {
     '/index\.html': 'controller.main',
     '/login\.html': 'controller.login',
@@ -858,6 +946,7 @@ const ROUTES = {
     '/document/accurring\.html': 'controller.accurringDocuments',
     '/document/meters\.html': 'controller.metersDocuments',
     '/document/tarifs\.html': 'controller.tarifsDocuments',
+    '/document/tarifs/(.*)\.html': 'controller.tarifsDocument',
     '/report/main\.html': 'controller.mainReport',
     '/report/meters\.html': 'controller.metersReport',
     '/report/balance\.html': 'controller.balanceReport',
@@ -902,6 +991,7 @@ const SERVICES_LIST = {
     'controller.metersDocuments': {'class': 'MetersDocumentsController', 'args': {}},
     'controller.payDocuments': {'class': 'PayDocumentsController', 'args': {}},
     'controller.tarifsDocuments': {'class': 'TarifsDocumentsController', 'args': {}},
+    'controller.tarifsDocument': {'class': 'TarifsDocumentController', 'args': {}},
     'controller.balanceReport': {'class': 'BalanceReportController', 'args': {}},
     'controller.mainReport': {'class': 'MainReportController', 'args': {}},
     'controller.metersReport': {'class': 'MetersReportController', 'args': {}},
@@ -910,6 +1000,7 @@ const SERVICES_LIST = {
     'view.metersDocuments': {'class': 'MetersDictionaryView', 'args': {}},
     'view.payDocuments': {'class': 'PayDictionaryView', 'args': {}},
     'view.tarifsDocuments': {'class': 'TarifsDocumentsView', 'args': {}},
+    'view.tarifDocument': {'class': 'TarifsDocumentView', 'args': {}},
     'view.balanceReports': {'class': 'BalanceReportsView', 'args': {}},
     'view.mainReports': {'class': 'MainReportsView', 'args': {}},
     'view.metersReports': {'class': 'MetersReportsView', 'args': {}},
@@ -1079,6 +1170,20 @@ function ServiceCardModel(object) {
 
     this.AbstractCardModel(object);
 }
+function TarifsDocumentModel(params) {
+    DocumentAbstractModel.call(this);
+    this.baseUrl = '/api/v1.0/document/tarif';
+
+    this.TarifsDocumentModel = function (object) {
+        var date = new Date();
+
+        this.defaultData.dateStart = date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
+
+        this.DocumentAbstractModel(object);
+    };
+
+    this.TarifsDocumentModel(params);
+}
 function AccurringDocumentsModel() {
     
 }
@@ -1089,17 +1194,17 @@ function PayDocumentsModel() {
     
 }
 function TarifsDocumentsModel(params) {
-    DocumentAbstractModel.call(this);
+    DocumentsAbstractModel.call(this);
 
     this.url = '/api/v1.0/document/list/tarif';
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
-        "date": DOCUMENT_DATE_LANG,
+        "created": DOCUMENT_DATE_LANG,
         "dateStart": TARIFS_DATE_START_LANG
     };
 
     this.TarifsDocumentsModel = function (object) {
-        this.DocumentAbstractModel(object);
+        this.DocumentsAbstractModel(object);
     };
 
     this.TarifsDocumentsModel(params);
@@ -1159,6 +1264,7 @@ function AbstractModel() {
     this.creator = undefined;
     this.data = {};
     this.requestData = {};
+    this.defaultData = {};
     this.method = 'GET';
     this.successCallback = undefined;
     this.url = '';
@@ -1220,7 +1326,23 @@ function AbstractModel() {
     };
 
     this.getDataForView = function () {
-        return this.data;
+        return this.isEmpty(this.data) ? this.defaultData : this.data
+    };
+
+    this.isEmpty = function (data) {
+        if (data === undefined) {
+            return true;
+        }
+
+        if (data === null) {
+            return true;
+        }
+
+        if (typeof data == "object" && !Object.keys(data).length) {
+            return true;
+        }
+
+        return false;
     };
 
     this.onRequestError = function () {
@@ -1238,7 +1360,7 @@ function DictionaryAbstractModel() {
     this.getDataForView = function () {
         var result = {
             'columns': this.dataNames,
-            'data': this.data
+            'data': this.isEmpty(this.data) ? this.defaultData : this.data
         };
         if (this.getRequestData('order_by')) {
             result['orderBy'] = this.getRequestData('order_by');
@@ -1251,9 +1373,16 @@ function DictionaryAbstractModel() {
     };
 }
 function DocumentAbstractModel() {
-    DictionaryAbstractModel.call(this);
+    AbstractCardModel.call(this);
 
     this.DocumentAbstractModel = function (object) {
+        this.AbstractCardModel(object);
+    }
+}
+function DocumentsAbstractModel() {
+    DictionaryAbstractModel.call(this);
+
+    this.DocumentsAbstractModel = function (object) {
         this.DictionaryAbstractModel(object);
     }
 }
@@ -1477,6 +1606,12 @@ function ServiceCardView() {
         return html;
     };
 }
+function TarifsDocumentView() {
+    AbstractDocumentView.call(this);
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{TARIFS_DATE_START_LANG}<input type="date" name="dateStart" value="{dateStart}"></li></ul><ul class="card_row">{table}</ul></div>';
+    this.rowTemplate = '<ul class="table_row" data-id="{id}"><li><input type="checkbox" name="checker"></li><li><div class="selectbox" tabindex="-1"><input name="serviceId" data-id="{serviceId}" data-type="service" value="{service}"><p class="selectbox-list-hide"></p></div></li><li><input name="price" value="{price}"></li></ul>';
+    this.headTemplate = '<ul class="table_head"><li class="column_head"></li><li class="column_head" data-name="serviceId">{SERVICE_NAME_LANG}</li><li class="column_head" data-name="price">{TARIF_LANG}</li></ul>';
+}
 function AccurringDocumentsView() {
     
 }
@@ -1640,7 +1775,7 @@ function AbstractCardView() {
     this.addLangs = function (template) {
         var matches = template.match(/{.*?}/g);
 
-        if (!matches.length) {
+        if (!matches || !matches.length) {
             return template;
         }
 
@@ -1668,6 +1803,36 @@ function AbstractDictionaryView() {
         return html;
     };
 }
+function AbstractDocumentView() {
+    AbstractCardView.call(this);
+    this.rowTemplate = '';
+    this.headTemplate = '';
+
+    this.buildTemplate = function (data) {
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+
+        data.table = this.generateTable(data);
+        html += this.addData(this.template, data) + '</div>';
+
+        return html;
+    };
+
+    this.generateTable = function (data) {
+        var result = '<div class="table subtable"><ul><button class="add_button"></button><button class="delete_button"></button></ul>';
+        result += this.addData(this.headTemplate, data);
+
+        if (data.rows) {
+            for (var i = 0; i < data.rows.length; i++) {
+                result += this.addData(this.rowTemplate, data.rows[i]);
+            }
+        }
+
+        result += '</div>';
+
+        return result;
+    }
+}
+
 function AbstractDocumentsView() {
     AbstractDictionaryView.call(this);
 }

@@ -18,8 +18,8 @@ class TarifDocumentListFormatter extends EntityFormatterAbstract
     {
         return [
             'id' => $entity->getId(),
-            'created' => $entity->getCreated(),
-            'dateStart' => $entity->getDateStart()
+            'created' => $entity->getCreated()->format('d-m-Y'),
+            'dateStart' => $entity->getDateStart()->format('d-m-Y')
         ];
     }
 

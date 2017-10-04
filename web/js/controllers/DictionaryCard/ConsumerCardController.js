@@ -17,25 +17,9 @@ function ConsumerCardController() {
             return;
         }
 
-        this.showGroundTableEvent = this.showGroundTable.bind(this);
-
         this.model.setId(params[0]);
 
         this.model.refresh();
-    };
-
-    this.showGroundTable = function (data) {
-        delete data.columns.owner;
-
-        for (var key in data.data) {
-            delete data.data[key].owner;
-        }
-        data.hideButtons = true;
-        data.isSubview = true;
-
-        var view = kernel.getServiceContainer().get('view.table');
-        var html = view.buildTemplate(data);
-        $('.table_ground')[0].innerHTML = html;
     };
 
     this.fillModel = function () {

@@ -1,7 +1,7 @@
 function DocumentAbstractModel() {
-    DictionaryAbstractModel.call(this);
+    AbstractCardModel.call(this);
 
     this.DocumentAbstractModel = function (object) {
-        this.DictionaryAbstractModel(object);
+        this.AbstractCardModel(object);
     }
 }

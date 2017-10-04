@@ -33,12 +33,6 @@ function AbstractCardController() {
 
         var eventContainer = kernel.getServiceContainer().get('container.event');
         eventContainer.setEvents(this.events);
-
-        if (this.model.recordId != 0) {
-            for (var key in this.submodels) {
-                this.submodels[key].refresh();
-            }
-        }
     };
 
     this.onSave = function () {

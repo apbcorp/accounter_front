@@ -13,6 +13,7 @@ const ROUTES = {
     '/document/accurring\.html': 'controller.accurringDocuments',
     '/document/meters\.html': 'controller.metersDocuments',
     '/document/tarifs\.html': 'controller.tarifsDocuments',
+    '/document/tarifs/(.*)\.html': 'controller.tarifsDocument',
     '/report/main\.html': 'controller.mainReport',
     '/report/meters\.html': 'controller.metersReport',
     '/report/balance\.html': 'controller.balanceReport',

@@ -2,6 +2,7 @@ function AbstractModel() {
     this.creator = undefined;
     this.data = {};
     this.requestData = {};
+    this.defaultData = {};
     this.method = 'GET';
     this.successCallback = undefined;
     this.url = '';
@@ -63,7 +64,23 @@ function AbstractModel() {
     };
 
     this.getDataForView = function () {
-        return this.data;
+        return this.isEmpty(this.data) ? this.defaultData : this.data
+    };
+
+    this.isEmpty = function (data) {
+        if (data === undefined) {
+            return true;
+        }
+
+        if (data === null) {
+            return true;
+        }
+
+        if (typeof data == "object" && !Object.keys(data).length) {
+            return true;
+        }
+
+        return false;
     };
 
     this.onRequestError = function () {

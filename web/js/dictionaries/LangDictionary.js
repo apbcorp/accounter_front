@@ -21,3 +21,4 @@ var SERVICE_TYPE_LANG = "Тип потребителя услуги";
 var SERVICE_CALC_BASE_LANG = "Тип базы для расчета";
 var TARIFS_DATE_START_LANG = "Дата начала действия";
 var DOCUMENT_DATE_LANG = "Дата документа";
+var TARIF_LANG = "Тариф, грн";

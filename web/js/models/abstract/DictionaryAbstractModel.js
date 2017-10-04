@@ -9,7 +9,7 @@ function DictionaryAbstractModel() {
     this.getDataForView = function () {
         var result = {
             'columns': this.dataNames,
-            'data': this.data
+            'data': this.isEmpty(this.data) ? this.defaultData : this.data
         };
         if (this.getRequestData('order_by')) {
             result['orderBy'] = this.getRequestData('order_by');

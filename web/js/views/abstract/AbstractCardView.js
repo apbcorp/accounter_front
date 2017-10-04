@@ -21,7 +21,7 @@ function AbstractCardView() {
     this.addLangs = function (template) {
         var matches = template.match(/{.*?}/g);
 
-        if (!matches.length) {
+        if (!matches || !matches.length) {
             return template;
         }
 
