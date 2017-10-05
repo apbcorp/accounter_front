@@ -39,8 +39,8 @@ function CollectionContainer() {
         var staticCollection = this.data[this.thisCollection.staticCollection];
 
         for (var i = 0; i < data.result.length; i++) {
-            this.thisCollection.data[data.result[i].id] = data.result[i].name;
-            staticCollection.data[data.result[i].id] = data.result[i].name;
+            this.thisCollection.data[data.result[i].id] = data.result[i];
+            staticCollection.data[data.result[i].id] = data.result[i];
         }
 
         this.event();

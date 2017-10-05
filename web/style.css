@@ -73,6 +73,14 @@ button.add_button {
     background-position-x: center;
     background-position-y: 3px;
 }
+button.autoset_button {
+    height: 31px;
+    width: 117px;
+    background-image: url(img/autoset.png);
+    background-repeat: no-repeat;
+    background-position-x: center;
+    background-position-y: 3px;
+}
 button.edit_button {
     margin-left: 3px;
     width: 36px;
@@ -180,4 +188,7 @@ button.paginator-button {
 }
 button.paginator-button.active {
     font-weight: bold;
+}
+div.table > ul.button_panel {
+    display: block;
 }

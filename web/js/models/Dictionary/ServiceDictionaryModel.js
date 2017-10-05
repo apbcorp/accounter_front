@@ -5,7 +5,7 @@ function ServiceDictionaryModel(params) {
         "id": RECORD_NUMBER_LANG,
         "name": SERVICE_NAME_LANG,
         "type": SERVICE_TYPE_LANG,
-        "subtype": SERVICE_CALC_BASE_LANG
+        "subtype": SERVICE_CALC_TYPE_BASE_LANG
     };
 
     this.ServiceDictionaryModel = function (object) {

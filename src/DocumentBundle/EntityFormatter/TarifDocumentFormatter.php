@@ -22,6 +22,10 @@ class TarifDocumentFormatter extends EntityFormatterAbstract
 
         /** @var TarifRow $row */
         foreach ($entity->getRows() as $row) {
+            if ($row->isDeleted()) {
+                continue;
+            }
+
             $rows[] = [
                 'id' => $row->getId(),
                 'serviceId' => $row->getService()->getId(),
@@ -44,12 +48,14 @@ class TarifDocumentFormatter extends EntityFormatterAbstract
      */
     public function setData($id, array $data)
     {
+        /** @var TarifDocument $entity */
         $entity = $this->getEntity($id, 'createTarifDocument');
 
         if (!$entity) {
             return false;
         }
-        
+
+        $ids = [];
         foreach ($data['rows'] as $row) {
             if ($row['id']) {
                 $subEntity = $this->entityManager->getRepository(TarifRow::class)->find($row['id']); 
@@ -67,6 +73,10 @@ class TarifDocumentFormatter extends EntityFormatterAbstract
             $subEntity->setUpdated(new \DateTime());
             $subEntity->setPrice($row['price']);
             $subEntity->setDocument($entity);
+
+            if ($subEntity->getId()) {
+                $ids[] = $subEntity->getId();
+            }
         }
 
         unset($data['rows']);
@@ -75,6 +85,13 @@ class TarifDocumentFormatter extends EntityFormatterAbstract
 
         if ($this->isNewEntity) {
             $data['created'] = new \DateTime();
+        }
+
+        /** @var TarifRow $row */
+        foreach ($entity->getRows() as $row) {
+            if (!in_array($row->getId(), $ids)) {
+                $row->setIsDeleted(true);
+            }
         }
 
         $this->fillEntity($data, $entity);

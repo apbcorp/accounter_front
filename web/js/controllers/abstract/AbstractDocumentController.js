@@ -55,5 +55,13 @@ function AbstractDocumentController() {
         }
     };
 
+    this.onAutoFill = function () {
+        alert(1);
+    };
+    
+    this.onAutoFillComplete = function () {
+        
+    };
+
     this.AbstractDocumentController();
 }

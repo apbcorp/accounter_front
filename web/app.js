@@ -105,8 +105,8 @@ function CollectionContainer() {
         var staticCollection = this.data[this.thisCollection.staticCollection];
 
         for (var i = 0; i < data.result.length; i++) {
-            this.thisCollection.data[data.result[i].id] = data.result[i].name;
-            staticCollection.data[data.result[i].id] = data.result[i].name;
+            this.thisCollection.data[data.result[i].id] = data.result[i];
+            staticCollection.data[data.result[i].id] = data.result[i];
         }
 
         this.event();
@@ -415,6 +415,148 @@ function ServiceCardController() {
 
     this.ServiceCardController();
 }
+function AccurringDocumentController() {
+    AbstractDocumentController.call(this);
+    this.model = new AccurringDocumentModel(this);
+    this.viewName = 'view.accurringDocument';
+    this.backUrl = '/document/accurring.html';
+
+    this.AccurringDocumentController = function () {
+        this.onAutoFillEvent = this.onAutoFill.bind(this);
+        this.events.push({'selector': '.autoset_button', 'action': 'click', 'event': this.onAutoFillEvent});
+        
+        this.AbstractDocumentController();
+    };
+
+    this.fillModel = function () {
+        var rows = [];
+        var elements = $('.table_row');
+
+        for (var i = 0; i < elements.length; i++) {
+            rows.push({
+                id: elements[i].dataset.id,
+                serviceId: elements[i].childNodes[1].childNodes[0].childNodes[0].dataset.id,
+                price: elements[i].childNodes[2].childNodes[0].value
+            })
+        }
+
+        var data = {
+            dateStart: $('[name="dateStart"]')[0].value,
+            rows: rows
+        };
+
+        this.model.appendDataToRequest(data);
+    };
+
+    this.afterOnBlur = function (event) {
+        if (event.target.childNodes[0].dataset.type == 'kontragent') {
+            return;
+        }
+
+        var serviceId = event.target.parentNode.parentNode.childNodes[1].childNodes[0].childNodes[0].dataset.id;
+        var period = event.target.parentNode.parentNode.childNodes[2].childNodes[0].value;
+        var kontragentId = $('[data-type=kontragent]')[0].dataset.id;
+        var base = event.target.parentNode.parentNode.childNodes[3].childNodes[0].value;
+        var price = event.target.parentNode.parentNode.childNodes[3].childNodes[0].value;
+
+        if (serviceId && kontragentId && !base) {
+            return;
+        }
+
+        if (serviceId && period && kontragentId && !price) {
+            return;
+        }
+    };
+
+    this.onAutoFill = function () {
+        var kontragent = $('[data-type=kontragent]')[0];
+
+        if (!kontragent.dataset.id) {
+            alert('ФИО потребителя не указано');
+
+            return;
+        }
+
+        var container = kernel.getServiceContainer().get('container.collection');
+        container.getDataBySupply('serviceAutofill', kontragent.dataset.id, this.onAutoFillComplete.bind(this));
+    };
+
+    this.onAutoFillComplete = function () {
+        var container = kernel.getServiceContainer().get('container.collection');
+        var record = container.getDataById('serviceAutofill', $('[data-type=kontragent]')[0].kontragent.dataset.id);
+
+        
+    };
+
+    this.AccurringDocumentController();
+}
+function MetersDocumentController() {
+    AbstractDocumentController.call(this);
+    this.model = new MetersDocumentModel(this);
+    this.viewName = 'view.meterDocument';
+    this.backUrl = '/document/meters.html';
+
+    this.MetersDocumentController = function () {
+        this.AbstractDocumentController();
+    };
+
+    this.fillModel = function () {
+        var rows = [];
+        var elements = $('.table_row');
+
+        for (var i = 0; i < elements.length; i++) {
+            rows.push({
+                id: elements[i].dataset.id,
+                meterId: elements[i].childNodes[1].childNodes[0].childNodes[0].dataset.id,
+                startValue: elements[i].childNodes[2].childNodes[0].value,
+                endValue: elements[i].childNodes[3].childNodes[0].value
+            })
+        }
+
+        var data = {
+            rows: rows
+        };
+
+        this.model.appendDataToRequest(data);
+    };
+
+    this.afterOnBlur = function (event) {
+        var container = kernel.getServiceContainer().get('container.collection');
+        var record = container.getDataById(event.target.childNodes[0].dataset.type, event.target.childNodes[0].dataset.id);
+
+        event.target.parentNode.parentNode.childNodes[2].childNodes[0].value = record.value;
+    };
+}
+function PayDocumentController() {
+    AbstractDocumentController.call(this);
+    this.model = new PayDocumentModel(this);
+    this.viewName = 'view.payDocument';
+    this.backUrl = '/document/pays.html';
+
+    this.PayDocumentController = function () {
+        this.AbstractDocumentController();
+    };
+
+    this.fillModel = function () {
+        var rows = [];
+        var elements = $('.table_row');
+
+        for (var i = 0; i < elements.length; i++) {
+            rows.push({
+                id: elements[i].dataset.id,
+                serviceId: elements[i].childNodes[1].childNodes[0].childNodes[0].dataset.id,
+                price: elements[i].childNodes[2].childNodes[0].value
+            })
+        }
+
+        var data = {
+            dateStart: $('[name="dateStart"]')[0].value,
+            rows: rows
+        };
+
+        this.model.appendDataToRequest(data);
+    };
+}
 function TarifsDocumentController() {
     AbstractDocumentController.call(this);
     this.model = new TarifsDocumentModel(this);
@@ -447,12 +589,27 @@ function TarifsDocumentController() {
 }
 function AccurringDocumentsController() {
     AbstractDocumentsController.call(this);
+    this.model = new AccurringDocumentsModel(this);
+    this.cardPath = '/document/accurring/';
+    this.viewName = 'view.accurringDocuments';
+
+    this.AbstractDocumentsController();
 }
 function MetersDocumentsController() {
     AbstractDocumentsController.call(this);
+    this.model = new MetersDocumentsModel(this);
+    this.cardPath = '/document/meters/';
+    this.viewName = 'view.metersDocuments';
+
+    this.AbstractDocumentsController();
 }
 function PayDocumentsController() {
     AbstractDocumentsController.call(this);
+    this.model = new PayDocumentsModel(this);
+    this.cardPath = '/document/pays/';
+    this.viewName = 'view.paysDocuments';
+
+    this.AbstractDocumentsController();
 }
 
 function TarifsDocumentsController() {
@@ -746,6 +903,14 @@ function AbstractDocumentController() {
         }
     };
 
+    this.onAutoFill = function () {
+        alert(1);
+    };
+    
+    this.onAutoFillComplete = function () {
+        
+    };
+
     this.AbstractDocumentController();
 }
 function AbstractDocumentsController() {
@@ -875,6 +1040,16 @@ var collections = {
             2: 'Газ'
         }
     },
+    meterDocumentSupplyCollection: {
+        type: 'dynamic',
+        url: '/api/v1.0/document/supply/meter',
+        staticCollection: 'meterDocumentCollection',
+        data: {}
+    },
+    meterDocumentCollection: {
+        type: 'static',
+        data: {}
+    },
     serviceTypesCollection: {
         type: 'static',
         data: {
@@ -900,6 +1075,16 @@ var collections = {
         url: '/api/v1.0/dictionary/supply/service',
         staticCollection: 'serviceCollection',
         data: {}
+    },
+    serviceAutofillSupplyCollection: {
+        type: 'dynamic',
+        url: '/api/v1.0/document/autofill/accurring',
+        staticCollection: 'serviceAutofillCollection',
+        data: {}
+    },
+    serviceAutofillCollection: {
+        type: 'static',
+        data: {}
     }
 };
 const HTTP_METHOD_GET    = 'GET';
@@ -917,6 +1102,8 @@ var GROUND_FREE_AREA_LANG = "Не относящаяся к причалу пл�
 var GROUND_COMMON_AREA_LANG = "Площадь общего пользования, кв. м.";
 var GROUND_ALL_AREA_LANG = "Всего площадь, кв. м.";
 var OWNER_FULL_NAME_LANG = "ФИО собственника";
+var KONTRAGENT_PAY_FULL_NAME_LANG = "ФИО плательщика";
+var KONTRAGENT_SERVICE_FULL_NAME_LANG = "ФИО потребителя";
 var SURNAME_LANG = "Фамилия";
 var NAME_LANG = "Имя";
 var NAME2_LANG = "Отчество";
@@ -927,10 +1114,17 @@ var METER_TYPE_LANG = "Тип счетчика";
 var METER_GROUND_OWNER_LANG = "Участок установки";
 var SERVICE_NAME_LANG = "Название услуги";
 var SERVICE_TYPE_LANG = "Тип потребителя услуги";
-var SERVICE_CALC_BASE_LANG = "Тип базы для расчета";
+var SERVICE_CALC_TYPE_BASE_LANG = "Тип базы для расчета";
 var TARIFS_DATE_START_LANG = "Дата начала действия";
 var DOCUMENT_DATE_LANG = "Дата документа";
 var TARIF_LANG = "Тариф, грн";
+var SUM_LANG = "Сумма, грн";
+var START_VALUE_LANG = "Предыдущие данные";
+var END_VALUE_LANG = "Текущие данные";
+var METER_NAME_LANG = "Счетчик";
+var PERIOD_LANG = "Период";
+var SERVICE_CALC_BASE_LANG = "База расчета";
+var KOMMENT_LANG = "Комментарий";
 const ROUTES = {
     '/index\.html': 'controller.main',
     '/login\.html': 'controller.login',
@@ -947,6 +1141,9 @@ const ROUTES = {
     '/document/meters\.html': 'controller.metersDocuments',
     '/document/tarifs\.html': 'controller.tarifsDocuments',
     '/document/tarifs/(.*)\.html': 'controller.tarifsDocument',
+    '/document/meters/(.*)\.html': 'controller.metersDocument',
+    '/document/accurring/(.*)\.html': 'controller.accurringDocument',
+    '/document/pays/(.*)\.html': 'controller.payDocument',
     '/report/main\.html': 'controller.mainReport',
     '/report/meters\.html': 'controller.metersReport',
     '/report/balance\.html': 'controller.balanceReport',
@@ -987,20 +1184,26 @@ const SERVICES_LIST = {
     'view.meterCard': {'class': 'MeterCardView', 'args': {}},
     'controller.consumerCard': {'class': 'ConsumerCardController', 'args': {}},
     'view.consumerCard': {'class': 'ConsumerCardView', 'args': {}},
-    'controller.accuringDocuments': {'class': 'AccurringDocumentsController', 'args': {}},
+    'controller.accurringDocuments': {'class': 'AccurringDocumentsController', 'args': {}},
+    'controller.accurringDocument': {'class': 'AccurringDocumentController', 'args': {}},
     'controller.metersDocuments': {'class': 'MetersDocumentsController', 'args': {}},
+    'controller.metersDocument': {'class': 'MetersDocumentController', 'args': {}},
     'controller.payDocuments': {'class': 'PayDocumentsController', 'args': {}},
+    'controller.payDocument': {'class': 'PayDocumentController', 'args': {}},
     'controller.tarifsDocuments': {'class': 'TarifsDocumentsController', 'args': {}},
     'controller.tarifsDocument': {'class': 'TarifsDocumentController', 'args': {}},
     'controller.balanceReport': {'class': 'BalanceReportController', 'args': {}},
     'controller.mainReport': {'class': 'MainReportController', 'args': {}},
     'controller.metersReport': {'class': 'MetersReportController', 'args': {}},
     'controller.smsReport': {'class': 'SmsReportController', 'args': {}},
-    'view.accuringDocuments': {'class': 'AccurringDictionaryView', 'args': {}},
-    'view.metersDocuments': {'class': 'MetersDictionaryView', 'args': {}},
-    'view.payDocuments': {'class': 'PayDictionaryView', 'args': {}},
+    'view.accurringDocuments': {'class': 'AccurringDocumentsView', 'args': {}},
+    'view.metersDocuments': {'class': 'MetersDocumentsView', 'args': {}},
+    'view.paysDocuments': {'class': 'PayDocumentsView', 'args': {}},
     'view.tarifsDocuments': {'class': 'TarifsDocumentsView', 'args': {}},
     'view.tarifDocument': {'class': 'TarifsDocumentView', 'args': {}},
+    'view.payDocument': {'class': 'PayDocumentView', 'args': {}},
+    'view.meterDocument': {'class': 'MeterDocumentView', 'args': {}},
+    'view.accurringDocument': {'class': 'AccurringDocumentView', 'args': {}},
     'view.balanceReports': {'class': 'BalanceReportsView', 'args': {}},
     'view.mainReports': {'class': 'MainReportsView', 'args': {}},
     'view.metersReports': {'class': 'MetersReportsView', 'args': {}},
@@ -1131,7 +1334,7 @@ function ServiceDictionaryModel(params) {
         "id": RECORD_NUMBER_LANG,
         "name": SERVICE_NAME_LANG,
         "type": SERVICE_TYPE_LANG,
-        "subtype": SERVICE_CALC_BASE_LANG
+        "subtype": SERVICE_CALC_TYPE_BASE_LANG
     };
 
     this.ServiceDictionaryModel = function (object) {
@@ -1170,6 +1373,36 @@ function ServiceCardModel(object) {
 
     this.AbstractCardModel(object);
 }
+function AccurringDocumentModel(params) {
+    DocumentAbstractModel.call(this);
+    this.baseUrl = '/api/v1.0/document/tarif';
+
+    this.AccurringDocumentModel = function (object) {
+        this.DocumentAbstractModel(object);
+    };
+
+    this.AccurringDocumentModel(params);
+}
+function MetersDocumentModel(params) {
+    DocumentAbstractModel.call(this);
+    this.baseUrl = '/api/v1.0/document/meter';
+
+    this.MetersDocumentModel = function (object) {
+        this.DocumentAbstractModel(object);
+    };
+
+    this.MetersDocumentModel(params);
+}
+function PayDocumentModel(params) {
+    DocumentAbstractModel.call(this);
+    this.baseUrl = '/api/v1.0/document/tarif';
+
+    this.PayDocumentModel = function (object) {
+        this.DocumentAbstractModel(object);
+    };
+
+    this.PayDocumentModel(params);
+}
 function TarifsDocumentModel(params) {
     DocumentAbstractModel.call(this);
     this.baseUrl = '/api/v1.0/document/tarif';
@@ -1184,14 +1417,52 @@ function TarifsDocumentModel(params) {
 
     this.TarifsDocumentModel(params);
 }
-function AccurringDocumentsModel() {
-    
+function AccurringDocumentsModel(params) {
+    DocumentsAbstractModel.call(this);
+
+    this.url = '/api/v1.0/document/list/accurring';
+    this.dataNames = {
+        "id": RECORD_NUMBER_LANG,
+        "created": DOCUMENT_DATE_LANG,
+        "kontragent": KONTRAGENT_SERVICE_FULL_NAME_LANG
+    };
+
+    this.AccurringDocumentsModel = function (object) {
+        this.DocumentsAbstractModel(object);
+    };
+
+    this.AccurringDocumentsModel(params);
 }
-function MetersDocumentsModel() {
-    
+function MetersDocumentsModel(params) {
+    DocumentsAbstractModel.call(this);
+
+    this.url = '/api/v1.0/document/list/meter';
+    this.dataNames = {
+        "id": RECORD_NUMBER_LANG,
+        "created": DOCUMENT_DATE_LANG
+    };
+
+    this.MetersDocumentsModel = function (object) {
+        this.DocumentsAbstractModel(object);
+    };
+
+    this.MetersDocumentsModel(params);
 }
-function PayDocumentsModel() {
-    
+function PayDocumentsModel(params) {
+    DocumentsAbstractModel.call(this);
+
+    this.url = '/api/v1.0/document/list/pay';
+    this.dataNames = {
+        "id": RECORD_NUMBER_LANG,
+        "created": DOCUMENT_DATE_LANG,
+        "kontragent": KONTRAGENT_PAY_FULL_NAME_LANG
+    };
+
+    this.PayDocumentsModel = function (object) {
+        this.DocumentsAbstractModel(object);
+    };
+
+    this.PayDocumentsModel(params);
 }
 function TarifsDocumentsModel(params) {
     DocumentsAbstractModel.call(this);
@@ -1524,7 +1795,7 @@ function SelectBoxElement() {
 
         var html = data == {} ? this.failText : this.text;
         for (var key in data) {
-            html += '<p class="selectbox-item" data-id="' + key + '">' + data[key] + ' (' + key + ')</p>';
+            html += '<p class="selectbox-item" data-id="' + key + '">' + data[key].name + ' (' + key + ')</p>';
         }
 
         $(this.element)[0].nextSibling.innerHTML = html;
@@ -1555,7 +1826,13 @@ function SelectBoxElement() {
         var collection = input.dataset.type;
         var id = input.dataset.id;
 
-        input.value = container.getDataById(collection, id);
+        input.value = container.getDataById(collection, id).name;
+
+        this.afterOnBlur(event);
+    };
+
+    this.afterOnBlur = function (event) {
+
     };
 }
 
@@ -1594,7 +1871,7 @@ function MeterCardView() {
 }
 function ServiceCardView() {
     AbstractCardView.call(this);
-    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{SERVICE_NAME_LANG}<input name="name" value="{name}"></li><li class="card_cell">{SERVICE_TYPE_LANG}<select name="type">{type}</select></li></ul><ul class="card_row"><li class="card_cell">{SERVICE_CALC_BASE_LANG}<select name="subtype">{subtype}</select></li></ul></div>';
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{SERVICE_NAME_LANG}<input name="name" value="{name}"></li><li class="card_cell">{SERVICE_TYPE_LANG}<select name="type">{type}</select></li></ul><ul class="card_row"><li class="card_cell">{SERVICE_CALC_TYPE_BASE_LANG}<select name="subtype">{subtype}</select></li></ul></div>';
 
     this.buildTemplate = function (data) {
         var container = kernel.getServiceContainer().get('container.collection');
@@ -1606,20 +1883,38 @@ function ServiceCardView() {
         return html;
     };
 }
+function AccurringDocumentView() {
+    AbstractDocumentView.call(this);
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{KONTRAGENT_SERVICE_FULL_NAME_LANG}<div class="selectbox" tabindex="-1"><input name="kontragent" data-id="{kontragentId}" data-type="kontragent" value="{kontragent}"><p class="selectbox-list-hide"></p></div></li></ul><ul class="card_row"><div class="table subtable"><ul class="button_panel"><button class="add_button"></button><button class="delete_button"></button><button class="autoset_button"></button></ul>{table}</div></ul></div>';
+    this.rowTemplate = '<ul class="table_row" data-id="{id}"><li><input type="checkbox" name="checker"></li><li><div class="selectbox" tabindex="-1"><input name="service" data-id="{serviceId}" data-type="service" value="{service}"><p class="selectbox-list-hide"></p></div></li><li><input type="date" name="period" value="{period}"></li><li><input name="calcBase" value="{calcBase}" disabled></li><li><input name="price" value="{price}" disabled></li><li><input name="sum" value="{sum}"></li><li><input name="komment" value="{komment}"></li></ul>';
+    this.headTemplate = '<ul class="table_head"><li class="column_head"></li><li class="column_head" data-name="service">{SERVICE_NAME_LANG}</li><li class="column_head" data-name="period">{PERIOD_LANG}</li><li class="column_head" data-name="calcBase">{SERVICE_CALC_BASE_LANG}</li><li class="column_head" data-name="price">{TARIF_LANG}</li><li class="column_head" data-name="sum">{SUM_LANG}</li><li class="column_head" data-name="komment">{KOMMENT_LANG}</li></ul>';
+}
+function MeterDocumentView() {
+    AbstractDocumentView.call(this);
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><div class="table subtable"><ul class="button_panel"><button class="add_button"></button><button class="delete_button"></button></ul>{table}</div></ul></div>';
+    this.rowTemplate = '<ul class="table_row" data-id="{id}"><li><input type="checkbox" name="checker"></li><li><div class="selectbox" tabindex="-1"><input name="meter" data-id="{meterId}" data-type="meterDocument" value="{meter}"><p class="selectbox-list-hide"></p></div></li><li><input name="startValue" value="{startValue}" disabled></li><li><input name="endValue" value="{endValue}"></li></ul>';
+    this.headTemplate = '<ul class="table_head"><li class="column_head"></li><li class="column_head" data-name="meter">{METER_NAME_LANG}</li><li class="column_head" data-name="startValue">{START_VALUE_LANG}</li><li class="column_head" data-name="endValue">{END_VALUE_LANG}</li></ul>';
+}
+function PayDocumentView() {
+    AbstractDocumentView.call(this);
+    this.template = '';
+    this.rowTemplate = '';
+    this.headTemplate = '';
+}
 function TarifsDocumentView() {
     AbstractDocumentView.call(this);
-    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{TARIFS_DATE_START_LANG}<input type="date" name="dateStart" value="{dateStart}"></li></ul><ul class="card_row">{table}</ul></div>';
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{TARIFS_DATE_START_LANG}<input type="date" name="dateStart" value="{dateStart}"></li></ul><ul class="card_row"><div class="table subtable"><ul class="button_panel"><button class="add_button"></button><button class="delete_button"></button></ul>{table}</div></ul></div>';
     this.rowTemplate = '<ul class="table_row" data-id="{id}"><li><input type="checkbox" name="checker"></li><li><div class="selectbox" tabindex="-1"><input name="serviceId" data-id="{serviceId}" data-type="service" value="{service}"><p class="selectbox-list-hide"></p></div></li><li><input name="price" value="{price}"></li></ul>';
     this.headTemplate = '<ul class="table_head"><li class="column_head"></li><li class="column_head" data-name="serviceId">{SERVICE_NAME_LANG}</li><li class="column_head" data-name="price">{TARIF_LANG}</li></ul>';
 }
 function AccurringDocumentsView() {
-    
+    AbstractDocumentsView.call(this);
 }
 function MetersDocumentsView() {
-    
+    AbstractDocumentsView.call(this);
 }
 function PayDocumentsView() {
-    
+    AbstractDocumentsView.call(this);
 }
 function TarifsDocumentsView() {
     AbstractDocumentsView.call(this);
@@ -1818,7 +2113,7 @@ function AbstractDocumentView() {
     };
 
     this.generateTable = function (data) {
-        var result = '<div class="table subtable"><ul><button class="add_button"></button><button class="delete_button"></button></ul>';
+        var result = '';
         result += this.addData(this.headTemplate, data);
 
         if (data.rows) {
@@ -1826,8 +2121,6 @@ function AbstractDocumentView() {
                 result += this.addData(this.rowTemplate, data.rows[i]);
             }
         }
-
-        result += '</div>';
 
         return result;
     }

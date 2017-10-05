@@ -48,6 +48,11 @@ DirectoryIndex app.php
     RewriteCond %{ENV:REDIRECT_STATUS} ^$
     RewriteRule ^app\.php(/(.*)|$) %{ENV:BASE}/$2 [R=301,L]
 
+    RewriteCond %{SCRIPT_FILENAME} !-d
+    RewriteCond %{SCRIPT_FILENAME} !-f
+
+    RewriteRule ^(.*).html$ ./index.html
+
     # If the requested filename exists, simply serve it.
     # We only want to let Apache serve files and not directories.
     RewriteCond %{REQUEST_FILENAME} -f
@@ -55,11 +60,6 @@ DirectoryIndex app.php
 
     # Rewrite all other queries to the front controller.
     RewriteRule .? %{ENV:BASE}/app.php [L]
-
-    RewriteCond %{SCRIPT_FILENAME} !-d
-    RewriteCond %{SCRIPT_FILENAME} !-f
-
-    RewriteRule ^(.*).html$ ./index.html
 </IfModule>
 
 <IfModule !mod_rewrite.c>

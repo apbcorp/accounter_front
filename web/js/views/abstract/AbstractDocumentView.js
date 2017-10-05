@@ -13,7 +13,7 @@ function AbstractDocumentView() {
     };
 
     this.generateTable = function (data) {
-        var result = '<div class="table subtable"><ul><button class="add_button"></button><button class="delete_button"></button></ul>';
+        var result = '';
         result += this.addData(this.headTemplate, data);
 
         if (data.rows) {
@@ -21,8 +21,6 @@ function AbstractDocumentView() {
                 result += this.addData(this.rowTemplate, data.rows[i]);
             }
         }
-
-        result += '</div>';
 
         return result;
     }

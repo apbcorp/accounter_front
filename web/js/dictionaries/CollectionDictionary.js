@@ -36,6 +36,16 @@ var collections = {
             2: 'Газ'
         }
     },
+    meterDocumentSupplyCollection: {
+        type: 'dynamic',
+        url: '/api/v1.0/document/supply/meter',
+        staticCollection: 'meterDocumentCollection',
+        data: {}
+    },
+    meterDocumentCollection: {
+        type: 'static',
+        data: {}
+    },
     serviceTypesCollection: {
         type: 'static',
         data: {
@@ -60,6 +70,16 @@ var collections = {
         type: 'dynamic',
         url: '/api/v1.0/dictionary/supply/service',
         staticCollection: 'serviceCollection',
+        data: {}
+    },
+    serviceAutofillSupplyCollection: {
+        type: 'dynamic',
+        url: '/api/v1.0/document/autofill/accurring',
+        staticCollection: 'serviceAutofillCollection',
+        data: {}
+    },
+    serviceAutofillCollection: {
+        type: 'static',
         data: {}
     }
 };

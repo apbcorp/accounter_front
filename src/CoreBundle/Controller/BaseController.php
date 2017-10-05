@@ -4,6 +4,7 @@ namespace CoreBundle\Controller;
 
 use CoreBundle\BaseClasses\Interfaces\EntityInterface;
 use CoreBundle\BaseClasses\ListRepositoryAbstract;
+use CoreBundle\Container\CookieContainer;
 use CoreBundle\Factory\EntityFormatterFactory;
 use Doctrine\ORM\EntityRepository;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
@@ -64,6 +65,13 @@ class BaseController extends Controller
                 'status' => 'success',
                 'result' => $data,
             ]);
+        }
+
+        /** @var CookieContainer $cookieContainer */
+        $cookieContainer = $this->get('core.container.cookie');
+
+        foreach ($cookieContainer->getAll() as $cookie) {
+            $response->headers->setCookie($cookie);
         }
 
         return $response;

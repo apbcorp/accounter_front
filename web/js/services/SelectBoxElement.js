@@ -32,7 +32,7 @@ function SelectBoxElement() {
 
         var html = data == {} ? this.failText : this.text;
         for (var key in data) {
-            html += '<p class="selectbox-item" data-id="' + key + '">' + data[key] + ' (' + key + ')</p>';
+            html += '<p class="selectbox-item" data-id="' + key + '">' + data[key].name + ' (' + key + ')</p>';
         }
 
         $(this.element)[0].nextSibling.innerHTML = html;
@@ -63,6 +63,12 @@ function SelectBoxElement() {
         var collection = input.dataset.type;
         var id = input.dataset.id;
 
-        input.value = container.getDataById(collection, id);
+        input.value = container.getDataById(collection, id).name;
+
+        this.afterOnBlur(event);
+    };
+
+    this.afterOnBlur = function (event) {
+
     };
 }
