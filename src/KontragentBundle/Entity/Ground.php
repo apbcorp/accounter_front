@@ -98,6 +98,13 @@ class Ground implements EntityInterface
     private $kontragent;
 
     /**
+     * @var int
+     *
+     * @ORM\Column(name="unit_id", type="integer")
+     */
+    private $unitId;
+
+    /**
      * @return int
      */
     public function getId()
@@ -299,4 +306,23 @@ class Ground implements EntityInterface
     {
         return str_replace(',', '.', $value);
     }
+    /**
+     * @return int
+     */
+    public function getUnitId()
+    {
+        return $this->unitId;
+    }
+
+    /**
+     * @param int $unitId
+     * @return $this
+     */
+    public function setUnitId($unitId)
+    {
+        $this->unitId = $unitId;
+
+        return $this;
+    }
+    
 }

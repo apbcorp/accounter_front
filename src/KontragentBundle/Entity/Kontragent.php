@@ -80,6 +80,13 @@ class Kontragent implements EntityInterface
     private $grounds;
 
     /**
+     * @var int
+     *
+     * @ORM\Column(name="unit_id", type="integer")
+     */
+    private $unitId;
+
+    /**
      * Kontragent constructor.
      */
     public function __construct()
@@ -215,5 +222,24 @@ class Kontragent implements EntityInterface
     public function getGrounds()
     {
         return $this->grounds;
+    }
+
+    /**
+     * @return int
+     */
+    public function getUnitId()
+    {
+        return $this->unitId;
+    }
+
+    /**
+     * @param int $unitId
+     * @return $this
+     */
+    public function setUnitId($unitId)
+    {
+        $this->unitId = $unitId;
+        
+        return $this;
     }
 }

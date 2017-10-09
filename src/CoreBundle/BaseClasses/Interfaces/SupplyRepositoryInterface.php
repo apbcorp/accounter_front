@@ -5,8 +5,9 @@ namespace CoreBundle\BaseClasses\Interfaces;
 interface SupplyRepositoryInterface
 {
     /**
-     * @param $searchString
+     * @param string $searchString
+     * @param int    $unitId
      * @return array
      */
-    public function search($searchString);
+    public function search($searchString, $unitId);
 }

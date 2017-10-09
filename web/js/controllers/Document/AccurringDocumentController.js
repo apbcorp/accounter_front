@@ -1,8 +1,8 @@
 function AccurringDocumentController() {
     AbstractDocumentController.call(this);
-    this.model = new AccurringDocumentModel(this);
     this.viewName = 'view.accurringDocument';
     this.backUrl = '/document/accurring.html';
+    this.model = new AccurringDocumentModel(this);
 
     this.AccurringDocumentController = function () {
         this.onAutoFillEvent = this.onAutoFill.bind(this);
@@ -27,7 +27,7 @@ function AccurringDocumentController() {
             dateStart: $('[name="dateStart"]')[0].value,
             rows: rows
         };
-
+        return false;
         this.model.appendDataToRequest(data);
     };
 

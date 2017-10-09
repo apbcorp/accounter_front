@@ -1,8 +1,8 @@
 function ConsumerCardController() {
     AbstractCardController.call(this);
-    this.model = new ConsumerCardModel(this);
     this.viewName = 'view.consumerCard';
     this.backUrl = '/dictionary/consumers.html';
+    this.model = new ConsumerCardModel(this);
 
     this.ConsumerCardController = function () {
         this.AbstractCardController();
@@ -31,7 +31,15 @@ function ConsumerCardController() {
             adress: $('[name="adress"]')[0].value
         };
 
-        this.model.appendDataToRequest(data);
+        if (this.model.isValidData(data)) {
+            this.model.appendDataToRequest(data);
+            
+            return true;
+        } else {
+            alert(this.model.getErrors())
+        }
+        
+        return false;
     };
 
     this.ConsumerCardController();

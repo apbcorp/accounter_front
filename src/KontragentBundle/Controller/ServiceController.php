@@ -51,7 +51,7 @@ class ServiceController extends BaseEntityController
 
     /**
      * @Route("/service/{id}")
-     * @Method("PATCH")
+     * @Method("POST")
      * @var Request $request
      * @var int     $id
      * @return JsonResponse

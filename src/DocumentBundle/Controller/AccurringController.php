@@ -52,7 +52,7 @@ class AccurringController extends BaseDocumentController
 
     /**
      * @Route("/accurring/{id}")
-     * @Method("PATCH")
+     * @Method("POST")
      * @var Request $request
      * @var int     $id
      * @return JsonResponse

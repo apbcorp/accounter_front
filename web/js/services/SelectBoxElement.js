@@ -19,6 +19,13 @@ function SelectBoxElement() {
 
     this.onKeyPressSelectBox = function (event) {
         this.element = $(event.target.parentElement.childNodes[0])[0];
+
+        if (event.originalEvent.code == 'Escape') {
+            this.onBlurSelectBox({target: event.target.parentElement});
+
+            return;
+        };
+
         if (this.element.value.length < 2) {
             return;
         }
@@ -64,6 +71,7 @@ function SelectBoxElement() {
         var id = input.dataset.id;
 
         input.value = container.getDataById(collection, id).name;
+        $('body')[0].focus();
 
         this.afterOnBlur(event);
     };

@@ -51,7 +51,7 @@ class TarifsController extends BaseDocumentController
 
     /**
      * @Route("/tarif/{id}")
-     * @Method("PATCH")
+     * @Method("POST")
      * @var Request $request
      * @var int     $id
      * @return JsonResponse

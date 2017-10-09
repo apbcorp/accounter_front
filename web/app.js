@@ -82,7 +82,7 @@ function CollectionContainer() {
         var result = '';
 
         for (var key in collection.data) {
-            result += '<option value="' + key + '"' + (key == id ? ' selected' : '') + '>' + collection.data[key] + '</option>'
+            result += '<option value="' + key + '"' + (key == id ? ' selected' : '') + '>' + collection.data[key].name + '</option>'
         }
 
         return result;
@@ -103,10 +103,24 @@ function CollectionContainer() {
 
     this.onGetDataSuccess = function (data) {
         var staticCollection = this.data[this.thisCollection.staticCollection];
+        var params = {};
 
         for (var i = 0; i < data.result.length; i++) {
-            this.thisCollection.data[data.result[i].id] = data.result[i];
-            staticCollection.data[data.result[i].id] = data.result[i];
+            if (!this.thisCollection.data[data.result[i].id]) {
+                this.thisCollection.data[data.result[i].id] = {};
+            }
+
+            if (!staticCollection.data[data.result[i].id]) {
+                staticCollection.data[data.result[i].id] = {};
+            }
+
+            this.thisCollection.data[data.result[i].id].name = data.result[i].name;
+            staticCollection.data[data.result[i].id].name = data.result[i].name;
+
+            params = data.result[i].additionalParams ? data.result[i].additionalParams : {};
+
+            this.thisCollection.data[data.result[i].id].params = params;
+            staticCollection.data[data.result[i].id].params = params;
         }
 
         this.event();
@@ -123,7 +137,11 @@ function CollectionContainer() {
         var name = collectionName + 'Collection';
         var collection = this.data[name];
 
-        collection.data[id] = value;
+        if (!collection.data[id]) {
+            collection.data[id] = {};
+        }
+
+        collection.data[id].name = value;
     }
 }
 
@@ -265,9 +283,9 @@ function ServiceDictionaryController() {
 }
 function ConsumerCardController() {
     AbstractCardController.call(this);
-    this.model = new ConsumerCardModel(this);
     this.viewName = 'view.consumerCard';
     this.backUrl = '/dictionary/consumers.html';
+    this.model = new ConsumerCardModel(this);
 
     this.ConsumerCardController = function () {
         this.AbstractCardController();
@@ -296,18 +314,32 @@ function ConsumerCardController() {
             adress: $('[name="adress"]')[0].value
         };
 
-        this.model.appendDataToRequest(data);
+        if (this.model.isValidData(data)) {
+            this.model.appendDataToRequest(data);
+            
+            return true;
+        } else {
+            alert(this.model.getErrors())
+        }
+        
+        return false;
     };
 
     this.ConsumerCardController();
 }
 function GroundCardController() {
     AbstractCardController.call(this);
-    this.model = new GroundCardModel(this);
     this.viewName = 'view.groundCard';
     this.backUrl = '/dictionary/grounds.html';
+    this.model = new GroundCardModel(this);
 
     this.GroundCardController = function () {
+        this.onAreaChangedEvent = this.onAreaChanged.bind(this);
+
+        this.events.push({'selector': '[name="area"]', 'action': 'blur', 'event': this.onAreaChangedEvent});
+        this.events.push({'selector': '[name="commonArea"]', 'action': 'blur', 'event': this.onAreaChangedEvent});
+        this.events.push({'selector': '[name="freeArea"]', 'action': 'blur', 'event': this.onAreaChangedEvent});
+
         this.AbstractCardController();
     };
 
@@ -338,16 +370,33 @@ function GroundCardController() {
             kontragentId: $('[name="owner"]')[0].dataset.id
         };
 
-        this.model.appendDataToRequest(data);
+        if (this.model.isValidData(data)) {
+            this.model.appendDataToRequest(data);
+            
+            return true;
+        } else {
+            alert(this.model.getErrors())
+        }
+        
+        return false;
+    };
+
+    this.onAreaChanged = function () {
+        var area = $('[name="area"]')[0].value.replace(',', '.');
+        var freeArea = $('[name="freeArea"]')[0].value.replace(',', '.');
+        var commonArea = $('[name="commonArea"]')[0].value.replace(',', '.');
+
+        var sum = parseFloat(area) + parseFloat(freeArea) + parseFloat(commonArea);
+        $('[name="allArea"]')[0].value = !sum ? 0 : sum;
     };
 
     this.GroundCardController();
 }
 function MeterCardController() {
     AbstractCardController.call(this);
-    this.model = new MeterCardModel(this);
     this.viewName = 'view.meterCard';
     this.backUrl = '/dictionary/meters.html';
+    this.model = new MeterCardModel(this);
 
     this.MeterCardController = function () {
         this.AbstractCardController();
@@ -374,16 +423,24 @@ function MeterCardController() {
             groundId: $('[name="ground"]')[0].dataset.id
         };
 
-        this.model.appendDataToRequest(data);
+        if (this.model.isValidData(data)) {
+            this.model.appendDataToRequest(data);
+
+            return true;
+        } else {
+            alert(this.model.getErrors())
+        }
+
+        return false;
     };
 
     this.MeterCardController();
 }
 function ServiceCardController() {
     AbstractCardController.call(this);
-    this.model = new ServiceCardModel(this);
     this.viewName = 'view.serviceCard';
     this.backUrl = '/dictionary/services.html';
+    this.model = new ServiceCardModel(this);
 
     this.ServiceCardController = function () {
         this.AbstractCardController();
@@ -410,16 +467,24 @@ function ServiceCardController() {
             subtype: $('[name="subtype"]')[0].value
         };
 
-        this.model.appendDataToRequest(data);
+        if (this.model.isValidData(data)) {
+            this.model.appendDataToRequest(data);
+
+            return true;
+        } else {
+            alert(this.model.getErrors())
+        }
+
+        return false;
     };
 
     this.ServiceCardController();
 }
 function AccurringDocumentController() {
     AbstractDocumentController.call(this);
-    this.model = new AccurringDocumentModel(this);
     this.viewName = 'view.accurringDocument';
     this.backUrl = '/document/accurring.html';
+    this.model = new AccurringDocumentModel(this);
 
     this.AccurringDocumentController = function () {
         this.onAutoFillEvent = this.onAutoFill.bind(this);
@@ -444,7 +509,7 @@ function AccurringDocumentController() {
             dateStart: $('[name="dateStart"]')[0].value,
             rows: rows
         };
-
+        return false;
         this.model.appendDataToRequest(data);
     };
 
@@ -492,9 +557,9 @@ function AccurringDocumentController() {
 }
 function MetersDocumentController() {
     AbstractDocumentController.call(this);
-    this.model = new MetersDocumentModel(this);
     this.viewName = 'view.meterDocument';
     this.backUrl = '/document/meters.html';
+    this.model = new MetersDocumentModel(this);
 
     this.MetersDocumentController = function () {
         this.AbstractDocumentController();
@@ -516,7 +581,7 @@ function MetersDocumentController() {
         var data = {
             rows: rows
         };
-
+        return false;
         this.model.appendDataToRequest(data);
     };
 
@@ -529,9 +594,9 @@ function MetersDocumentController() {
 }
 function PayDocumentController() {
     AbstractDocumentController.call(this);
-    this.model = new PayDocumentModel(this);
     this.viewName = 'view.payDocument';
     this.backUrl = '/document/pays.html';
+    this.model = new PayDocumentModel(this);
 
     this.PayDocumentController = function () {
         this.AbstractDocumentController();
@@ -553,15 +618,15 @@ function PayDocumentController() {
             dateStart: $('[name="dateStart"]')[0].value,
             rows: rows
         };
-
+        return false;
         this.model.appendDataToRequest(data);
     };
 }
 function TarifsDocumentController() {
     AbstractDocumentController.call(this);
-    this.model = new TarifsDocumentModel(this);
     this.viewName = 'view.tarifDocument';
     this.backUrl = '/document/tarifs.html';
+    this.model = new TarifsDocumentModel(this);
 
     this.TarifsDocumentController = function () {
         this.AbstractDocumentController();
@@ -583,7 +648,7 @@ function TarifsDocumentController() {
             dateStart: $('[name="dateStart"]')[0].value,
             rows: rows
         };
-
+        return false;
         this.model.appendDataToRequest(data);
     };
 }
@@ -727,8 +792,9 @@ function AbstractCardController() {
     };
 
     this.onSave = function () {
-        this.fillModel();
-        this.model.save();
+        if (this.fillModel()) {
+            this.model.save();
+        }
     };
 
     this.onCancel = function () {
@@ -1036,8 +1102,8 @@ var collections = {
     meterTypesCollection: {
         type: 'static',
         data: {
-            1: 'Электричество',
-            2: 'Газ'
+            1: {name: 'Электричество'},
+            2: {name: 'Вода'}
         }
     },
     meterDocumentSupplyCollection: {
@@ -1053,17 +1119,18 @@ var collections = {
     serviceTypesCollection: {
         type: 'static',
         data: {
-            1: 'Член сообщества',
-            2: 'Участок'
+            1: {name: 'Член сообщества'},
+            2: {name: 'Участок'}
         }
     },
     serviceSubtypesCollection: {
         type: 'static',
         data: {
-            1: 'Фиксированный',
-            2: 'По площади',
-            3: 'По счетчику (электричество)',
-            4: 'По счетчику (газ)'
+            1: {name: 'Фиксированный'},
+            2: {name: 'По общей площади'},
+            3: {name: 'По счетчику (электричество)'},
+            4: {name: 'По счетчику (вода)'},
+            5: {name: 'По занимаемой площади'}
         }
     },
     serviceCollection: {
@@ -1155,6 +1222,7 @@ const SERVICES_LIST = {
     'helper.url': {'class': 'UrlHelper', 'args': {}},
     'helper.navigator': {'class': 'NavigatorHelper', 'args': {}},
     'service.router': {'class': 'Router', 'args': {}},
+    'service.validator': {'class': 'ValidatorService', 'args': {}},
     'container.user': {'class': 'UserContainer', 'args': {}},
     'controller.main': {'class': 'MainController', 'args': {}},
     'controller.login': {'class': 'LoginController', 'args': {}},
@@ -1209,6 +1277,11 @@ const SERVICES_LIST = {
     'view.metersReports': {'class': 'MetersReportsView', 'args': {}},
     'view.smsReports': {'class': 'SmsReportsView', 'args': {}}
 };
+
+var VALIDATION_TYPE_STRING = 'string';
+var VALIDATION_TYPE_OBJECT_ID = 'objectId';
+var VALIDATION_TYPE_PHONE = 'phone';
+var VALIDATION_TYPE_FLOAT = 'float';
 
 function NavigatorHelper() {
     this.goTo = function (url) {
@@ -1347,6 +1420,23 @@ function ConsumerCardModel(object) {
     AbstractCardModel.call(this);
     this.baseUrl = '/api/v1.0/dictionary/kontragent';
 
+    this.isValidData = function (data) {
+        var validator = kernel.getServiceContainer().get('service.validator');
+
+        validator.setData([
+            {data: data.name, type: VALIDATION_TYPE_STRING, fieldName: NAME_LANG},
+            {data: data.surname, type: VALIDATION_TYPE_STRING, fieldName: SURNAME_LANG},
+            {data: data.name2, type: VALIDATION_TYPE_STRING, fieldName: NAME2_LANG},
+            {data: data.adress, type: VALIDATION_TYPE_STRING, fieldName: ADRESS_LANG},
+            {data: data.phone, type: VALIDATION_TYPE_PHONE, fieldName: PHONE_LANG}
+        ]);
+
+        var isValid = validator.validate();
+        this.errors = isValid ? '' : validator.getErrors();
+
+        return isValid;
+    };
+
     this.AbstractCardModel(object);
 }
 function GroundCardModel(object) {
@@ -1359,17 +1449,69 @@ function GroundCardModel(object) {
         }
     };
 
+    this.isValidData = function (data) {
+        var validator = kernel.getServiceContainer().get('service.validator');
+
+        validator.setData([
+            {data: data.number, type: VALIDATION_TYPE_STRING, fieldName: NUMBER_LANG},
+            {data: data.line, type: VALIDATION_TYPE_STRING, fieldName: GROUND_LINE_LANG},
+            {data: data.groundNumber, type: VALIDATION_TYPE_STRING, fieldName: GROUND_NUMBER_LANG},
+            {data: data.area, type: VALIDATION_TYPE_FLOAT, fieldName: GROUND_AREA_LANG},
+            {data: data.freeArea, type: VALIDATION_TYPE_FLOAT, fieldName: GROUND_FREE_AREA_LANG},
+            {data: data.commonArea, type: VALIDATION_TYPE_FLOAT, fieldName: GROUND_COMMON_AREA_LANG},
+            {data: data.kontragentId, type: VALIDATION_TYPE_OBJECT_ID, fieldName: OWNER_FULL_NAME_LANG}
+        ]);
+
+        var isValid = validator.validate();
+        this.errors = isValid ? '' : validator.getErrors();
+
+        return isValid;
+    };
+
     this.AbstractCardModel(object);
 }
 function MeterCardModel(object) {
     AbstractCardModel.call(this);
     this.baseUrl = '/api/v1.0/dictionary/meter';
+    this.collectionFields = {
+        ground: {
+            id: 'groundId',
+            name: 'ground'
+        }
+    };
+    
+    this.isValidData = function (data) {
+        var validator = kernel.getServiceContainer().get('service.validator');
+
+        validator.setData([
+            {data: data.number, type: VALIDATION_TYPE_STRING, fieldName: METER_NUMBER_LANG},
+            {data: data.groundId, type: VALIDATION_TYPE_OBJECT_ID, fieldName: METER_GROUND_OWNER_LANG}
+        ]);
+
+        var isValid = validator.validate();
+        this.errors = isValid ? '' : validator.getErrors();
+
+        return isValid;
+    };
 
     this.AbstractCardModel(object);
 }
 function ServiceCardModel(object) {
     AbstractCardModel.call(this);
     this.baseUrl = '/api/v1.0/dictionary/service';
+
+    this.isValidData = function (data) {
+        var validator = kernel.getServiceContainer().get('service.validator');
+        
+        validator.setData([
+            {data: data.name, type: VALIDATION_TYPE_STRING, fieldName: SERVICE_NAME_LANG}
+        ]);
+        
+        var isValid = validator.validate();
+        this.errors = isValid ? '' : validator.getErrors();
+        
+        return isValid;
+    };
 
     this.AbstractCardModel(object);
 }
@@ -1386,6 +1528,12 @@ function AccurringDocumentModel(params) {
 function MetersDocumentModel(params) {
     DocumentAbstractModel.call(this);
     this.baseUrl = '/api/v1.0/document/meter';
+    this.collectionFields = {
+        meterDocument: {
+            id: 'meterId',
+            name: 'meter'
+        }
+    };
 
     this.MetersDocumentModel = function (object) {
         this.DocumentAbstractModel(object);
@@ -1406,6 +1554,12 @@ function PayDocumentModel(params) {
 function TarifsDocumentModel(params) {
     DocumentAbstractModel.call(this);
     this.baseUrl = '/api/v1.0/document/tarif';
+    this.collectionFields = {
+        service: {
+            id: 'serviceId',
+            name: 'service'
+        }
+    };
 
     this.TarifsDocumentModel = function (object) {
         var date = new Date();
@@ -1509,7 +1663,7 @@ function AbstractCardModel(object) {
     };
 
     this.save = function () {
-        var method = this.recordId ? HTTP_METHOD_PATCH : HTTP_METHOD_POST;
+        var method = HTTP_METHOD_POST;
         var url = this.url ? this.url : this.baseUrl;
 
         var requester = kernel.getServiceContainer().get('requester.ajax');
@@ -1524,6 +1678,10 @@ function AbstractCardModel(object) {
     this.onSaveSuccess = function () {
         alert('Сохранение прошло успешно');
 
+        if (!this.backUrl) {
+            return;
+        }
+        
         kernel.getServiceContainer().get('helper.navigator').goTo(this.backUrl);
     };
 
@@ -1540,9 +1698,12 @@ function AbstractModel() {
     this.successCallback = undefined;
     this.url = '';
     this.collectionFields = {};
+    this.backUrl = '';
+    this.errors = '';
 
     this.AbstractModel = function (object) {
         this.creator = object;
+        this.backUrl = object.backUrl ? object.backUrl : '';
 
         this.onRefreshSuccessEvent = this.onRefreshSuccess.bind(this);
         this.onRequestErrorEvent = this.onRequestError.bind(this);
@@ -1588,7 +1749,7 @@ function AbstractModel() {
         }
     };
     
-    this.saveDataToCollection = function (data) {
+    this.saveDataToCollection = function () {
         var container = kernel.getServiceContainer().get('container.collection');
         
         for (var key in this.collectionFields) {
@@ -1619,6 +1780,14 @@ function AbstractModel() {
     this.onRequestError = function () {
         alert('Не получилось получить доступ к серверу.');
     };
+
+    this.isValidData = function () {
+        return true;
+    };
+
+    this.getErrors = function () {
+        return this.errors;
+    };
 }
 function DictionaryAbstractModel() {
     AbstractModel.call(this);
@@ -1648,7 +1817,23 @@ function DocumentAbstractModel() {
 
     this.DocumentAbstractModel = function (object) {
         this.AbstractCardModel(object);
-    }
+    };
+
+    this.saveDataToCollection = function () {
+        var container = kernel.getServiceContainer().get('container.collection');
+
+        for (var key in this.collectionFields) {
+            if (this.data[this.collectionFields[key].id]) {
+                container.addDataRow(key, this.data[this.collectionFields[key].id], this.data[this.collectionFields[key].name]);
+            }
+
+            if (this.data['rows'][0][this.collectionFields[key].id]) {
+                for (var i = 0; i < this.data['rows'].length; i++) {
+                    container.addDataRow(key, this.data['rows'][i][this.collectionFields[key].id], this.data['rows'][i][this.collectionFields[key].name]);
+                }
+            }
+        }
+    };
 }
 function DocumentsAbstractModel() {
     DictionaryAbstractModel.call(this);
@@ -1782,6 +1967,13 @@ function SelectBoxElement() {
 
     this.onKeyPressSelectBox = function (event) {
         this.element = $(event.target.parentElement.childNodes[0])[0];
+
+        if (event.originalEvent.code == 'Escape') {
+            this.onBlurSelectBox({target: event.target.parentElement});
+
+            return;
+        };
+
         if (this.element.value.length < 2) {
             return;
         }
@@ -1827,6 +2019,7 @@ function SelectBoxElement() {
         var id = input.dataset.id;
 
         input.value = container.getDataById(collection, id).name;
+        $('body')[0].focus();
 
         this.afterOnBlur(event);
     };
@@ -1836,6 +2029,76 @@ function SelectBoxElement() {
     };
 }
 
+function ValidatorService() {
+    this.data = [];
+    this.errors = '';
+
+    this.setData = function (data) {
+        this.data = data;
+    };
+
+    this.validate = function () {
+        this.errors = '';
+
+        for (var i = 0; i < this.data.length; i++) {
+            switch (this.data[i].type) {
+                case VALIDATION_TYPE_STRING:
+                    this.validateString(this.data[i].data, this.data[i].fieldName);
+                    break;
+                case VALIDATION_TYPE_OBJECT_ID:
+                    this.validateObjectId(this.data[i].data, this.data[i].fieldName);
+                    break;
+                case VALIDATION_TYPE_PHONE:
+                    this.validatePhone(this.data[i].data, this.data[i].fieldName);
+                    break;
+                case VALIDATION_TYPE_FLOAT:
+                    this.validateFloat(this.data[i].data, this.data[i].fieldName);
+                    break;
+            }
+        }
+
+        return !this.errors;
+    };
+
+    this.getErrors = function () {
+        return this.errors;
+    };
+
+    this.validateString = function (data, fieldName) {
+        if (!data) {
+            this.errors += 'Поле ' + fieldName + ' не может быть пустым\n';
+            return;
+        }
+        if (data.length > 255) {
+            this.errors += 'Поле ' + fieldName + ' слишком длинное\n';
+        }
+    };
+
+    this.validateObjectId = function (data, fieldName) {
+        if (!data) {
+            this.errors += 'Поле ' + fieldName + ' не может быть пустым\n';
+        }
+    };
+
+    this.validatePhone = function (data, fieldName) {
+        if (!data) {
+            this.errors += 'Поле ' + fieldName + ' не может быть пустым\n';
+            return;
+        }
+        if (data.length != 13 || !/\+\d{12}/.test(data)) {
+            this.errors += 'Поле ' + fieldName + ' должно начинаться с символа "+" и содержать 12 цифр\n';
+        }
+    };
+
+    this.validateFloat = function (data, fieldName) {
+        if (!data) {
+            return;
+        }
+        if (!/\d*[\.,\,]\d*/.test(data) && !/^\d+$/.test(data)) {
+            this.errors += 'Поле ' + fieldName + ' может содержать только цифры и знаки "." или ","\n';
+        }
+    };
+}
 function ConsumerDictionaryView() {
     AbstractDictionaryView.call(this);
 }
@@ -1854,7 +2117,7 @@ function ConsumerCardView() {
 }
 function GroundCardView() {
     AbstractCardView.call(this);
-    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{ACCOUNT_NUMBER_LANG}<input name="accNumber" value="{accNumber}"></li><li class="card_cell">{NUMBER_LANG}<input name="number" value="{number}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_LINE_LANG}<input name="line" value="{line}"></li><li class="card_cell">{GROUND_NUMBER_LANG}<input name="groundNumber" value="{groundNumber}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_AREA_LANG}<input name="area" value="{area}"></li><li class="card_cell">{GROUND_FREE_AREA_LANG}<input name="freeArea" value="{freeArea}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_COMMON_AREA_LANG}<input name="commonArea" value="{commonArea}"></li><li class="card_cell">{GROUND_ALL_AREA_LANG}<input name="allArea" value="{allArea}"></li></ul><ul class="card_row"><li class="card_cell">{OWNER_FULL_NAME_LANG}<div class="selectbox" tabindex="-1"><input name="owner" data-id="{kontragentId}" data-type="kontragent" value="{owner}"><p class="selectbox-list-hide"></p></div></li></ul></div>';
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{ACCOUNT_NUMBER_LANG}<input name="accNumber" value="{accNumber}"></li><li class="card_cell">{NUMBER_LANG}<input name="number" value="{number}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_LINE_LANG}<input name="line" value="{line}"></li><li class="card_cell">{GROUND_NUMBER_LANG}<input name="groundNumber" value="{groundNumber}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_AREA_LANG}<input name="area" value="{area}"></li><li class="card_cell">{GROUND_FREE_AREA_LANG}<input name="freeArea" value="{freeArea}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_COMMON_AREA_LANG}<input name="commonArea" value="{commonArea}"></li><li class="card_cell">{GROUND_ALL_AREA_LANG}<input name="allArea" value="{allArea}" disabled></li></ul><ul class="card_row"><li class="card_cell">{OWNER_FULL_NAME_LANG}<div class="selectbox" tabindex="-1"><input name="owner" data-id="{kontragentId}" data-type="kontragent" value="{owner}"><p class="selectbox-list-hide"></p></div></li></ul></div>';
 }
 function MeterCardView() {
     AbstractCardView.call(this);
@@ -1892,7 +2155,7 @@ function AccurringDocumentView() {
 function MeterDocumentView() {
     AbstractDocumentView.call(this);
     this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><div class="table subtable"><ul class="button_panel"><button class="add_button"></button><button class="delete_button"></button></ul>{table}</div></ul></div>';
-    this.rowTemplate = '<ul class="table_row" data-id="{id}"><li><input type="checkbox" name="checker"></li><li><div class="selectbox" tabindex="-1"><input name="meter" data-id="{meterId}" data-type="meterDocument" value="{meter}"><p class="selectbox-list-hide"></p></div></li><li><input name="startValue" value="{startValue}" disabled></li><li><input name="endValue" value="{endValue}"></li></ul>';
+    this.rowTemplate = '<ul class="table_row" data-id="{id}"><li><input type="checkbox" name="checker"></li><li><div class="selectbox" tabindex="-1"><input name="meter" data-id="{meterId}" data-type="meterDocument" value="{meter}" size="70"><p class="selectbox-list-hide"></p></div></li><li><input name="startValue" value="{startValue}" disabled></li><li><input name="endValue" value="{endValue}"></li></ul>';
     this.headTemplate = '<ul class="table_head"><li class="column_head"></li><li class="column_head" data-name="meter">{METER_NAME_LANG}</li><li class="column_head" data-name="startValue">{START_VALUE_LANG}</li><li class="column_head" data-name="endValue">{END_VALUE_LANG}</li></ul>';
 }
 function PayDocumentView() {

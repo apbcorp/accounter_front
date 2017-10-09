@@ -1,10 +1,16 @@
 function GroundCardController() {
     AbstractCardController.call(this);
-    this.model = new GroundCardModel(this);
     this.viewName = 'view.groundCard';
     this.backUrl = '/dictionary/grounds.html';
+    this.model = new GroundCardModel(this);
 
     this.GroundCardController = function () {
+        this.onAreaChangedEvent = this.onAreaChanged.bind(this);
+
+        this.events.push({'selector': '[name="area"]', 'action': 'blur', 'event': this.onAreaChangedEvent});
+        this.events.push({'selector': '[name="commonArea"]', 'action': 'blur', 'event': this.onAreaChangedEvent});
+        this.events.push({'selector': '[name="freeArea"]', 'action': 'blur', 'event': this.onAreaChangedEvent});
+
         this.AbstractCardController();
     };
 
@@ -35,7 +41,24 @@ function GroundCardController() {
             kontragentId: $('[name="owner"]')[0].dataset.id
         };
 
-        this.model.appendDataToRequest(data);
+        if (this.model.isValidData(data)) {
+            this.model.appendDataToRequest(data);
+            
+            return true;
+        } else {
+            alert(this.model.getErrors())
+        }
+        
+        return false;
+    };
+
+    this.onAreaChanged = function () {
+        var area = $('[name="area"]')[0].value.replace(',', '.');
+        var freeArea = $('[name="freeArea"]')[0].value.replace(',', '.');
+        var commonArea = $('[name="commonArea"]')[0].value.replace(',', '.');
+
+        var sum = parseFloat(area) + parseFloat(freeArea) + parseFloat(commonArea);
+        $('[name="allArea"]')[0].value = !sum ? 0 : sum;
     };
 
     this.GroundCardController();

@@ -51,7 +51,7 @@ class MeterController extends BaseEntityController
 
     /**
      * @Route("/meter/{id}")
-     * @Method("PATCH")
+     * @Method("POST")
      * @var Request $request
      * @var int     $id
      * @return JsonResponse

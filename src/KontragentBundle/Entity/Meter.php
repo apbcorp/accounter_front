@@ -53,6 +53,13 @@ class Meter implements EntityInterface
     private $deleted;
 
     /**
+     * @var int
+     *
+     * @ORM\Column(name="unit_id", type="integer")
+     */
+    private $unitId;
+
+    /**
      * @return int
      */
     public function getId()
@@ -132,6 +139,25 @@ class Meter implements EntityInterface
     public function setIsDeleted($deleted)
     {
         $this->deleted = $deleted;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getUnitId()
+    {
+        return $this->unitId;
+    }
+
+    /**
+     * @param int $unitId
+     * @return $this
+     */
+    public function setUnitId($unitId)
+    {
+        $this->unitId = $unitId;
 
         return $this;
     }

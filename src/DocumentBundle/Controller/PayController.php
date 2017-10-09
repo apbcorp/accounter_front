@@ -51,7 +51,7 @@ class PayController extends BaseDocumentController
 
     /**
      * @Route("/pay/{id}")
-     * @Method("PATCH")
+     * @Method("POST")
      * @var Request $request
      * @var int     $id
      * @return JsonResponse

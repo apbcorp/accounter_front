@@ -52,6 +52,13 @@ class Users implements UserInterface
     private $active;
 
     /**
+     * @var array
+     *
+     * @ORM\Column(name="units", type="simple_array")
+     */
+    private $units;
+
+    /**
      * Get id
      *
      * @return integer 
@@ -145,8 +152,40 @@ class Users implements UserInterface
         return [];
     }
 
+    /**
+     * @return ArrayCollection
+     */
     public function getRoles()
     {
         return new ArrayCollection();
+    }
+
+    /**
+     * @return array
+     */
+    public function getUnits()
+    {
+        return $this->units;
+    }
+
+    /**
+     * @param int $unit
+     * @return $this
+     */
+    public function addUnits($unit)
+    {
+        $this->units[] = $unit;
+
+        return $this;
+    }
+
+    /**
+     * @return $this
+     */
+    public function clearUnits()
+    {
+        $this->units = [];
+
+        return $this;
     }
 }

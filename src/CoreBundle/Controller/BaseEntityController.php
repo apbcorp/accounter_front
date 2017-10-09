@@ -19,6 +19,6 @@ class BaseEntityController extends BaseDocumentController
             return $this->sendResponse([], Response::HTTP_OK);
         }
 
-        return $this->sendResponse($this->getRepository()->search($search), Response::HTTP_OK);
+        return $this->sendResponse($this->getRepository()->search($search, $this->getUnitId()), Response::HTTP_OK);
     }
 }

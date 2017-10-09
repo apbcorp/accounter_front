@@ -51,7 +51,7 @@ class GroundController extends BaseEntityController
 
     /**
      * @Route("/ground/{id}")
-     * @Method("PATCH")
+     * @Method("POST")
      * @var Request $request
      * @var int     $id
      * @return JsonResponse

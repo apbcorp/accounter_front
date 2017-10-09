@@ -1,6 +1,12 @@
 function TarifsDocumentModel(params) {
     DocumentAbstractModel.call(this);
     this.baseUrl = '/api/v1.0/document/tarif';
+    this.collectionFields = {
+        service: {
+            id: 'serviceId',
+            name: 'service'
+        }
+    };
 
     this.TarifsDocumentModel = function (object) {
         var date = new Date();

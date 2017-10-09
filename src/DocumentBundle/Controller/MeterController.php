@@ -52,7 +52,7 @@ class MeterController extends BaseDocumentController
 
     /**
      * @Route("/meter/{id}")
-     * @Method("PATCH")
+     * @Method("POST")
      * @var Request $request
      * @var int     $id
      * @return JsonResponse

@@ -32,8 +32,8 @@ var collections = {
     meterTypesCollection: {
         type: 'static',
         data: {
-            1: 'Электричество',
-            2: 'Газ'
+            1: {name: 'Электричество'},
+            2: {name: 'Вода'}
         }
     },
     meterDocumentSupplyCollection: {
@@ -49,17 +49,18 @@ var collections = {
     serviceTypesCollection: {
         type: 'static',
         data: {
-            1: 'Член сообщества',
-            2: 'Участок'
+            1: {name: 'Член сообщества'},
+            2: {name: 'Участок'}
         }
     },
     serviceSubtypesCollection: {
         type: 'static',
         data: {
-            1: 'Фиксированный',
-            2: 'По площади',
-            3: 'По счетчику (электричество)',
-            4: 'По счетчику (газ)'
+            1: {name: 'Фиксированный'},
+            2: {name: 'По общей площади'},
+            3: {name: 'По счетчику (электричество)'},
+            4: {name: 'По счетчику (вода)'},
+            5: {name: 'По занимаемой площади'}
         }
     },
     serviceCollection: {

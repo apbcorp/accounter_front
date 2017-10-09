@@ -2,6 +2,7 @@
 
 namespace CoreBundle\Controller;
 
+use CoreBundle\Service\TokenService;
 use CoreBundle\Struct\FilterStruct;
 use CoreBundle\Factory\StructFactory;
 use Symfony\Component\HttpFoundation\Request;
@@ -15,7 +16,13 @@ class BaseDocumentController extends BaseController
      */
     public function getAction($id)
     {
-        return $this->sendResponse($this->getRepository()->find($id), Response::HTTP_OK);
+        $entity = $this->getRepository()->find($id);
+        
+        if (method_exists($entity, 'getUnitId') && $entity->getUnitId() != $this->getUnitId()) {
+            return $this->sendResponse([], Response::HTTP_NOT_FOUND);
+        }
+        
+        return $this->sendResponse($entity, Response::HTTP_OK);
     }
 
     /**
@@ -31,7 +38,8 @@ class BaseDocumentController extends BaseController
                 $params->getFilter(),
                 $params->getOrder(),
                 $params->getLimit(),
-                $params->getOffset()
+                $params->getOffset(),
+                $this->getUnitId()
             ),
             Response::HTTP_OK
         );
@@ -59,7 +67,7 @@ class BaseDocumentController extends BaseController
     public function patchAction(Request $request, $id)
     {
         $formatter = $this->getFormatterFactory()->getFormatter($this->entity);
-        $formatter->setDataByRequest($id, $request);
+        $formatter->setDataByRequest($id, $request, $this->getUnitId());
         $this->getDoctrine()->getManager()->flush();
 
         return $this->sendResponse(['id' => $id], Response::HTTP_OK);
@@ -72,7 +80,7 @@ class BaseDocumentController extends BaseController
     public function postAction(Request $request)
     {
         $formatter = $this->getFormatterFactory()->getFormatter($this->entity);
-        $entity = $formatter->setDataByRequest(null, $request);
+        $entity = $formatter->setDataByRequest(null, $request, $this->getUnitId());
         $this->getDoctrine()->getManager()->flush();
 
         return $this->sendResponse(['id' => $entity->getId()], Response::HTTP_CREATED);
@@ -90,5 +98,22 @@ class BaseDocumentController extends BaseController
         $struct->parse($request);
 
         return $struct;
+    }
+
+    /**
+     * @return int
+     * @throws \Exception
+     */
+    protected function getUnitId()
+    {
+        /** @var TokenService $tokenService */
+        $tokenService = $this->get('auth.service.token');
+        $units = $tokenService->getTokenEntity()->getUser()->getUnits();
+
+        if (!$units || count($units) > 1) {
+            throw new \Exception('This user can\t add new records');
+        } else {
+            return $units[0];
+        }
     }
 }

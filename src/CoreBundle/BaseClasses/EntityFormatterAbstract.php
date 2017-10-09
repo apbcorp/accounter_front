@@ -70,9 +70,10 @@ abstract class EntityFormatterAbstract
      * @param Request $request
      * @return EntityInterface
      */
-    public function setDataByRequest($id, Request $request)
+    public function setDataByRequest($id, Request $request, $unitId)
     {
         $data = $request->request->all();
+        $data['unitId'] = $unitId;
 
         return $this->setData($id, $data);
     }

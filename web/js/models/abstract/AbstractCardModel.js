@@ -15,7 +15,7 @@ function AbstractCardModel(object) {
     };
 
     this.save = function () {
-        var method = this.recordId ? HTTP_METHOD_PATCH : HTTP_METHOD_POST;
+        var method = HTTP_METHOD_POST;
         var url = this.url ? this.url : this.baseUrl;
 
         var requester = kernel.getServiceContainer().get('requester.ajax');
@@ -30,6 +30,10 @@ function AbstractCardModel(object) {
     this.onSaveSuccess = function () {
         alert('Сохранение прошло успешно');
 
+        if (!this.backUrl) {
+            return;
+        }
+        
         kernel.getServiceContainer().get('helper.navigator').goTo(this.backUrl);
     };
 

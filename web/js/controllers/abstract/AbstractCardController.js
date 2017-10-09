@@ -36,8 +36,9 @@ function AbstractCardController() {
     };
 
     this.onSave = function () {
-        this.fillModel();
-        this.model.save();
+        if (this.fillModel()) {
+            this.model.save();
+        }
     };
 
     this.onCancel = function () {

@@ -1,8 +1,8 @@
 function TarifsDocumentController() {
     AbstractDocumentController.call(this);
-    this.model = new TarifsDocumentModel(this);
     this.viewName = 'view.tarifDocument';
     this.backUrl = '/document/tarifs.html';
+    this.model = new TarifsDocumentModel(this);
 
     this.TarifsDocumentController = function () {
         this.AbstractDocumentController();
@@ -24,7 +24,7 @@ function TarifsDocumentController() {
             dateStart: $('[name="dateStart"]')[0].value,
             rows: rows
         };
-
+        return false;
         this.model.appendDataToRequest(data);
     };
 }

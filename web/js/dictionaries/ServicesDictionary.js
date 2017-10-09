@@ -2,6 +2,7 @@ const SERVICES_LIST = {
     'helper.url': {'class': 'UrlHelper', 'args': {}},
     'helper.navigator': {'class': 'NavigatorHelper', 'args': {}},
     'service.router': {'class': 'Router', 'args': {}},
+    'service.validator': {'class': 'ValidatorService', 'args': {}},
     'container.user': {'class': 'UserContainer', 'args': {}},
     'controller.main': {'class': 'MainController', 'args': {}},
     'controller.login': {'class': 'LoginController', 'args': {}},

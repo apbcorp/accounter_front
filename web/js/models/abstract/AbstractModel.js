@@ -7,9 +7,12 @@ function AbstractModel() {
     this.successCallback = undefined;
     this.url = '';
     this.collectionFields = {};
+    this.backUrl = '';
+    this.errors = '';
 
     this.AbstractModel = function (object) {
         this.creator = object;
+        this.backUrl = object.backUrl ? object.backUrl : '';
 
         this.onRefreshSuccessEvent = this.onRefreshSuccess.bind(this);
         this.onRequestErrorEvent = this.onRequestError.bind(this);
@@ -55,7 +58,7 @@ function AbstractModel() {
         }
     };
     
-    this.saveDataToCollection = function (data) {
+    this.saveDataToCollection = function () {
         var container = kernel.getServiceContainer().get('container.collection');
         
         for (var key in this.collectionFields) {
@@ -85,5 +88,13 @@ function AbstractModel() {
 
     this.onRequestError = function () {
         alert('Не получилось получить доступ к серверу.');
+    };
+
+    this.isValidData = function () {
+        return true;
+    };
+
+    this.getErrors = function () {
+        return this.errors;
     };
 }

@@ -16,7 +16,7 @@ function CollectionContainer() {
         var result = '';
 
         for (var key in collection.data) {
-            result += '<option value="' + key + '"' + (key == id ? ' selected' : '') + '>' + collection.data[key] + '</option>'
+            result += '<option value="' + key + '"' + (key == id ? ' selected' : '') + '>' + collection.data[key].name + '</option>'
         }
 
         return result;
@@ -37,10 +37,24 @@ function CollectionContainer() {
 
     this.onGetDataSuccess = function (data) {
         var staticCollection = this.data[this.thisCollection.staticCollection];
+        var params = {};
 
         for (var i = 0; i < data.result.length; i++) {
-            this.thisCollection.data[data.result[i].id] = data.result[i];
-            staticCollection.data[data.result[i].id] = data.result[i];
+            if (!this.thisCollection.data[data.result[i].id]) {
+                this.thisCollection.data[data.result[i].id] = {};
+            }
+
+            if (!staticCollection.data[data.result[i].id]) {
+                staticCollection.data[data.result[i].id] = {};
+            }
+
+            this.thisCollection.data[data.result[i].id].name = data.result[i].name;
+            staticCollection.data[data.result[i].id].name = data.result[i].name;
+
+            params = data.result[i].additionalParams ? data.result[i].additionalParams : {};
+
+            this.thisCollection.data[data.result[i].id].params = params;
+            staticCollection.data[data.result[i].id].params = params;
         }
 
         this.event();
@@ -57,6 +71,10 @@ function CollectionContainer() {
         var name = collectionName + 'Collection';
         var collection = this.data[name];
 
-        collection.data[id] = value;
+        if (!collection.data[id]) {
+            collection.data[id] = {};
+        }
+
+        collection.data[id].name = value;
     }
 }

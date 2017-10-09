@@ -1,8 +1,8 @@
 function PayDocumentController() {
     AbstractDocumentController.call(this);
-    this.model = new PayDocumentModel(this);
     this.viewName = 'view.payDocument';
     this.backUrl = '/document/pays.html';
+    this.model = new PayDocumentModel(this);
 
     this.PayDocumentController = function () {
         this.AbstractDocumentController();
@@ -24,7 +24,7 @@ function PayDocumentController() {
             dateStart: $('[name="dateStart"]')[0].value,
             rows: rows
         };
-
+        return false;
         this.model.appendDataToRequest(data);
     };
 }

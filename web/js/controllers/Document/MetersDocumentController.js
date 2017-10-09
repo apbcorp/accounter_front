@@ -1,8 +1,8 @@
 function MetersDocumentController() {
     AbstractDocumentController.call(this);
-    this.model = new MetersDocumentModel(this);
     this.viewName = 'view.meterDocument';
     this.backUrl = '/document/meters.html';
+    this.model = new MetersDocumentModel(this);
 
     this.MetersDocumentController = function () {
         this.AbstractDocumentController();
@@ -24,7 +24,7 @@ function MetersDocumentController() {
         var data = {
             rows: rows
         };
-
+        return false;
         this.model.appendDataToRequest(data);
     };
 

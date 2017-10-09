@@ -1,8 +1,8 @@
 function ServiceCardController() {
     AbstractCardController.call(this);
-    this.model = new ServiceCardModel(this);
     this.viewName = 'view.serviceCard';
     this.backUrl = '/dictionary/services.html';
+    this.model = new ServiceCardModel(this);
 
     this.ServiceCardController = function () {
         this.AbstractCardController();
@@ -29,7 +29,15 @@ function ServiceCardController() {
             subtype: $('[name="subtype"]')[0].value
         };
 
-        this.model.appendDataToRequest(data);
+        if (this.model.isValidData(data)) {
+            this.model.appendDataToRequest(data);
+
+            return true;
+        } else {
+            alert(this.model.getErrors())
+        }
+
+        return false;
     };
 
     this.ServiceCardController();

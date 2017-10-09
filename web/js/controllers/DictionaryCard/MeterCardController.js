@@ -1,8 +1,8 @@
 function MeterCardController() {
     AbstractCardController.call(this);
-    this.model = new MeterCardModel(this);
     this.viewName = 'view.meterCard';
     this.backUrl = '/dictionary/meters.html';
+    this.model = new MeterCardModel(this);
 
     this.MeterCardController = function () {
         this.AbstractCardController();
@@ -29,7 +29,15 @@ function MeterCardController() {
             groundId: $('[name="ground"]')[0].dataset.id
         };
 
-        this.model.appendDataToRequest(data);
+        if (this.model.isValidData(data)) {
+            this.model.appendDataToRequest(data);
+
+            return true;
+        } else {
+            alert(this.model.getErrors())
+        }
+
+        return false;
     };
 
     this.MeterCardController();

@@ -27,7 +27,7 @@ class UserController extends BaseController
         $tokenService = $this->get('auth.service.token');
         $user = $tokenService->getTokenEntity()->getUser();
 
-        return $this->sendResponse(['userId' => $user->getId()], Response::HTTP_OK);
+        return $this->sendResponse(['userId' => $user->getId(), 'unitIds' => $user->getUnits()], Response::HTTP_OK);
     }
 
     /**

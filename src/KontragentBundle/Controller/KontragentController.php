@@ -51,7 +51,7 @@ class KontragentController extends BaseEntityController
 
     /**
      * @Route("/kontragent/{id}")
-     * @Method("PATCH")
+     * @Method("POST")
      * @var Request $request
      * @var int     $id
      * @return JsonResponse

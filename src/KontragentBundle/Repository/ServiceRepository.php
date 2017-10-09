@@ -8,21 +8,26 @@ use CoreBundle\BaseClasses\ListRepositoryAbstract;
 class ServiceRepository extends ListRepositoryAbstract implements SupplyRepositoryInterface
 {
     /**
-     * @param $searchString
+     * @param string $searchString
+     * @param int    $unitId
      * @return array
      */
-    public function search($searchString)
+    public function search($searchString, $unitId)
     {
         $qb = $this->getEntityManager()->createQueryBuilder();
         $qb->select('q.id, q.name')
             ->from($this->getEntityName(), 'q')
             ->where(
-                $qb->expr()->orX(
-                    $qb->expr()->like('q.id', ':search'),
-                    $qb->expr()->like('q.name', ':search')
-                )
+                $qb->expr()->andX(
+                    $qb->expr()->orX(
+                        $qb->expr()->like('q.id', ':search'),
+                        $qb->expr()->like('q.name', ':search')
+                    )
+                ),
+                $qb->expr()->eq('q.deleted', ':false')
             )
-            ->setParameter('search', '%' . $searchString . '%');
+            ->setParameter('search', '%' . $searchString . '%')
+            ->setParameter('false', false);
 
         $queryResult = $qb->getQuery()->getResult();
 

@@ -199,12 +199,12 @@ class ServiceGenerator
         switch ($subtype) {
             case ServiceTypeDictionary::FIXED_SUBTYPE:
                 return 1;
-            case ServiceTypeDictionary::AREA_SYBTYPE:
+            case ServiceTypeDictionary::ALL_AREA_SYBTYPE:
                 return $ground->getAllArea();
             case ServiceTypeDictionary::ELECTRICITY_SUBTYPE:
                 return $this->getMeterValue($ground, $date, MetricTypeDictionary::ELECTRICITY_TYPE);
-            case ServiceTypeDictionary::GAS_SUBTYPE:
-                return $this->getMeterValue($ground, $date, MetricTypeDictionary::GAS_TYPE);
+            case ServiceTypeDictionary::WATER_SUBTYPE:
+                return $this->getMeterValue($ground, $date, MetricTypeDictionary::WATER_TYPE);
         }
 
         return 0;

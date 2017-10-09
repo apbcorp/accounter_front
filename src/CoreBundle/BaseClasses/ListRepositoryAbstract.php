@@ -11,10 +11,15 @@ abstract class ListRepositoryAbstract extends EntityRepository
      * @param array $order
      * @param int   $limit
      * @param int   $offset
+     * @param int   $unitId
      * @return array
      */
-    public function getList(array $filters, array $order, $limit, $offset)
+    public function getList(array $filters, array $order, $limit, $offset, $unitId)
     {
+        if (method_exists($this->getEntityName(), 'getUnitId')) {
+            $filters['unitId'] = $unitId;
+        }
+
         $result = $this->findBy($filters, $order, $limit, $offset);
 
         $qb = $this->getEntityManager()->createQueryBuilder();
