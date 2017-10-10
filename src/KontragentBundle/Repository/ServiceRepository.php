@@ -27,7 +27,8 @@ class ServiceRepository extends ListRepositoryAbstract implements SupplyReposito
                 $qb->expr()->eq('q.deleted', ':false')
             )
             ->setParameter('search', '%' . $searchString . '%')
-            ->setParameter('false', false);
+            ->setParameter('false', false)
+            ->setMaxResults(self::MAX_RESULT);
 
         $queryResult = $qb->getQuery()->getResult();
 

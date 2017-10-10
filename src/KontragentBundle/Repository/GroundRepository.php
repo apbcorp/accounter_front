@@ -17,7 +17,7 @@ class GroundRepository extends ListRepositoryAbstract implements SupplyRepositor
     public function search($searchString, $unitId)
     {
         $qb = $this->getEntityManager()->createQueryBuilder();
-        $qb->select('q.id, q.accNumber, q.number, k.surname, k.name, k.name2')
+        $qb->select('q.id, q.accNumber, q.number, k.name, k.name2, k.surname')
             ->from($this->getEntityName(), 'q')
             ->join(Kontragent::class, 'k', Join::WITH, 'k.id = q.kontragent')
             ->where(
@@ -26,9 +26,9 @@ class GroundRepository extends ListRepositoryAbstract implements SupplyRepositor
                         $qb->expr()->like('q.id', ':search'),
                         $qb->expr()->like('q.accNumber', ':search'),
                         $qb->expr()->like('q.number', ':search'),
-                        $qb->expr()->like('k.surname', ':search'),
                         $qb->expr()->like('k.name', ':search'),
-                        $qb->expr()->like('k.name2', ':search')
+                        $qb->expr()->like('k.name2', ':search'),
+                        $qb->expr()->like('k.surname', ':search')
                     ),
                     $qb->expr()->eq('q.deleted', ':false'),
                     $qb->expr()->eq('q.unitId', ':unitId')
@@ -36,7 +36,8 @@ class GroundRepository extends ListRepositoryAbstract implements SupplyRepositor
             )
             ->setParameter('search', '%' . $searchString . '%')
             ->setParameter('false', false)
-            ->setParameter('unitId', $unitId);
+            ->setParameter('unitId', $unitId)
+            ->setMaxResults(self::MAX_RESULT);
 
         $queryResult = $qb->getQuery()->getResult();
 
@@ -44,10 +45,10 @@ class GroundRepository extends ListRepositoryAbstract implements SupplyRepositor
         foreach ($queryResult as $row) {
             $result[] = [
                 'id' => $row['id'],
-                'name' => 'Л/с ' . $row['accNumber'] . ' курень ' . $row['number'] . ' (' . implode(' ', [
+                'name' => 'Л/с ' . $row['accNumber'] . ' курень ' . $row['number'] . ' (' . implode(' ',[
                         $row['surname'],
-                        ucfirst(substr($row['name'], 0, 1)) . '.',
-                        ucfirst(substr($row['name2'], 0, 1)) . '.',
+                        mb_substr($row['name'], 0, 1) . '.',
+                        mb_substr($row['name2'], 0, 1) . '.'
                     ]) . ')'
             ];
         }

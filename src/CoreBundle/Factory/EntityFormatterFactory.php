@@ -34,7 +34,7 @@ class EntityFormatterFactory
     {
         $parts = explode('\\', $entityClass);
         $parts[count($parts) - 2] = 'EntityFormatter';
-        $parts[count($parts) - 1] .= $type . 'Formatter';
+        $parts[count($parts) - 1] .= ucfirst($type) . 'Formatter';
 
         $className = implode('\\', $parts);
 

@@ -31,7 +31,8 @@ class KontragentRepository extends ListRepositoryAbstract implements SupplyRepos
             )
             ->setParameter('search', '%' . $searchString . '%')
             ->setParameter('false', false)
-            ->setParameter('unitId', $unitId);
+            ->setParameter('unitId', $unitId)
+            ->setMaxResults(self::MAX_RESULT);
 
         $queryResult = $qb->getQuery()->getResult();
 
