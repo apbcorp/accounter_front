@@ -9,6 +9,7 @@ use DocumentBundle\Entity\AccurringRow;
 use DocumentBundle\Entity\MeterRow;
 use DocumentBundle\Entity\TarifRow;
 use DocumentBundle\Repository\AccurringRowRepository;
+use DocumentBundle\Repository\MeterRowRepository;
 use DocumentBundle\Repository\TarifRowRepository;
 use KontragentBundle\Entity\Ground;
 use KontragentBundle\Entity\Kontragent;
@@ -28,207 +29,100 @@ class ServiceGenerator
     }
 
     /**
-     * @param $kontragentId
+     * @param int       $kontragentId
+     * @param int       $serviceId
+     * @param \DateTime $date
      * @return array
      */
-    public function getServicesByKontragent($kontragentId)
+    public function generateByServiceId($kontragentId, $serviceId, \DateTime $date)
     {
+        /** @var Service $service */
+        $service = $this->entityManager->getRepository(Service::class)->find($serviceId);
         /** @var Kontragent $kontragent */
         $kontragent = $this->entityManager->getRepository(Kontragent::class)->find($kontragentId);
 
-        if (!$kontragent) {
+        if (!$service) {
             return [];
         }
 
-        $result = $this->generateKontragetTypeServices($kontragent);
-
-        foreach ($kontragent->getGrounds() as $ground) {
-            $result = array_merge($result, $this->generateGroundTypeServices($ground));
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param Ground $ground
-     * @return array
-     */
-    public function generateGroundTypeServices(Ground $ground)
-    {
-        $services = $this->entityManager->getRepository(Service::class)->findBy([
-            'deleted' => false,
-            'type' => ServiceTypeDictionary::GROUND_TYPE
-        ]);
-
-        if (!$services) {
-            return [];
-        }
-
-        /** @var TarifRowRepository $tarifRowRepository */
-        $tarifRowRepository = $this->entityManager->getRepository(TarifRow::class);
-        /** @var AccurringRowRepository $accurringRowRepository */
-        $accurringRowRepository = $this->entityManager->getRepository(AccurringRow::class);
-
-        $result = [];
-        /** @var Service $service */
-        foreach ($services as $service) {
-            $nowDate = new \DateTime();
-            $startDateTime = new \DateTime(ServiceTypeDictionary::SERVICE_START_DATE);
-            $interval = new \DateInterval('P1M');
-
-            for ($date = $startDateTime; $date <= $nowDate; $date->add($interval)) {
-                $records = $accurringRowRepository->findBy(['service' => $service, 'period' => $date]);
-                $data = $this->getDataByGroundAndSubtype($ground, $service->getSubType(), $date);
-
-                if (!$records) {
-                    $price = $tarifRowRepository->getPrice($service, $date);
-
-                    $result[] = $this->generateRow($service, $date, $price, $data);
-                } else {
-                    $count = 0;
-
-                    /** @var AccurringRow $record */
-                    foreach ($records as $record) {
-                        $count += $record->getCalcBase();
-                    }
-
-                    $base = $data;
-                    $base -= $count;
-
-                    if ($base > 0) {
-                        $data = [
-                            'data' => $base,
-                            'endValue' => $data,
-                            'startValue' => $data - $base
-                        ];
-
-                        $price = $tarifRowRepository->getPrice($service, $date);
-                        $result[] = $this->generateRow($service, $date, $price, $data);
-                    }
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param Kontragent $kontragent
-     * @return array
-     */
-    public function generateKontragetTypeServices(Kontragent $kontragent)
-    {
-        $services = $this->entityManager->getRepository(Service::class)->findBy([
-            'deleted' => false,
-            'type' => ServiceTypeDictionary::KONTRAGENT_TYPE
-        ]);
-
-        if (!$services) {
-            return [];
-        }
-
-        /** @var TarifRowRepository $tarifRowRepository */
-        $tarifRowRepository = $this->entityManager->getRepository(TarifRow::class);
-        /** @var AccurringRowRepository $accurringRowRepository */
-        $accurringRowRepository = $this->entityManager->getRepository(AccurringRow::class);
-
-        $result = [];
-        /** @var Service $service */
-        foreach ($services as $service) {
-            $nowDate = new \DateTime();
-            $startDateTime = new \DateTime(ServiceTypeDictionary::SERVICE_START_DATE);
-            $interval = new \DateInterval('P1M');
-
-            for ($date = $startDateTime; $date <= $nowDate; $date->add($interval)) {
-                if (!$accurringRowRepository->findOneBy(['service' => $service, 'period' => $date])) {
-                    $price = $tarifRowRepository->getPrice($service, $date);
-                    $data = $this->getDataByKontragentAndSubtype($kontragent, $service->getSubType());
-
-                    $result[] = $this->generateRow($service, $date, $price, $data);
-                }
-            }
-        }
-
-        return $result;
-    }
-
-    /**
-     * @param Service   $service
-     * @param \DateTime $period
-     * @param float     $price
-     * @param float     $data
-     * @return array
-     */
-    private function generateRow(Service $service, \DateTime $period, $price, $data)
-    {
-        $komment = $service->getName() . ' за ' . $period->format('m-Y');
-
-        if (is_array($data)) {
-            $komment .= ', показания счетчика ' . $data['startValue'] . '-' . $data['endValue'];
-            $data = $data['data'];
-        }
-
-        return [
-            'service' => $service->getName(),
-            'serviceId' => $service->getId(),
-            'period' => $period->format('Y-m-d'),
-            'calcBase' => $data,
-            'price' => $price,
-            'sum' => $data * $price,
-            'komment' => $komment
+        $result = [
+            'serviceId' => $serviceId,
+            'kontragentId' => $kontragentId,
+            'date' => $date->format('Y-m-d')
         ];
+
+        /** @var TarifRowRepository $repository */
+        $repository = $this->entityManager->getRepository(TarifRow::class);
+        $result['price'] = $repository->getPrice($service, $date);
+
+        $base = $this->getBase($service, $kontragent, $date);
+        $usedBase = $this->entityManager->getRepository(AccurringRow::class)->getValueForPeriod($service, $kontragent, $date);
+        $result['base'] = ($base - $usedBase) > 0 ? $base - $usedBase : 0;
+
+        return $result;
+    }
+
+    /**
+     * @param Service    $service
+     * @param Kontragent $kontragent
+     * @param \DateTime  $date
+     * @return float|int
+     */
+    private function getBase(Service $service, Kontragent $kontragent, \DateTime $date)
+    {
+        if ($service->getType() == ServiceTypeDictionary::KONTRAGENT_TYPE) {
+            return 1;
+        } else {
+            switch ($service->getSubType()) {
+                case ServiceTypeDictionary::FIXED_SUBTYPE:
+                    return 1;
+                case ServiceTypeDictionary::ALL_AREA_SYBTYPE:
+                    $result = 0;
+                    /** @var Ground $ground */
+                    foreach ($kontragent->getGrounds() as $ground) {
+                        $result += $ground->getAllArea();
+                    }
+                    return $result;
+                case ServiceTypeDictionary::AREA_SUBTYPE:
+                    $result = 0;
+                    /** @var Ground $ground */
+                    foreach ($kontragent->getGrounds() as $ground) {
+                        $result += $ground->getArea();
+                    }
+                    return $result;
+                case ServiceTypeDictionary::ELECTRICITY_SUBTYPE:
+                    return $this->getMeterValue($kontragent, $date, MetricTypeDictionary::ELECTRICITY_TYPE);
+                case ServiceTypeDictionary::WATER_SUBTYPE:
+                    return $this->getMeterValue($kontragent, $date, MetricTypeDictionary::ELECTRICITY_TYPE);
+            }
+        }
     }
 
     /**
      * @param Kontragent $kontragent
-     * @param int        $subtype
-     * @return int
-     */
-    private function getDataByKontragentAndSubtype(Kontragent $kontragent, $subtype)
-    {
-        switch ($subtype) {
-            case ServiceTypeDictionary::FIXED_SUBTYPE:
-                return 1;
-        }
-
-        return 0;
-    }
-    
-    private function getDataByGroundAndSubtype(Ground $ground, $subtype, \DateTime $date)
-    {
-        switch ($subtype) {
-            case ServiceTypeDictionary::FIXED_SUBTYPE:
-                return 1;
-            case ServiceTypeDictionary::ALL_AREA_SYBTYPE:
-                return $ground->getAllArea();
-            case ServiceTypeDictionary::ELECTRICITY_SUBTYPE:
-                return $this->getMeterValue($ground, $date, MetricTypeDictionary::ELECTRICITY_TYPE);
-            case ServiceTypeDictionary::WATER_SUBTYPE:
-                return $this->getMeterValue($ground, $date, MetricTypeDictionary::WATER_TYPE);
-        }
-
-        return 0;
-    }
-
-    /**
-     * @param Ground    $ground
-     * @param \DateTime $date
-     * @param int       $type
+     * @param \DateTime  $date
+     * @param int        $type
      * @return float
      */
-    private function getMeterValue(Ground $ground, \DateTime $date, $type)
+    private function getMeterValue(Kontragent $kontragent, \DateTime $date, $type)
     {
         $result = 0;
 
-        $meters = $this->entityManager->getRepository(Meter::class)->findBy(['ground' => $ground, 'deleted' => false, 'type' => $type]);
+        $meters = [];
+        foreach ($kontragent->getGrounds() as $ground) {
+            $meters = array_merge($meters, $this->entityManager->getRepository(Meter::class)->findBy(['ground' => $ground, 'deleted' => false, 'type' => $type]));
+        }
 
         if (!$meters) {
             return $result;
         }
 
+        /** @var MeterRowRepository $repository */
         $repository = $this->entityManager->getRepository(MeterRow::class);
         foreach ($meters as $meter) {
-            $value = $repository->getEndValueByDate($meter, $date);
+            $dateStart = $date->modify('first day');
+            $dateEnd = $date->modify('last day');
+            $value = $repository->getValueByDate($meter, $dateStart, $dateEnd);
 
             $result += $value;
         }

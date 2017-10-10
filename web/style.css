@@ -73,6 +73,14 @@ button.add_button {
     background-position-x: center;
     background-position-y: 3px;
 }
+button.add_row_button {
+    width: 36px;
+    height: 31px;
+    background-image: url(img/add.png);
+    background-repeat: no-repeat;
+    background-position-x: center;
+    background-position-y: 3px;
+}
 button.autoset_button {
     height: 31px;
     width: 117px;

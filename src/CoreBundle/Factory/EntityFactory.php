@@ -4,6 +4,8 @@ namespace CoreBundle\Factory;
 
 use CoreBundle\Entity\Users;
 use CoreBundle\Entity\Token;
+use DocumentBundle\Entity\AccurringDocument;
+use DocumentBundle\Entity\AccurringRow;
 use DocumentBundle\Entity\MeterDocument;
 use DocumentBundle\Entity\MeterRow;
 use DocumentBundle\Entity\TarifDocument;
@@ -93,5 +95,21 @@ class EntityFactory
     public function createMeterRow()
     {
         return new MeterRow();
+    }
+
+    /**
+     * @return AccurringRow
+     */
+    public function createAccurringRow()
+    {
+        return new AccurringRow();
+    }
+
+    /**
+     * @return AccurringDocument
+     */
+    public function createAccurringDocument()
+    {
+        return new AccurringDocument();
     }
 } 

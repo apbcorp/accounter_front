@@ -35,4 +35,6 @@ function TarifsDocumentController() {
 
         return false;
     };
+
+    this.TarifsDocumentController();
 }

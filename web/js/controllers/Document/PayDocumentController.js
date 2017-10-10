@@ -27,4 +27,6 @@ function PayDocumentController() {
         return false;
         this.model.appendDataToRequest(data);
     };
+
+    this.PayDocumentController();
 }

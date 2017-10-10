@@ -18,7 +18,7 @@ class AccurringDocumentListFormatter extends EntityFormatterAbstract
     {
         return [
             'id' => $entity->getId(),
-            'created' => $entity->getCreated()->format('d-m-Y'),
+            'date' => $entity->getDate()->format('d-m-Y'),
             'kontragent' => implode(' ', [
                 $entity->getKontragent()->getSurname(),
                 $entity->getKontragent()->getName(),

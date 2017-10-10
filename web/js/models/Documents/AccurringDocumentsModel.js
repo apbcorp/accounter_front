@@ -4,7 +4,7 @@ function AccurringDocumentsModel(params) {
     this.url = '/api/v1.0/document/list/accurring';
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
-        "created": DOCUMENT_DATE_LANG,
+        "date": DOCUMENT_DATE_LANG,
         "kontragent": KONTRAGENT_SERVICE_FULL_NAME_LANG
     };
 

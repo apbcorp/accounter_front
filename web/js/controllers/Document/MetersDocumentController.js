@@ -49,4 +49,6 @@ function MetersDocumentController() {
 
         return {search: this.element.value, date: date};
     };
+
+    this.MetersDocumentController();
 }

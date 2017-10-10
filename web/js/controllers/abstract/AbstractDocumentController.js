@@ -5,8 +5,8 @@ function AbstractDocumentController() {
         this.onAddRowEvent = this.onAddRow.bind(this);
         this.onDeleteRowEvent = this.onDeleteRow.bind(this);
 
-        this.events.push({'selector': '.add_button', 'action': 'click', 'event': this.onAddRowEvent});
-        this.events.push({'selector': '.delete_button', 'action': 'click', 'event': this.onDeleteRowEvent});
+        this.events.push({'selector': '.add_row_button', 'action': 'click', 'event': this.onAddRowEvent});
+        this.events.push({'selector': '.delete_row_button', 'action': 'click', 'event': this.onDeleteRowEvent});
 
         this.AbstractCardController();
     };
@@ -62,6 +62,4 @@ function AbstractDocumentController() {
     this.onAutoFillComplete = function () {
         
     };
-
-    this.AbstractDocumentController();
 }

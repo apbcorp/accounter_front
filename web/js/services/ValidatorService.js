@@ -11,6 +11,9 @@ function ValidatorService() {
                 case VALIDATION_TYPE_STRING:
                     this.validateString(data[i].data, data[i].fieldName);
                     break;
+                case VALIDATION_TYPE_EMPTY_STRING:
+                    this.validateEmptyString(data[i].data, data[i].fieldName);
+                    break;
                 case VALIDATION_TYPE_OBJECT_ID:
                     this.validateObjectId(data[i].data, data[i].fieldName);
                     break;
@@ -19,6 +22,9 @@ function ValidatorService() {
                     break;
                 case VALIDATION_TYPE_FLOAT:
                     this.validateFloat(data[i].data, data[i].fieldName);
+                    break;
+                case VALIDATION_TYPE_NOT_EMPTY_FLOAT:
+                    this.validateNotEmptyFloat(data[i].data, data[i].fieldName);
                     break;
                 case VALIDATION_TYPE_DATE:
                     this.validateDate(data[i].data, data[i].fieldName);
@@ -74,6 +80,10 @@ function ValidatorService() {
             this.errors += 'Поле ' + fieldName + ' не может быть пустым\n';
             return;
         }
+        this.validateEmptyString(data, fieldName);
+    };
+
+    this.validateEmptyString = function (data, fieldName) {
         if (data.length > 255) {
             this.errors += 'Поле ' + fieldName + ' слишком длинное\n';
         }
@@ -92,6 +102,17 @@ function ValidatorService() {
         }
         if (data.length != 13 || !/\+\d{12}/.test(data)) {
             this.errors += 'Поле ' + fieldName + ' должно начинаться с символа "+" и содержать 12 цифр\n';
+        }
+    };
+
+    this.validateNotEmptyFloat = function (data, fieldName) {
+        if (!data) {
+            this.errors += 'Поле ' + fieldName + ' не может быть пустым\n';
+            return;
+        }
+
+        if (!/^\w{0}\d*[\.,\,]\d*\w{0}$/.test(data) && !/^\w{0}\d*\w{0}$/.test(data)) {
+            this.errors += 'Поле ' + fieldName + ' может содержать только цифры и знаки "." или ","\n';
         }
     };
 

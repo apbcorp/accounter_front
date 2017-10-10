@@ -72,15 +72,5 @@ var collections = {
         url: '/api/v1.0/dictionary/supply/service',
         staticCollection: 'serviceCollection',
         data: {}
-    },
-    serviceAutofillSupplyCollection: {
-        type: 'dynamic',
-        url: '/api/v1.0/document/autofill/accurring',
-        staticCollection: 'serviceAutofillCollection',
-        data: {}
-    },
-    serviceAutofillCollection: {
-        type: 'static',
-        data: {}
     }
 };

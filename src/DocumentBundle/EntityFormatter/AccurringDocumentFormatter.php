@@ -4,20 +4,24 @@ namespace DocumentBundle\EntityFormatter;
 
 use CoreBundle\BaseClasses\EntityFormatterAbstract;
 use CoreBundle\BaseClasses\Interfaces\EntityInterface;
+use DocumentBundle\Entity\AccurringDocument;
+use DocumentBundle\Entity\AccurringRow;
+use KontragentBundle\Entity\Kontragent;
+use KontragentBundle\Entity\Service;
 
 class AccurringDocumentFormatter extends EntityFormatterAbstract
 {
-    protected $entityClass = TarifDocument::class;
+    protected $entityClass = AccurringDocument::class;
 
     /**
-     * @param TarifDocument $entity
+     * @param AccurringDocument $entity
      * @return array
      */
     public function getData($entity)
     {
         $rows = [];
 
-        /** @var TarifRow $row */
+        /** @var AccurringRow $row */
         foreach ($entity->getRows() as $row) {
             if ($row->isDeleted()) {
                 continue;
@@ -27,13 +31,23 @@ class AccurringDocumentFormatter extends EntityFormatterAbstract
                 'id' => $row->getId(),
                 'serviceId' => $row->getService()->getId(),
                 'service' => $row->getService()->getName(),
-                'price' => $row->getPrice()
+                'price' => $row->getPrice(),
+                'calcBase' => $row->getCalcBase(),
+                'period' => $row->getPeriod()->format('Y-m-d'),
+                'sum' => $row->getSum(),
+                'komment' => $row->getKomment()
             ];
         }
 
         return [
             'id' => $entity->getId(),
-            'dateStart' => $entity->getDateStart()->format('Y-m-d'),
+            'date' => $entity->getDate()->format('Y-m-d'),
+            'kontragentId' => $entity->getKontragent()->getId(),
+            'kontragent' => implode(' ', [
+                $entity->getKontragent()->getSurname(),
+                $entity->getKontragent()->getName(),
+                $entity->getKontragent()->getName2()
+            ]),
             'rows' => $rows
         ];
     }
@@ -45,8 +59,8 @@ class AccurringDocumentFormatter extends EntityFormatterAbstract
      */
     public function setData($id, array $data)
     {
-        /** @var TarifDocument $entity */
-        $entity = $this->getEntity($id, 'createTarifDocument');
+        /** @var AccurringDocument $entity */
+        $entity = $this->getEntity($id, 'createAccurringDocument');
 
         if (!$entity) {
             return false;
@@ -55,9 +69,9 @@ class AccurringDocumentFormatter extends EntityFormatterAbstract
         $ids = [];
         foreach ($data['rows'] as $row) {
             if ($row['id']) {
-                $subEntity = $this->entityManager->getRepository(TarifRow::class)->find($row['id']);
+                $subEntity = $this->entityManager->getRepository(AccurringRow::class)->find($row['id']);
             } else {
-                $subEntity = $this->entityFactory->createTarifRow();
+                $subEntity = $this->entityFactory->createAccurringRow();
                 $subEntity->setCreated(new \DateTime());
                 $subEntity->setIsDeleted(false);
 
@@ -70,21 +84,26 @@ class AccurringDocumentFormatter extends EntityFormatterAbstract
             $subEntity->setUpdated(new \DateTime());
             $subEntity->setPrice($row['price']);
             $subEntity->setDocument($entity);
+            $subEntity->setPeriod(new \DateTime($row['period']));
+            $subEntity->setCalcBase($row['base']);
+            $subEntity->setKomment($row['komment']);
 
             if ($subEntity->getId()) {
                 $ids[] = $subEntity->getId();
             }
         }
 
+        $data['kontragent'] = $this->entityManager->getReference(Kontragent::class, $data['kontragentId']);
         unset($data['rows']);
-        $data['dateStart'] = new \DateTime($data['dateStart']);
+        unset($data['kontragentId']);
+        $data['date'] = new \DateTime($data['date']);
         $data['updated'] = new \DateTime();
 
         if ($this->isNewEntity) {
             $data['created'] = new \DateTime();
         }
 
-        /** @var TarifRow $row */
+        /** @var AccurringRow $row */
         foreach ($entity->getRows() as $row) {
             if (!in_array($row->getId(), $ids)) {
                 $row->setIsDeleted(true);

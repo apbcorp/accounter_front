@@ -61,6 +61,20 @@ class AccurringDocument implements DocumentEntityInterface
     private $kontragent;
 
     /**
+     * @var int
+     *
+     * @ORM\Column(name="unit_id", type="integer")
+     */
+    private $unitId;
+
+    /**
+     * @var \DateTime
+     *
+     * @ORM\Column(name="date", type="datetime")
+     */
+    private $date;
+
+    /**
      * TarifDocument constructor.
      */
     public function __construct()
@@ -167,6 +181,44 @@ class AccurringDocument implements DocumentEntityInterface
     public function setKontragent(Kontragent $kontragent)
     {
         $this->kontragent = $kontragent;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getUnitId()
+    {
+        return $this->unitId;
+    }
+
+    /**
+     * @param int $unitId
+     * @return $this
+     */
+    public function setUnitId($unitId)
+    {
+        $this->unitId = $unitId;
+
+        return $this;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getDate()
+    {
+        return $this->date;
+    }
+
+    /**
+     * @param \DateTime $date
+     * @return $this
+     */
+    public function setDate(\DateTime $date)
+    {
+        $this->date = $date;
 
         return $this;
     }

@@ -74,6 +74,27 @@ class AccurringController extends BaseDocumentController
     }
 
     /**
+     * @Route("/get_service/accurring")
+     * @Method("GET")
+     * @var Request $request
+     * @return JsonResponse
+     */
+    public function getServiceAction(Request $request)
+    {
+        $serviceId = $request->get('serviceId');
+        $date = $request->get('date');
+        $kontragentId = $request->get('kontragentId');
+
+        if (!$serviceId || !$kontragentId || !$date) {
+            return $this->sendResponse([], Response::HTTP_OK);;
+        }
+
+        $generator = $this->get('document.generator.service');
+
+        return $this->sendResponse($generator->generateByServiceId($kontragentId, $serviceId, new \DateTime($date)), Response::HTTP_OK);
+    }
+
+    /**
      * @Route("/autofill/accurring")
      * @Method("GET")
      * @var Request $request
