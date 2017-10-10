@@ -40,6 +40,7 @@ class MeterDocumentFormatter extends EntityFormatterAbstract
         return [
             'id' => $entity->getId(),
             'created' => $entity->getCreated()->format('Y-m-d'),
+            'date' => $entity->getDate()->format('Y-m-d'),
             'rows' => $rows
         ];
     }
@@ -85,6 +86,7 @@ class MeterDocumentFormatter extends EntityFormatterAbstract
 
         unset($data['rows']);
         $data['updated'] = new \DateTime();
+        $data['date'] = new \DateTime($data['date']);
 
         if ($this->isNewEntity) {
             $data['created'] = new \DateTime();

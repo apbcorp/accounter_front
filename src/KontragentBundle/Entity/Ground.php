@@ -306,6 +306,7 @@ class Ground implements EntityInterface
     {
         return str_replace(',', '.', $value);
     }
+    
     /**
      * @return int
      */
@@ -324,5 +325,4 @@ class Ground implements EntityInterface
 
         return $this;
     }
-    
 }

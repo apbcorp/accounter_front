@@ -31,3 +31,4 @@ var METER_NAME_LANG = "Счетчик";
 var PERIOD_LANG = "Период";
 var SERVICE_CALC_BASE_LANG = "База расчета";
 var KOMMENT_LANG = "Комментарий";
+var SHEET_LANG = 'Таблица';

@@ -31,7 +31,7 @@ function SelectBoxElement() {
         }
 
         var container = kernel.getServiceContainer().get('container.collection');
-        container.getDataBySupply(this.element.dataset.type, this.element.value, this.onGetDataSuccessEvent);
+        container.getDataBySupply(this.element.dataset.type, this.getRequestData(), this.onGetDataSuccessEvent);
     };
 
     this.onGetDataSuccess = function () {
@@ -79,4 +79,8 @@ function SelectBoxElement() {
     this.afterOnBlur = function (event) {
 
     };
+
+    this.getRequestData = function () {
+        return this.element.value;
+    }
 }

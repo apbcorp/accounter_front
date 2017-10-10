@@ -81,6 +81,15 @@ class MeterController extends BaseDocumentController
      */
     public function supplyAction(Request $request)
     {
-        return $this->sendResponse($this->getRepository()->search($request->get('search')), Response::HTTP_OK);
+        $search = $request->get('search');
+        $date = $request->get('date');
+
+        if (!$search || !$date) {
+            return $this->sendResponse([], Response::HTTP_OK);
+        }
+
+        $date = new \DateTime($date);
+
+        return $this->sendResponse($this->getRepository()->search($search, $date, $this->getUnitId()), Response::HTTP_OK);
     }
 }

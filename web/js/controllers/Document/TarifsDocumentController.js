@@ -24,7 +24,15 @@ function TarifsDocumentController() {
             dateStart: $('[name="dateStart"]')[0].value,
             rows: rows
         };
+
+        if (this.model.isValidData(data)) {
+            this.model.appendDataToRequest(data);
+
+            return true;
+        } else {
+            alert(this.model.getErrors())
+        }
+
         return false;
-        this.model.appendDataToRequest(data);
     };
 }

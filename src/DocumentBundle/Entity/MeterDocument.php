@@ -52,6 +52,20 @@ class MeterDocument implements DocumentEntityInterface
     private $deleted;
 
     /**
+     * @var \DateTime
+     *
+     * @ORM\Column(name="date", type="datetime")
+     */
+    private $date;
+
+    /**
+     * @var int
+     *
+     * @ORM\Column(name="unit_id", type="integer")
+     */
+    private $unitId;
+
+    /**
      * TarifDocument constructor.
      */
     public function __construct()
@@ -139,6 +153,44 @@ class MeterDocument implements DocumentEntityInterface
     public function setIsDeleted($deleted)
     {
         $this->deleted = $deleted;
+
+        return $this;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getDate()
+    {
+        return $this->date;
+    }
+
+    /**
+     * @param \DateTime $date
+     * @return $this
+     */
+    public function setDate(\DateTime $date)
+    {
+        $this->date = $date;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getUnitId()
+    {
+        return $this->unitId;
+    }
+
+    /**
+     * @param int $unitId
+     * @return $this
+     */
+    public function setUnitId($unitId)
+    {
+        $this->unitId = $unitId;
 
         return $this;
     }

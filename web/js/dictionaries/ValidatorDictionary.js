@@ -2,3 +2,6 @@ var VALIDATION_TYPE_STRING = 'string';
 var VALIDATION_TYPE_OBJECT_ID = 'objectId';
 var VALIDATION_TYPE_PHONE = 'phone';
 var VALIDATION_TYPE_FLOAT = 'float';
+var VALIDATION_TYPE_DATE = 'date';
+var VALIDATION_TYPE_NOT_EMPTY_ARRAY = 'notEmptyArray';
+var VALIDATION_TYPE_TABLE_ROWS = 'tableRows';

@@ -90,12 +90,15 @@ function CollectionContainer() {
 
     this.getDataBySupply = function (collectionName, searchString, event) {
         this.event = event;
+
+        var data = searchString instanceof Object ? searchString : {search: searchString};
+
         var name = collectionName + 'SupplyCollection';
         this.thisCollection = this.data[name];
         this.thisCollection.data = {};
         var requester = kernel.getServiceContainer().get('requester.ajax');
         requester.setUrl(this.thisCollection.url);
-        requester.setData({search: searchString});
+        requester.setData(data);
         requester.setMethod(HTTP_METHOD_GET);
         requester.setSuccess(this.onGetDataSuccess.bind(this));
         requester.request();
@@ -107,11 +110,11 @@ function CollectionContainer() {
 
         for (var i = 0; i < data.result.length; i++) {
             if (!this.thisCollection.data[data.result[i].id]) {
-                this.thisCollection.data[data.result[i].id] = {};
+                this.thisCollection.data[data.result[i].id] = this.getEmptyRecord();
             }
 
             if (!staticCollection.data[data.result[i].id]) {
-                staticCollection.data[data.result[i].id] = {};
+                staticCollection.data[data.result[i].id] = this.getEmptyRecord();
             }
 
             this.thisCollection.data[data.result[i].id].name = data.result[i].name;
@@ -119,8 +122,10 @@ function CollectionContainer() {
 
             params = data.result[i].additionalParams ? data.result[i].additionalParams : {};
 
-            this.thisCollection.data[data.result[i].id].params = params;
-            staticCollection.data[data.result[i].id].params = params;
+            for (var key in params) {
+                this.thisCollection.data[data.result[i].id].params[key] = params[key];
+                staticCollection.data[data.result[i].id].params[key] = params[key];
+            }
         }
 
         this.event();
@@ -138,11 +143,15 @@ function CollectionContainer() {
         var collection = this.data[name];
 
         if (!collection.data[id]) {
-            collection.data[id] = {};
+            collection.data[id] = this.getEmptyRecord();
         }
 
         collection.data[id].name = value;
-    }
+    };
+
+    this.getEmptyRecord = function () {
+        return {name: '', params: {}};
+    };
 }
 
 function EventContainer() {
@@ -579,17 +588,32 @@ function MetersDocumentController() {
         }
 
         var data = {
+            date: $('[name="date"]')[0].value,
             rows: rows
         };
+
+        if (this.model.isValidData(data)) {
+            this.model.appendDataToRequest(data);
+
+            return true;
+        } else {
+            alert(this.model.getErrors())
+        }
+
         return false;
-        this.model.appendDataToRequest(data);
     };
 
     this.afterOnBlur = function (event) {
         var container = kernel.getServiceContainer().get('container.collection');
         var record = container.getDataById(event.target.childNodes[0].dataset.type, event.target.childNodes[0].dataset.id);
 
-        event.target.parentNode.parentNode.childNodes[2].childNodes[0].value = record.value;
+        event.target.parentNode.parentNode.childNodes[2].childNodes[0].value = record.params.lastMeterValue;
+    };
+
+    this.getRequestData = function () {
+        var date = $('[name=date]')[0].value;
+
+        return {search: this.element.value, date: date};
     };
 }
 function PayDocumentController() {
@@ -648,8 +672,16 @@ function TarifsDocumentController() {
             dateStart: $('[name="dateStart"]')[0].value,
             rows: rows
         };
+
+        if (this.model.isValidData(data)) {
+            this.model.appendDataToRequest(data);
+
+            return true;
+        } else {
+            alert(this.model.getErrors())
+        }
+
         return false;
-        this.model.appendDataToRequest(data);
     };
 }
 function AccurringDocumentsController() {
@@ -1192,6 +1224,7 @@ var METER_NAME_LANG = "Счетчик";
 var PERIOD_LANG = "Период";
 var SERVICE_CALC_BASE_LANG = "База расчета";
 var KOMMENT_LANG = "Комментарий";
+var SHEET_LANG = 'Таблица';
 const ROUTES = {
     '/index\.html': 'controller.main',
     '/login\.html': 'controller.login',
@@ -1282,6 +1315,9 @@ var VALIDATION_TYPE_STRING = 'string';
 var VALIDATION_TYPE_OBJECT_ID = 'objectId';
 var VALIDATION_TYPE_PHONE = 'phone';
 var VALIDATION_TYPE_FLOAT = 'float';
+var VALIDATION_TYPE_DATE = 'date';
+var VALIDATION_TYPE_NOT_EMPTY_ARRAY = 'notEmptyArray';
+var VALIDATION_TYPE_TABLE_ROWS = 'tableRows';
 
 function NavigatorHelper() {
     this.goTo = function (url) {
@@ -1422,16 +1458,15 @@ function ConsumerCardModel(object) {
 
     this.isValidData = function (data) {
         var validator = kernel.getServiceContainer().get('service.validator');
-
-        validator.setData([
+        var validationData = [
             {data: data.name, type: VALIDATION_TYPE_STRING, fieldName: NAME_LANG},
             {data: data.surname, type: VALIDATION_TYPE_STRING, fieldName: SURNAME_LANG},
             {data: data.name2, type: VALIDATION_TYPE_STRING, fieldName: NAME2_LANG},
             {data: data.adress, type: VALIDATION_TYPE_STRING, fieldName: ADRESS_LANG},
             {data: data.phone, type: VALIDATION_TYPE_PHONE, fieldName: PHONE_LANG}
-        ]);
+        ];
 
-        var isValid = validator.validate();
+        var isValid = validator.validate(validationData);
         this.errors = isValid ? '' : validator.getErrors();
 
         return isValid;
@@ -1451,8 +1486,7 @@ function GroundCardModel(object) {
 
     this.isValidData = function (data) {
         var validator = kernel.getServiceContainer().get('service.validator');
-
-        validator.setData([
+        var validationData = [
             {data: data.number, type: VALIDATION_TYPE_STRING, fieldName: NUMBER_LANG},
             {data: data.line, type: VALIDATION_TYPE_STRING, fieldName: GROUND_LINE_LANG},
             {data: data.groundNumber, type: VALIDATION_TYPE_STRING, fieldName: GROUND_NUMBER_LANG},
@@ -1460,9 +1494,9 @@ function GroundCardModel(object) {
             {data: data.freeArea, type: VALIDATION_TYPE_FLOAT, fieldName: GROUND_FREE_AREA_LANG},
             {data: data.commonArea, type: VALIDATION_TYPE_FLOAT, fieldName: GROUND_COMMON_AREA_LANG},
             {data: data.kontragentId, type: VALIDATION_TYPE_OBJECT_ID, fieldName: OWNER_FULL_NAME_LANG}
-        ]);
+        ];
 
-        var isValid = validator.validate();
+        var isValid = validator.validate(validationData);
         this.errors = isValid ? '' : validator.getErrors();
 
         return isValid;
@@ -1482,13 +1516,12 @@ function MeterCardModel(object) {
     
     this.isValidData = function (data) {
         var validator = kernel.getServiceContainer().get('service.validator');
-
-        validator.setData([
+        var validationData = [
             {data: data.number, type: VALIDATION_TYPE_STRING, fieldName: METER_NUMBER_LANG},
             {data: data.groundId, type: VALIDATION_TYPE_OBJECT_ID, fieldName: METER_GROUND_OWNER_LANG}
-        ]);
+        ];
 
-        var isValid = validator.validate();
+        var isValid = validator.validate(validationData);
         this.errors = isValid ? '' : validator.getErrors();
 
         return isValid;
@@ -1502,12 +1535,11 @@ function ServiceCardModel(object) {
 
     this.isValidData = function (data) {
         var validator = kernel.getServiceContainer().get('service.validator');
-        
-        validator.setData([
+        var validationData = [
             {data: data.name, type: VALIDATION_TYPE_STRING, fieldName: SERVICE_NAME_LANG}
-        ]);
+        ];
         
-        var isValid = validator.validate();
+        var isValid = validator.validate(validationData);
         this.errors = isValid ? '' : validator.getErrors();
         
         return isValid;
@@ -1536,7 +1568,29 @@ function MetersDocumentModel(params) {
     };
 
     this.MetersDocumentModel = function (object) {
+        var date = new Date();
+
+        this.defaultData.date = date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
+
         this.DocumentAbstractModel(object);
+    };
+
+    this.isValidData = function (data) {
+        var validator = kernel.getServiceContainer().get('service.validator');
+        var validationData = [
+            {data: data.date, type: VALIDATION_TYPE_DATE, fieldName: DOCUMENT_DATE_LANG},
+            {data: data.rows, type: VALIDATION_TYPE_NOT_EMPTY_ARRAY, fieldName: SHEET_LANG},
+            {data: data.rows, type: VALIDATION_TYPE_TABLE_ROWS, fieldName: '', subvalidation: [
+                {data: 'meterId', type: VALIDATION_TYPE_OBJECT_ID, fieldName: METER_NAME_LANG},
+                {data: 'startValue', type: VALIDATION_TYPE_FLOAT, fieldName: START_VALUE_LANG},
+                {data: 'endValue', type: VALIDATION_TYPE_FLOAT, fieldName: END_VALUE_LANG}
+            ]}
+        ];
+
+        var isValid = validator.validate(validationData);
+        this.errors = isValid ? '' : validator.getErrors();
+
+        return isValid;
     };
 
     this.MetersDocumentModel(params);
@@ -1569,6 +1623,23 @@ function TarifsDocumentModel(params) {
         this.DocumentAbstractModel(object);
     };
 
+    this.isValidData = function (data) {
+        var validator = kernel.getServiceContainer().get('service.validator');
+        var validationData = [
+            {data: data.dateStart, type: VALIDATION_TYPE_DATE, fieldName: TARIFS_DATE_START_LANG},
+            {data: data.rows, type: VALIDATION_TYPE_NOT_EMPTY_ARRAY, fieldName: SHEET_LANG},
+            {data: data.rows, type: VALIDATION_TYPE_TABLE_ROWS, fieldName: '', subvalidation: [
+                {data: 'serviceId', type: VALIDATION_TYPE_OBJECT_ID, fieldName: SERVICE_NAME_LANG},
+                {data: 'price', type: VALIDATION_TYPE_FLOAT, fieldName: TARIF_LANG}
+            ]}
+        ];
+
+        var isValid = validator.validate(validationData);
+        this.errors = isValid ? '' : validator.getErrors();
+
+        return isValid;
+    };
+
     this.TarifsDocumentModel(params);
 }
 function AccurringDocumentsModel(params) {
@@ -1593,7 +1664,7 @@ function MetersDocumentsModel(params) {
     this.url = '/api/v1.0/document/list/meter';
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
-        "created": DOCUMENT_DATE_LANG
+        "date": DOCUMENT_DATE_LANG
     };
 
     this.MetersDocumentsModel = function (object) {
@@ -1979,7 +2050,7 @@ function SelectBoxElement() {
         }
 
         var container = kernel.getServiceContainer().get('container.collection');
-        container.getDataBySupply(this.element.dataset.type, this.element.value, this.onGetDataSuccessEvent);
+        container.getDataBySupply(this.element.dataset.type, this.getRequestData(), this.onGetDataSuccessEvent);
     };
 
     this.onGetDataSuccess = function () {
@@ -2027,32 +2098,51 @@ function SelectBoxElement() {
     this.afterOnBlur = function (event) {
 
     };
+
+    this.getRequestData = function () {
+        return this.element.value;
+    }
 }
 
 function ValidatorService() {
-    this.data = [];
     this.errors = '';
 
-    this.setData = function (data) {
-        this.data = data;
-    };
+    this.validate = function (data, clearErrors) {
+        if (clearErrors !== false) {
+            this.errors = '';
+        }
 
-    this.validate = function () {
-        this.errors = '';
-
-        for (var i = 0; i < this.data.length; i++) {
-            switch (this.data[i].type) {
+        for (var i = 0; i < data.length; i++) {
+            switch (data[i].type) {
                 case VALIDATION_TYPE_STRING:
-                    this.validateString(this.data[i].data, this.data[i].fieldName);
+                    this.validateString(data[i].data, data[i].fieldName);
                     break;
                 case VALIDATION_TYPE_OBJECT_ID:
-                    this.validateObjectId(this.data[i].data, this.data[i].fieldName);
+                    this.validateObjectId(data[i].data, data[i].fieldName);
                     break;
                 case VALIDATION_TYPE_PHONE:
-                    this.validatePhone(this.data[i].data, this.data[i].fieldName);
+                    this.validatePhone(data[i].data, data[i].fieldName);
                     break;
                 case VALIDATION_TYPE_FLOAT:
-                    this.validateFloat(this.data[i].data, this.data[i].fieldName);
+                    this.validateFloat(data[i].data, data[i].fieldName);
+                    break;
+                case VALIDATION_TYPE_DATE:
+                    this.validateDate(data[i].data, data[i].fieldName);
+                    break;
+                case VALIDATION_TYPE_NOT_EMPTY_ARRAY:
+                    this.validateNotEmptyArray(data[i].data, data[i].fieldName);
+                    break;
+                case VALIDATION_TYPE_TABLE_ROWS:
+                    for (var j = 0; j < data[i].data.length; j++) {
+                        var subData = data[i].subvalidation;
+
+                        for (var n = 0; n < subData.length; n++) {
+                            subData[n].data = data[i].data[j][subData[n].data];
+                            subData[n].fieldName = subData[n].fieldName + ' (строка ' + (j + 1) + ')';
+                        }
+
+                        this.validate(subData, false);
+                    }
                     break;
             }
         }
@@ -2062,6 +2152,27 @@ function ValidatorService() {
 
     this.getErrors = function () {
         return this.errors;
+    };
+
+    this.validateNotEmptyArray = function (data, fieldName) {
+        if (!data || !data.length) {
+            this.errors += fieldName + ' не может быть пустой\n';
+        }
+    };
+
+    this.validateDate = function (data, fieldName) {
+        if (!data) {
+            this.errors += 'Поле ' + fieldName + ' не может быть пустым\n';
+            return;
+        }
+
+        if (!data instanceof Date) {
+            data = new Date().parse(date);
+        }
+
+        if (!data instanceof Date && !data.getMonth()) {
+            this.errors += 'Поле ' + fieldName + ' должно содержать дату\n';
+        }
     };
 
     this.validateString = function (data, fieldName) {
@@ -2094,7 +2205,8 @@ function ValidatorService() {
         if (!data) {
             return;
         }
-        if (!/\d*[\.,\,]\d*/.test(data) && !/^\d+$/.test(data)) {
+
+        if (!/^\w{0}\d*[\.,\,]\d*\w{0}$/.test(data) && !/^\w{0}\d*\w{0}$/.test(data)) {
             this.errors += 'Поле ' + fieldName + ' может содержать только цифры и знаки "." или ","\n';
         }
     };
@@ -2121,7 +2233,7 @@ function GroundCardView() {
 }
 function MeterCardView() {
     AbstractCardView.call(this);
-    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{METER_NUMBER_LANG}<input name="number" value="{number}"></li><li class="card_cell">{METER_TYPE_LANG}<select name="type">{type}</select></li></ul><ul class="card_row"><li class="card_cell">{METER_GROUND_OWNER_LANG}<div class="selectbox" tabindex="-1"><input name="ground" data-id="{groundId}" data-type="ground" value="{ground}"><p class="selectbox-list-hide"></p></div></li></ul></div>';
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{METER_NUMBER_LANG}<input name="number" value="{number}"></li><li class="card_cell">{METER_TYPE_LANG}<select name="type">{type}</select></li></ul><ul class="card_row"><li class="card_cell">{METER_GROUND_OWNER_LANG}<div class="selectbox" tabindex="-1"><input name="ground" data-id="{groundId}" data-type="ground" value="{ground}" size="45"><p class="selectbox-list-hide"></p></div></li></ul></div>';
 
     this.buildTemplate = function (data) {
         var container = kernel.getServiceContainer().get('container.collection');
@@ -2154,7 +2266,7 @@ function AccurringDocumentView() {
 }
 function MeterDocumentView() {
     AbstractDocumentView.call(this);
-    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><div class="table subtable"><ul class="button_panel"><button class="add_button"></button><button class="delete_button"></button></ul>{table}</div></ul></div>';
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{DOCUMENT_DATE_LANG}<input type="date" name="date" value="{date}"></li></ul><ul class="card_row"><div class="table subtable"><ul class="button_panel"><button class="add_button"></button><button class="delete_button"></button></ul>{table}</div></ul></div>';
     this.rowTemplate = '<ul class="table_row" data-id="{id}"><li><input type="checkbox" name="checker"></li><li><div class="selectbox" tabindex="-1"><input name="meter" data-id="{meterId}" data-type="meterDocument" value="{meter}" size="70"><p class="selectbox-list-hide"></p></div></li><li><input name="startValue" value="{startValue}" disabled></li><li><input name="endValue" value="{endValue}"></li></ul>';
     this.headTemplate = '<ul class="table_head"><li class="column_head"></li><li class="column_head" data-name="meter">{METER_NAME_LANG}</li><li class="column_head" data-name="startValue">{START_VALUE_LANG}</li><li class="column_head" data-name="endValue">{END_VALUE_LANG}</li></ul>';
 }
