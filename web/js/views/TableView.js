@@ -2,7 +2,7 @@ function TableView() {
     this.template = [
         '<div class="sheet"><li>',
         '',
-        '<ul><button class="add_button"></button><button class="edit_button"></button><!--<button class="delete_button"></button>--></ul>',
+        '<ul><button class="add_button"></button><button class="edit_button"></button><button class="delete_button"></button></ul>',
         '<ul><div class="table">',
         '</div></ul>',
         '</li><div>'

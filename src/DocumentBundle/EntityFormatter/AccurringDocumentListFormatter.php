@@ -19,10 +19,10 @@ class AccurringDocumentListFormatter extends EntityFormatterAbstract
         return [
             'id' => $entity->getId(),
             'date' => $entity->getDate()->format('d-m-Y'),
-            'kontragent' => implode(' ', [
-                $entity->getKontragent()->getSurname(),
-                $entity->getKontragent()->getName(),
-                $entity->getKontragent()->getName2()
+            'ground' => 'Л/с ' . $entity->getGround()->getAccNumber() . ' (' . implode(' ', [
+                $entity->getGround()->getKontragent()->getSurname(),
+                $entity->getGround()->getKontragent()->getName(),
+                $entity->getGround()->getKontragent()->getName2()
             ])
         ];
     }

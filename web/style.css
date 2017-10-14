@@ -150,6 +150,25 @@ ul.table_head {
 ul.table_row {
     background-color: white;
 }
+div.subtable {
+    display: inline-block;
+    border: 1px groove black;
+}
+div.subtable > ul {
+    padding-left: 0px;
+    display: table-row;
+}
+div.subtable > ul > li {
+    border: 1px double #dadada;
+    display: table-cell;
+}
+ul.subtable_head {
+    background-color: #dadada;
+    display: table-cell;
+}
+ul.subtable_row {
+    background-color: white;
+}
 ul.table_row.active{
     background-color: blue;
 }

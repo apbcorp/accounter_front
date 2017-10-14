@@ -29,16 +29,27 @@ function GroundCardController() {
     };
 
     this.fillModel = function () {
+        var rows = [];
+
+        for (var i = 1; i < 5; i++) {
+            var id = $('[name=id' + i + ']')[0].value;
+            var number = $('[name=number' + i + ']')[0].value;
+            var line = $('[name=line' + i + ']')[0].value;
+            var lineNumber = $('[name=line_number' + i + ']')[0].value;
+
+            if (number || line || lineNumber) {
+                rows.push({number: number, line: line, groundNumber: lineNumber, id: id});
+            }
+        }
+
         var data = {
             accNumber: $('[name="accNumber"]')[0].value,
-            number: $('[name="number"]')[0].value,
-            line: $('[name="line"]')[0].value,
-            groundNumber: $('[name="groundNumber"]')[0].value,
             area: $('[name="area"]')[0].value,
             freeArea: $('[name="freeArea"]')[0].value,
             commonArea: $('[name="commonArea"]')[0].value,
             allArea: $('[name="allArea"]')[0].value,
-            kontragentId: $('[name="owner"]')[0].dataset.id
+            kontragentId: $('[name="owner"]')[0].dataset.id,
+            rows: rows
         };
 
         if (this.model.isValidData(data)) {

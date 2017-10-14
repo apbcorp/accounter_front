@@ -11,6 +11,7 @@ use DocumentBundle\Entity\MeterRow;
 use DocumentBundle\Entity\TarifDocument;
 use DocumentBundle\Entity\TarifRow;
 use KontragentBundle\Entity\Ground;
+use KontragentBundle\Entity\GroundParts;
 use KontragentBundle\Entity\Kontragent;
 use KontragentBundle\Entity\Meter;
 use KontragentBundle\Entity\Service;
@@ -111,5 +112,13 @@ class EntityFactory
     public function createAccurringDocument()
     {
         return new AccurringDocument();
+    }
+
+    /**
+     * @return GroundParts
+     */
+    public function createGroundPart()
+    {
+        return new GroundParts();
     }
 } 

@@ -11,9 +11,6 @@ function GroundCardModel(object) {
     this.isValidData = function (data) {
         var validator = kernel.getServiceContainer().get('service.validator');
         var validationData = [
-            {data: data.number, type: VALIDATION_TYPE_STRING, fieldName: NUMBER_LANG},
-            {data: data.line, type: VALIDATION_TYPE_STRING, fieldName: GROUND_LINE_LANG},
-            {data: data.groundNumber, type: VALIDATION_TYPE_STRING, fieldName: GROUND_NUMBER_LANG},
             {data: data.area, type: VALIDATION_TYPE_FLOAT, fieldName: GROUND_AREA_LANG},
             {data: data.freeArea, type: VALIDATION_TYPE_FLOAT, fieldName: GROUND_FREE_AREA_LANG},
             {data: data.commonArea, type: VALIDATION_TYPE_FLOAT, fieldName: GROUND_COMMON_AREA_LANG},

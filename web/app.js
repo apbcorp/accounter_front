@@ -367,16 +367,27 @@ function GroundCardController() {
     };
 
     this.fillModel = function () {
+        var rows = [];
+
+        for (var i = 1; i < 5; i++) {
+            var id = $('[name=id' + i + ']')[0].value;
+            var number = $('[name=number' + i + ']')[0].value;
+            var line = $('[name=line' + i + ']')[0].value;
+            var lineNumber = $('[name=line_number' + i + ']')[0].value;
+
+            if (number || line || lineNumber) {
+                rows.push({number: number, line: line, groundNumber: lineNumber, id: id});
+            }
+        }
+
         var data = {
             accNumber: $('[name="accNumber"]')[0].value,
-            number: $('[name="number"]')[0].value,
-            line: $('[name="line"]')[0].value,
-            groundNumber: $('[name="groundNumber"]')[0].value,
             area: $('[name="area"]')[0].value,
             freeArea: $('[name="freeArea"]')[0].value,
             commonArea: $('[name="commonArea"]')[0].value,
             allArea: $('[name="allArea"]')[0].value,
-            kontragentId: $('[name="owner"]')[0].dataset.id
+            kontragentId: $('[name="owner"]')[0].dataset.id,
+            rows: rows
         };
 
         if (this.model.isValidData(data)) {
@@ -989,7 +1000,7 @@ function AbstractDictionaryController() {
             return;
         }
 
-        alert(this.model.currentId);
+        this.model.delete(this.cardPath + this.model.currentId);
     };
 
     this.onSelectRecord = function (event) {
@@ -1254,6 +1265,7 @@ var RECORD_NUMBER_LANG = "№ п/п";
 var ACCOUNT_NUMBER_LANG = "№ счета";
 var NUMBER_LANG = "№ куреня";
 var GROUND_LINE_LANG = "Линия";
+var GROUNDS_LANG = "Участки";
 var GROUND_NUMBER_LANG = "Номер участка";
 var GROUND_AREA_LANG = "Занимаемая площадь, кв. м.";
 var GROUND_FREE_AREA_LANG = "Не относящаяся к причалу площадь, кв. м.";
@@ -1261,7 +1273,7 @@ var GROUND_COMMON_AREA_LANG = "Площадь общего пользовани�
 var GROUND_ALL_AREA_LANG = "Всего площадь, кв. м.";
 var OWNER_FULL_NAME_LANG = "ФИО собственника";
 var KONTRAGENT_PAY_FULL_NAME_LANG = "ФИО плательщика";
-var KONTRAGENT_SERVICE_FULL_NAME_LANG = "ФИО потребителя";
+var KONTRAGENT_ID_LANG = "Л/с потребителя";
 var SURNAME_LANG = "Фамилия";
 var NAME_LANG = "Имя";
 var NAME2_LANG = "Отчество";
@@ -1523,7 +1535,6 @@ function ConsumerCardModel(object) {
             {data: data.name, type: VALIDATION_TYPE_STRING, fieldName: NAME_LANG},
             {data: data.surname, type: VALIDATION_TYPE_STRING, fieldName: SURNAME_LANG},
             {data: data.name2, type: VALIDATION_TYPE_STRING, fieldName: NAME2_LANG},
-            {data: data.adress, type: VALIDATION_TYPE_STRING, fieldName: ADRESS_LANG},
             {data: data.phone, type: VALIDATION_TYPE_PHONE, fieldName: PHONE_LANG}
         ];
 
@@ -1548,9 +1559,6 @@ function GroundCardModel(object) {
     this.isValidData = function (data) {
         var validator = kernel.getServiceContainer().get('service.validator');
         var validationData = [
-            {data: data.number, type: VALIDATION_TYPE_STRING, fieldName: NUMBER_LANG},
-            {data: data.line, type: VALIDATION_TYPE_STRING, fieldName: GROUND_LINE_LANG},
-            {data: data.groundNumber, type: VALIDATION_TYPE_STRING, fieldName: GROUND_NUMBER_LANG},
             {data: data.area, type: VALIDATION_TYPE_FLOAT, fieldName: GROUND_AREA_LANG},
             {data: data.freeArea, type: VALIDATION_TYPE_FLOAT, fieldName: GROUND_FREE_AREA_LANG},
             {data: data.commonArea, type: VALIDATION_TYPE_FLOAT, fieldName: GROUND_COMMON_AREA_LANG},
@@ -1624,7 +1632,7 @@ function AccurringDocumentModel(params) {
         var validator = kernel.getServiceContainer().get('service.validator');
         var validationData = [
             {data: data.date, type: VALIDATION_TYPE_DATE, fieldName: DOCUMENT_DATE_LANG},
-            {data: data.kontragentId, type: VALIDATION_TYPE_OBJECT_ID, fieldName: KONTRAGENT_SERVICE_FULL_NAME_LANG},
+            {data: data.kontragentId, type: VALIDATION_TYPE_OBJECT_ID, fieldName: KONTRAGENT_ID_LANG},
             {data: data.rows, type: VALIDATION_TYPE_NOT_EMPTY_ARRAY, fieldName: SHEET_LANG},
             {data: data.rows, type: VALIDATION_TYPE_TABLE_ROWS, fieldName: '', subvalidation: [
                 {data: 'serviceId', type: VALIDATION_TYPE_OBJECT_ID, fieldName: SERVICE_NAME_LANG},
@@ -1736,7 +1744,7 @@ function AccurringDocumentsModel(params) {
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
         "date": DOCUMENT_DATE_LANG,
-        "kontragent": KONTRAGENT_SERVICE_FULL_NAME_LANG
+        "ground": KONTRAGENT_ID_LANG
     };
 
     this.AccurringDocumentsModel = function (object) {
@@ -1883,6 +1891,16 @@ function AbstractModel() {
         requester.setData(this.requestData);
         requester.setMethod(this.method);
         requester.setSuccess(this.onRefreshSuccessEvent);
+        requester.setError(this.onRequestErrorEvent);
+        requester.request();
+    };
+
+    this.delete = function (url) {
+        var requester = kernel.getServiceContainer().get('requester.ajax');
+        requester.setUrl('/api/v1.0' + url);
+        requester.setData('');
+        requester.setMethod(HTTP_METHOD_DELETE);
+        requester.setSuccess(this.refresh.bind(this));
         requester.setError(this.onRequestErrorEvent);
         requester.request();
     };
@@ -2290,7 +2308,6 @@ function ValidatorService() {
 
     this.validatePhone = function (data, fieldName) {
         if (!data) {
-            this.errors += 'Поле ' + fieldName + ' не может быть пустым\n';
             return;
         }
         if (data.length != 13 || !/\+\d{12}/.test(data)) {
@@ -2324,6 +2341,46 @@ function ConsumerDictionaryView() {
 }
 function GroundDictionaryView() {
     AbstractDictionaryView.call(this);
+    this.buildTemplate = function (data) {
+        for (var i = 0; i < data.data.result.length; i++) {
+            var rows = data.data.result[i].rows;
+            var number = [];
+            var line = [];
+            var ground = [];
+
+            if (!rows) {
+                data.data.result[i].number = '';
+                data.data.result[i].line = '';
+                data.data.result[i].groundNumber = '';
+
+                continue;
+            }
+
+            if (rows.length == 1) {
+                data.data.result[i].number = data.data.result[i].rows[0].number;
+                data.data.result[i].line = data.data.result[i].rows[0].line;
+                data.data.result[i].groundNumber = data.data.result[i].rows[0].groundNumber;
+
+                continue;
+            }
+
+            for (var j = 0; j < rows.length; j++) {
+                number.push(rows[j].number);
+                line.push(rows[j].line);
+                ground.push(rows[j].groundNumber);
+            }
+
+            data.data.result[i].number = number.join('<br>');
+            data.data.result[i].line = line.join('<br>');
+            data.data.result[i].groundNumber = ground.join('<br>');
+        }
+        
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+        html += kernel.getServiceContainer().get('view.table').buildTemplate(data);
+        html += '</div>';
+
+        return html;
+    }
 }
 function MeterDictionaryView() {
     AbstractDictionaryView.call(this);
@@ -2337,7 +2394,7 @@ function ConsumerCardView() {
 }
 function GroundCardView() {
     AbstractCardView.call(this);
-    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{ACCOUNT_NUMBER_LANG}<input name="accNumber" value="{accNumber}"></li><li class="card_cell">{NUMBER_LANG}<input name="number" value="{number}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_LINE_LANG}<input name="line" value="{line}"></li><li class="card_cell">{GROUND_NUMBER_LANG}<input name="groundNumber" value="{groundNumber}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_AREA_LANG}<input name="area" value="{area}"></li><li class="card_cell">{GROUND_FREE_AREA_LANG}<input name="freeArea" value="{freeArea}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_COMMON_AREA_LANG}<input name="commonArea" value="{commonArea}"></li><li class="card_cell">{GROUND_ALL_AREA_LANG}<input name="allArea" value="{allArea}" disabled></li></ul><ul class="card_row"><li class="card_cell">{OWNER_FULL_NAME_LANG}<div class="selectbox" tabindex="-1"><input name="owner" data-id="{kontragentId}" data-type="kontragent" value="{owner}"><p class="selectbox-list-hide"></p></div></li></ul></div>';
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{ACCOUNT_NUMBER_LANG}<input name="accNumber" value="{accNumber}"></li><!--<li class="card_cell">{NUMBER_LANG}<input name="number" value="{number}"></li>--></ul><ul class="card_row"><div class="table"><ul class="table_head"><li class="column_head">{NUMBER_LANG}</li><li class="column_head">{GROUND_LINE_LANG}</li><li class="column_head">{GROUND_NUMBER_LANG}</li></ul><ul class="table_row"><li><input type="hidden" name="id1" value="{id1}"><input name="number1" value="{number1}"></li><li><input name="line1" value="{line1}"></li><li><input name="line_number1" value="{groundNumber1}"></li></ul><ul class="table_row"><li><input type="hidden" name="id2" value="{id2}"><input name="number2" value="{number2}"></li><li><input name="line2" value="{line2}"></li><li><input name="line_number2" value="{groundNumber2}"></li></ul><ul class="table_row"><li><input type="hidden" name="id3" value="{id3}"><input name="number3" value="{number3}"></li><li><input name="line3" value="{line3}"></li><li><input name="line_number3" value="{groundNumber3}"></li></ul><ul class="table_row"><li><input type="hidden" name="id4" value="{id4}"><input name="number4" value="{number4}"></li><li><input name="line4" value="{line4}"></li><li><input name="line_number4" value="{groundNumber4}"></li></ul><ul class="table_row"><li><input type="hidden" name="id5" value="{id5}"><input name="number5" value="{number5}"></li><li><input name="line5" value="{line5}"></li><li><input name="line_number5" value="{groundNumber5}"></li></ul></div><!--<li class="card_cell">{GROUND_LINE_LANG}<input name="line" value="{line}"></li><li class="card_cell">{GROUND_NUMBER_LANG}<input name="groundNumber" value="{groundNumber}"></li>--></ul><ul class="card_row"><li class="card_cell">{GROUND_AREA_LANG}<input name="area" value="{area}"></li><li class="card_cell">{GROUND_FREE_AREA_LANG}<input name="freeArea" value="{freeArea}"></li></ul><ul class="card_row"><li class="card_cell">{GROUND_COMMON_AREA_LANG}<input name="commonArea" value="{commonArea}"></li><li class="card_cell">{GROUND_ALL_AREA_LANG}<input name="allArea" value="{allArea}" disabled></li></ul><ul class="card_row"><li class="card_cell">{OWNER_FULL_NAME_LANG}<div class="selectbox" tabindex="-1"><input name="owner" data-id="{kontragentId}" data-type="kontragent" value="{owner}"><p class="selectbox-list-hide"></p></div></li></ul></div>';
 }
 function MeterCardView() {
     AbstractCardView.call(this);
@@ -2368,7 +2425,7 @@ function ServiceCardView() {
 }
 function AccurringDocumentView() {
     AbstractDocumentView.call(this);
-    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{DOCUMENT_DATE_LANG}<input type="date" name="date" value="{date}"></li><li class="card_cell">{KONTRAGENT_SERVICE_FULL_NAME_LANG}<div class="selectbox" tabindex="-1"><input name="kontragent" data-id="{kontragentId}" data-type="kontragent" value="{kontragent}"><p class="selectbox-list-hide"></p></div></li></ul><ul class="card_row"><div class="table subtable"><ul class="button_panel"><button class="add_row_button"></button><button class="delete_button"></button><button class="autoset_button"></button></ul>{table}</div></ul></div>';
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{DOCUMENT_DATE_LANG}<input type="date" name="date" value="{date}"></li><li class="card_cell">{KONTRAGENT_ID_LANG}<div class="selectbox" tabindex="-1"><input name="kontragent" data-id="{groundId}" data-type="ground" value="{ground}"><p class="selectbox-list-hide"></p></div></li></ul><ul class="card_row"><div class="table subtable"><ul class="button_panel"><button class="add_row_button"></button><button class="delete_button"></button><button class="autoset_button"></button></ul>{table}</div></ul></div>';
     this.rowTemplate = '<ul class="table_row" data-id="{id}"><li><input type="checkbox" name="checker"></li><li><div class="selectbox indexData" tabindex="-1"><input name="service" data-id="{serviceId}" data-type="service" value="{service}"><p class="selectbox-list-hide"></p></div></li><li><input class="indexData" type="date" name="period" value="{period}"></li><li><input name="calcBase" value="{calcBase}" disabled></li><li><input name="price" value="{price}" disabled></li><li><input name="sum" value="{sum}"></li><li><input name="komment" value="{komment}"></li></ul>';
     this.headTemplate = '<ul class="table_head"><li class="column_head"></li><li class="column_head" data-name="service">{SERVICE_NAME_LANG}</li><li class="column_head" data-name="period">{PERIOD_LANG}</li><li class="column_head" data-name="calcBase">{SERVICE_CALC_BASE_LANG}</li><li class="column_head" data-name="price">{TARIF_LANG}</li><li class="column_head" data-name="sum">{SUM_LANG}</li><li class="column_head" data-name="komment">{KOMMENT_LANG}</li></ul>';
 }
@@ -2503,7 +2560,7 @@ function TableView() {
     this.template = [
         '<div class="sheet"><li>',
         '',
-        '<ul><button class="add_button"></button><button class="edit_button"></button><!--<button class="delete_button"></button>--></ul>',
+        '<ul><button class="add_button"></button><button class="edit_button"></button><button class="delete_button"></button></ul>',
         '<ul><div class="table">',
         '</div></ul>',
         '</li><div>'

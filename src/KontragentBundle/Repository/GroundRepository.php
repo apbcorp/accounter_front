@@ -45,7 +45,7 @@ class GroundRepository extends ListRepositoryAbstract implements SupplyRepositor
         foreach ($queryResult as $row) {
             $result[] = [
                 'id' => $row['id'],
-                'name' => 'Л/с ' . $row['accNumber'] . ' курень ' . $row['number'] . ' (' . implode(' ',[
+                'name' => 'Л/с ' . $row['accNumber'] . ' (' . implode(' ',[
                         $row['surname'],
                         mb_substr($row['name'], 0, 1) . '.',
                         mb_substr($row['name2'], 0, 1) . '.'

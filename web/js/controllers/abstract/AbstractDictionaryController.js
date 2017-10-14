@@ -78,7 +78,7 @@ function AbstractDictionaryController() {
             return;
         }
 
-        alert(this.model.currentId);
+        this.model.delete(this.cardPath + this.model.currentId);
     };
 
     this.onSelectRecord = function (event) {

@@ -97,7 +97,6 @@ function ValidatorService() {
 
     this.validatePhone = function (data, fieldName) {
         if (!data) {
-            this.errors += 'Поле ' + fieldName + ' не может быть пустым\n';
             return;
         }
         if (data.length != 13 || !/\+\d{12}/.test(data)) {

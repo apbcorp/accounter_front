@@ -5,6 +5,7 @@ namespace KontragentBundle\EntityFormatter;
 use CoreBundle\BaseClasses\EntityFormatterAbstract;
 use CoreBundle\BaseClasses\Interfaces\EntityInterface;
 use KontragentBundle\Entity\Ground;
+use KontragentBundle\Entity\GroundParts;
 use KontragentBundle\Entity\Kontragent;
 
 class GroundFormatter extends EntityFormatterAbstract
@@ -17,14 +18,27 @@ class GroundFormatter extends EntityFormatterAbstract
      */
     public function getData($entity)
     {
-        return [
+        $result = [];
+        $i = 1;
+
+        /** @var GroundParts $ground */
+        foreach ($entity->getGroundParts() as $ground) {
+            $row = [
+                'id' . $i => $ground->getId(),
+                'number' . $i => $ground->getNumber(),
+                'line' . $i => $ground->getLine(),
+                'groundNumber' . $i => $ground->getGroundNumber()
+            ];
+
+            $result = array_merge($result, $row);
+            $i++;
+        }
+
+        return array_merge($result, [
             'id' => $entity->getId(),
             'kontragentId' => $entity->getKontragent()->getId(),
             'kontragent' => $this->formatterFactory->getFormatter(Kontragent::class, 'list')->getData($entity->getKontragent()),
             'accNumber' => $entity->getAccNumber(),
-            'number' => $entity->getNumber(),
-            'line' => $entity->getLine(),
-            'groundNumber' => $entity->getGroundNumber(),
             'area' => $entity->getArea(),
             'freeArea' => $entity->getFreeArea(),
             'commonArea' => $entity->getCommonArea(),
@@ -34,7 +48,7 @@ class GroundFormatter extends EntityFormatterAbstract
                 $entity->getKontragent()->getName(),
                 $entity->getKontragent()->getName2(),
             ])
-        ];
+        ]);
     }
 
     /**
@@ -50,6 +64,27 @@ class GroundFormatter extends EntityFormatterAbstract
             return false;
         }
 
+        foreach ($data['rows'] as $row) {
+            if (!$row['id']) {
+                $groundPart = $this->entityFactory->createGroundPart();
+                $this->entityManager->persist($groundPart);
+            } else {
+                $groundPart = $this->entityManager->getRepository(GroundParts::class)->find($row['id']);
+
+                if (!$groundPart) {
+                    $groundPart = $this->entityFactory->createGroundPart();
+                    $this->entityManager->persist($groundPart);
+                }
+            }
+
+            $groundPart->setNumber($row['number']);
+            $groundPart->setLine($row['line']);
+            $groundPart->setGroundNumber($row['groundNumber']);
+            $groundPart->setGround($entity);
+            $groundPart->setIsDeleted(false);
+        }
+
+        unset($data['rows']);
         if (isset($data['kontragentId'])) {
             $data['kontragent'] = $this->entityManager->getReference(Kontragent::class, $data['kontragentId']);
             unset($data['kontragentId']);

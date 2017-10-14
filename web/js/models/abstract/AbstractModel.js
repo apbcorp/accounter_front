@@ -38,6 +38,16 @@ function AbstractModel() {
         requester.request();
     };
 
+    this.delete = function (url) {
+        var requester = kernel.getServiceContainer().get('requester.ajax');
+        requester.setUrl('/api/v1.0' + url);
+        requester.setData('');
+        requester.setMethod(HTTP_METHOD_DELETE);
+        requester.setSuccess(this.refresh.bind(this));
+        requester.setError(this.onRequestErrorEvent);
+        requester.request();
+    };
+
     this.getRequestData = function (paramName) {
         if (paramName === undefined) {
             return this.requestData;

@@ -39,7 +39,7 @@ class KontragentController extends BaseEntityController
     }
 
     /**
-     * @Route("/kontragent/{id}")
+     * @Route("/consumer/{id}")
      * @Method("DELETE")
      * @var int $id
      * @return JsonResponse

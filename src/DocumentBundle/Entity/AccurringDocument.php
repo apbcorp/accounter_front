@@ -5,6 +5,7 @@ namespace DocumentBundle\Entity;
 use CoreBundle\BaseClasses\Interfaces\DocumentEntityInterface;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use KontragentBundle\Entity\Ground;
 use KontragentBundle\Entity\Kontragent;
 
 /**
@@ -53,12 +54,12 @@ class AccurringDocument implements DocumentEntityInterface
     private $deleted;
 
     /**
-     * @var Kontragent
+     * @var Ground
      *
-     * @ORM\ManyToOne(targetEntity="\KontragentBundle\Entity\Kontragent")
+     * @ORM\ManyToOne(targetEntity="\KontragentBundle\Entity\Ground")
      * @ORM\JoinColumn(name="kontragent_id", referencedColumnName="id")
      */
-    private $kontragent;
+    private $ground;
 
     /**
      * @var int
@@ -167,20 +168,20 @@ class AccurringDocument implements DocumentEntityInterface
     }
 
     /**
-     * @return Kontragent
+     * @return Ground
      */
-    public function getKontragent()
+    public function getGround()
     {
-        return $this->kontragent;
+        return $this->ground;
     }
 
     /**
-     * @param Kontragent $kontragent
+     * @param Ground $ground
      * @return $this
      */
-    public function setKontragent(Kontragent $kontragent)
+    public function setGround(Ground $ground)
     {
-        $this->kontragent = $kontragent;
+        $this->ground = $ground;
 
         return $this;
     }

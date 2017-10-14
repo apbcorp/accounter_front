@@ -21,7 +21,11 @@ class MeterListFormatter extends EntityFormatterAbstract
         return [
             'id' => $entity->getId(),
             'groundId' => $entity->getGround()->getId(),
-            'ground' => 'Л/с ' . $entity->getGround()->getAccNumber() . ' курень ' . $entity->getGround()->getNumber(),
+            'ground' => 'Л/с ' . $entity->getGround()->getAccNumber() . ' (' . implode(' ',[
+                    $entity->getGround()->getKontragent()->getSurname(),
+                    mb_substr($entity->getGround()->getKontragent()->getName(), 0, 1) . '.',
+                    mb_substr($entity->getGround()->getKontragent()->getName2(), 0, 1) . '.'
+                ]) . ')',
             'number' => $entity->getNumber(),
             'type' => MetricTypeDictionary::LANGS[$entity->getType()]
         ];

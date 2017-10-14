@@ -5,7 +5,7 @@ function AccurringDocumentsModel(params) {
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
         "date": DOCUMENT_DATE_LANG,
-        "kontragent": KONTRAGENT_SERVICE_FULL_NAME_LANG
+        "ground": KONTRAGENT_ID_LANG
     };
 
     this.AccurringDocumentsModel = function (object) {

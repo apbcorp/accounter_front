@@ -6,6 +6,7 @@ use CoreBundle\BaseClasses\EntityFormatterAbstract;
 use CoreBundle\BaseClasses\Interfaces\EntityInterface;
 use DocumentBundle\Entity\AccurringDocument;
 use DocumentBundle\Entity\AccurringRow;
+use KontragentBundle\Entity\Ground;
 use KontragentBundle\Entity\Kontragent;
 use KontragentBundle\Entity\Service;
 
@@ -42,11 +43,11 @@ class AccurringDocumentFormatter extends EntityFormatterAbstract
         return [
             'id' => $entity->getId(),
             'date' => $entity->getDate()->format('Y-m-d'),
-            'kontragentId' => $entity->getKontragent()->getId(),
-            'kontragent' => implode(' ', [
-                $entity->getKontragent()->getSurname(),
-                $entity->getKontragent()->getName(),
-                $entity->getKontragent()->getName2()
+            'groundId' => $entity->getGround()->getId(),
+            'ground' => 'Л/с ' . $entity->getGround()->getAccNumber() . ' (' . implode(' ', [
+                $entity->getGround()->getKontragent()->getSurname(),
+                $entity->getGround()->getKontragent()->getName(),
+                $entity->getGround()->getKontragent()->getName2()
             ]),
             'rows' => $rows
         ];
@@ -93,9 +94,9 @@ class AccurringDocumentFormatter extends EntityFormatterAbstract
             }
         }
 
-        $data['kontragent'] = $this->entityManager->getReference(Kontragent::class, $data['kontragentId']);
+        $data['ground'] = $this->entityManager->getReference(Ground::class, $data['groundId']);
         unset($data['rows']);
-        unset($data['kontragentId']);
+        unset($data['groundId']);
         $data['date'] = new \DateTime($data['date']);
         $data['updated'] = new \DateTime();
 

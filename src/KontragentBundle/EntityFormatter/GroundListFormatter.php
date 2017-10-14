@@ -4,6 +4,7 @@ namespace KontragentBundle\EntityFormatter;
 
 use CoreBundle\BaseClasses\Interfaces\EntityInterface;
 use KontragentBundle\Entity\Ground;
+use KontragentBundle\Entity\GroundParts;
 
 class GroundListFormatter
 {
@@ -15,13 +16,22 @@ class GroundListFormatter
      */
     public function getData($entity)
     {
+        $rows = [];
+
+        /** @var GroundParts $ground */
+        foreach ($entity->getGroundParts() as $ground) {
+            $rows[] = [
+                'id' => $ground->getId(),
+                'number' => $ground->getNumber(),
+                'line' => $ground->getLine(),
+                'groundNumber' => $ground->getGroundNumber()
+            ];
+        }
+
         return [
             'id' => $entity->getId(),
             'kontragentId' => $entity->getKontragent()->getId(),
             'accNumber' => $entity->getAccNumber(),
-            'number' => $entity->getNumber(),
-            'line' => $entity->getLine(),
-            'groundNumber' => $entity->getGroundNumber(),
             'area' => $entity->getArea(),
             'freeArea' => $entity->getFreeArea(),
             'commonArea' => $entity->getCommonArea(),
@@ -30,7 +40,8 @@ class GroundListFormatter
                 $entity->getKontragent()->getSurname(),
                 $entity->getKontragent()->getName(),
                 $entity->getKontragent()->getName2(),
-            ])
+            ]),
+            'rows' => $rows
         ];
     }
 

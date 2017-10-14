@@ -52,7 +52,7 @@ class BaseDocumentController extends BaseController
     public function deleteAction($id)
     {
         $entity = $this->getRepository()->find($id);
-        $entity->isDeleted(true);
+        $entity->setIsDeleted(true);
 
         $this->getDoctrine()->getManager()->flush();
 

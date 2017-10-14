@@ -3,8 +3,10 @@
 namespace KontragentBundle\Entity;
 
 use CoreBundle\BaseClasses\Interfaces\EntityInterface;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Validator\Constraints as Assert;
+use KontragentBundle\Entity\GroundParts;
 
 /**
  * Ground
@@ -103,6 +105,13 @@ class Ground implements EntityInterface
      * @ORM\Column(name="unit_id", type="integer")
      */
     private $unitId;
+
+    /**
+     * @var ArrayCollection
+     *
+     * @ORM\OneToMany(targetEntity="GroundParts", mappedBy="ground")
+     */
+    private $groundParts;
 
     /**
      * @return int
@@ -322,6 +331,25 @@ class Ground implements EntityInterface
     public function setUnitId($unitId)
     {
         $this->unitId = $unitId;
+
+        return $this;
+    }
+
+    /**
+     * @return ArrayCollection
+     */
+    public function getGroundParts()
+    {
+        return $this->groundParts;
+    }
+
+    /**
+     * @param \KontragentBundle\Entity\GroundParts $part
+     * @return $this
+     */
+    public function addGroundParts(GroundParts $part)
+    {
+        $this->groundParts->add($part);
 
         return $this;
     }
