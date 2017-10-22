@@ -7,7 +7,7 @@ function MainControllerAbstract() {
         this.onGetConsumerDictionaryEvent = this.onGetConsumerDictionary.bind(this);
         this.onGetServicesDictionaryEvent = this.onGetServicesDictionary.bind(this);
         this.onGetPayDocumentsEvent = this.onGetPayDocuments.bind(this);
-        this.onGetAccuringDocumentsEvent = this.onGetAccurringDocuments.bind(this);
+        this.onGetServiceDocumentsEvent = this.onGetServiceDocuments.bind(this);
         this.onGetMetersDocumentsEvent = this.onGetMetersDocuments.bind(this);
         this.onGetTarifsDocumentsEvent = this.onGetTarifDocuments.bind(this);
         this.onGetMainReportEvent = this.onGetMainReport.bind(this);
@@ -20,7 +20,7 @@ function MainControllerAbstract() {
         this.events.push({'selector': '.meters_dictionary_button', 'action': 'click', 'event': this.onGetMetersDictionaryEvent});
         this.events.push({'selector': '.consumer_dictionary_button', 'action': 'click', 'event': this.onGetConsumerDictionaryEvent});
         this.events.push({'selector': '.pay_documents_button', 'action': 'click', 'event': this.onGetPayDocumentsEvent});
-        this.events.push({'selector': '.accuring_documents_button', 'action': 'click', 'event': this.onGetAccuringDocumentsEvent});
+        this.events.push({'selector': '.service_documents_button', 'action': 'click', 'event': this.onGetServiceDocumentsEvent});
         this.events.push({'selector': '.meters_documents_button', 'action': 'click', 'event': this.onGetMetersDocumentsEvent});
         this.events.push({'selector': '.tarifs_documents_button', 'action': 'click', 'event': this.onGetTarifsDocumentsEvent});
         this.events.push({'selector': '.main_report_button', 'action': 'click', 'event': this.onGetMainReportEvent});
@@ -49,8 +49,8 @@ function MainControllerAbstract() {
         kernel.getServiceContainer().get('helper.navigator').goTo('/document/pays.html');
     };
 
-    this.onGetAccurringDocuments = function () {
-        kernel.getServiceContainer().get('helper.navigator').goTo('/document/accurring.html');
+    this.onGetServiceDocuments = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo('/document/service.html');
     };
 
     this.onGetMetersDocuments = function () {

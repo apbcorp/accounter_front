@@ -1,8 +1,8 @@
-function AccurringDocumentModel(params) {
+function ServiceDocumentModel(params) {
     DocumentAbstractModel.call(this);
-    this.baseUrl = '/api/v1.0/document/accurring';
+    this.baseUrl = '/api/v1.0/document/service_document';
 
-    this.AccurringDocumentModel = function (object) {
+    this.ServiceDocumentModel = function (object) {
         var date = new Date();
 
         this.defaultData.date = date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
@@ -32,5 +32,5 @@ function AccurringDocumentModel(params) {
         return isValid;
     };
 
-    this.AccurringDocumentModel(params);
+    this.ServiceDocumentModel(params);
 }

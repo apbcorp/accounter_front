@@ -7,6 +7,7 @@ use CoreBundle\BaseClasses\Interfaces\EntityInterface;
 use DocumentBundle\Entity\MeterDocument;
 use DocumentBundle\Entity\MeterRow;
 use KontragentBundle\Entity\Meter;
+use KontragentBundle\Helper\KontragentHelper;
 
 class MeterDocumentFormatter extends EntityFormatterAbstract
 {
@@ -31,7 +32,7 @@ class MeterDocumentFormatter extends EntityFormatterAbstract
             $rows[] = [
                 'id' => $row->getId(),
                 'meterId' => $row->getMeter()->getId(),
-                'meter' => '№ ' . $row->getMeter()->getNumber() . ' собственник ' . implode(' ', [$kontragent->getSurname(), $kontragent->getName(), $kontragent->getName2()]),
+                'meter' => '№ ' . $row->getMeter()->getNumber() . ' собственник ' . KontragentHelper::getFullName($kontragent),
                 'startValue' => $row->getStartValue(),
                 'endValue' => $row->getEndValue()
             ];

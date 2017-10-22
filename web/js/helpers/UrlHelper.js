@@ -28,7 +28,13 @@ function UrlHelper() {
         var paramsArray = [];
 
         for (var key in params) {
-            paramsArray.push(key + '=' + params[key]);
+            if (params[key] instanceof Array) {
+                for (var subkey in params[key]) {
+                    paramsArray.push(key + '[' + subkey + ']=' + params[key][subkey]);
+                }
+            } else {
+                paramsArray.push(key + '=' + params[key]);
+            }
         }
 
         return url + '?' + paramsArray.join('&');

@@ -39,8 +39,8 @@ class MeterController extends BaseEntityController
     }
 
     /**
-     * @Route("/meter/{id}")
-     * @Method("DELETE")
+     * @Route("/meter/delete/{id}")
+     * @Method("GET")
      * @var int $id
      * @return JsonResponse
      */

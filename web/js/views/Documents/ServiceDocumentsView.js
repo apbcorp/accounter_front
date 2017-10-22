@@ -1,3 +1,3 @@
-function AccurringDocumentsView() {
+function ServiceDocumentsView() {
     AbstractDocumentsView.call(this);
 }

@@ -7,6 +7,9 @@ function TarifsDocumentsModel(params) {
         "created": DOCUMENT_DATE_LANG,
         "dateStart": TARIFS_DATE_START_LANG
     };
+    this.filters = {
+        'period': {name: PERIOD_LANG, type:'period'}
+    };
 
     this.TarifsDocumentsModel = function (object) {
         this.DocumentsAbstractModel(object);

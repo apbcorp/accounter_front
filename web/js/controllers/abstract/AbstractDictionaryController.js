@@ -10,6 +10,8 @@ function AbstractDictionaryController() {
         this.onDeleteRecordEvent = this.onDeleteRecord.bind(this);
         this.onSelectRecordEvent = this.onSelectRecord.bind(this);
         this.onSortRecordsEvent = this.onSortRecords.bind(this);
+        this.onFilterRecordsEvent = this.onFilterRecords.bind(this);
+        this.onClearFilterRecordsEvent = this.onClearFilters.bind(this);
 
         this.events.push({'selector': '.add_button', 'action': 'click', 'event': this.onAddRecordEvent});
         this.events.push({'selector': '.edit_button', 'action': 'click', 'event': this.onEditRecordEvent});
@@ -17,7 +19,8 @@ function AbstractDictionaryController() {
         this.events.push({'selector': '.table_row', 'action': 'click', 'event': this.onSelectRecordEvent});
         this.events.push({'selector': '.table_row', 'action': 'dblclick', 'event': this.onEditRecordEvent});
         this.events.push({'selector': '.column_head', 'action': 'click', 'event': this.onSortRecordsEvent});
-
+        this.events.push({'selector': '.filter_button', 'action': 'click', 'event': this.onFilterRecordsEvent});
+        this.events.push({'selector': '.clear_filter_button', 'action': 'click', 'event': this.onClearFilterRecordsEvent});
 
         this.MainControllerAbstract();
     };
@@ -78,7 +81,7 @@ function AbstractDictionaryController() {
             return;
         }
 
-        this.model.delete(this.cardPath + this.model.currentId);
+        this.model.delete(this.cardPath + 'delete/' + this.model.currentId);
     };
 
     this.onSelectRecord = function (event) {
@@ -102,5 +105,32 @@ function AbstractDictionaryController() {
                 this.model.getRequestData()
             )
         );
+    };
+    
+    this.onFilterRecords = function () {
+        var urlHelper = kernel.getServiceContainer().get('helper.url');
+        var elements = $('input');
+
+        var data = [];
+        for (var i = 0; i < elements.length; i++) {
+            data['filter[' + elements[i].name + ']'] = elements[i].value;
+        }
+
+        this.model.appendDataToRequest(data);
+
+        kernel.getServiceContainer().get('helper.navigator').goTo(
+            urlHelper.buildUrl(
+                urlHelper.getCurrentUrlWithoutDomain(document.location.href),
+                this.model.getRequestData()
+            )
+        );
+    };
+    
+    this.onClearFilters = function () {
+        var elements = $('input');
+
+        for (var i = 0; i < elements.length; i++) {
+            elements[i].value = '';
+        }
     }
 }

@@ -12,6 +12,8 @@ use KontragentBundle\Entity\Meter;
 
 class MeterDocumentRepository extends ListRepositoryAbstract
 {
+    protected $dateField = 'date';
+    
     /**
      * @param string    $searchString
      * @param \DateTime $date

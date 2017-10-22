@@ -1,11 +1,11 @@
-function AccurringDocumentController() {
+function ServiceDocumentController() {
     AbstractDocumentController.call(this);
-    this.viewName = 'view.accurringDocument';
-    this.backUrl = '/document/accurring.html';
-    this.model = new AccurringDocumentModel(this);
+    this.viewName = 'view.serviceDocument';
+    this.backUrl = '/document/service.html';
+    this.model = new ServiceDocumentModel(this);
     this.indexData = [];
 
-    this.AccurringDocumentController = function () {
+    this.ServiceDocumentController = function () {
         this.onIndexDataChangedEvent = this.onIndexDataChanged.bind(this);
         this.onAutoFillEvent = this.onAutoFill.bind(this);
 
@@ -69,7 +69,7 @@ function AccurringDocumentController() {
             this.indexData.push({kontragentId: kontragentId, serviceId: serviceId, date: date, event: event});
 
             var requester = kernel.getServiceContainer().get('requester.ajax');
-            requester.setUrl('/api/v1.0/document/get_service/accurring');
+            requester.setUrl('/api/v1.0/document/get_service/service_document');
             requester.setData({serviceId: serviceId, date: date, kontragentId: kontragentId});
             requester.setMethod(HTTP_METHOD_GET);
             requester.setSuccess(this.setBaseAndTarif.bind(this));
@@ -111,7 +111,7 @@ function AccurringDocumentController() {
         var kontragentId = $('[name=kontragent]')[0].dataset.id;
 
         var requester = kernel.getServiceContainer().get('requester.ajax');
-        requester.setUrl('api/v1.0/document/list/accurring/getAllServices');
+        requester.setUrl('api/v1.0/document/list/service_document/getAllServices');
         requester.setData({date: date, kontragentId: kontragentId});
         requester.setMethod(HTTP_METHOD_GET);
         requester.setSuccess(this.onAutoFillComplete.bind(this));
@@ -136,5 +136,5 @@ function AccurringDocumentController() {
         }
     };
     
-    this.AccurringDocumentController();
+    this.ServiceDocumentController();
 }

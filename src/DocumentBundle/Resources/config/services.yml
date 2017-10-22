@@ -3,3 +3,13 @@ services:
         class: DocumentBundle\Service\ServiceGenerator
         arguments:
             - @doctrine.orm.entity_manager
+
+    document.generator.meter_service:
+        class: DocumentBundle\Service\MeterServiceGenerator
+        arguments:
+            - @doctrine.orm.entity_manager
+
+    document.generator.debt:
+        class: DocumentBundle\Service\DebtGenerator
+        arguments:
+            - @doctrine.orm.entity_manager

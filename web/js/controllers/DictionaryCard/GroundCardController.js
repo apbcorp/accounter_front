@@ -68,6 +68,10 @@ function GroundCardController() {
         var freeArea = $('[name="freeArea"]')[0].value.replace(',', '.');
         var commonArea = $('[name="commonArea"]')[0].value.replace(',', '.');
 
+        area = area ? area : 0;
+        freeArea = freeArea ? freeArea : 0;
+        commonArea = commonArea ? commonArea : 0;
+        
         var sum = parseFloat(area) + parseFloat(freeArea) + parseFloat(commonArea);
         $('[name="allArea"]')[0].value = !sum ? 0 : sum;
     };

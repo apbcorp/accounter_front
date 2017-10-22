@@ -2,23 +2,25 @@
 
 namespace DocumentBundle\Controller;
 
-use DocumentBundle\Entity\AccurringDocument;
+use CoreBundle\Controller\BaseDocumentController;
+use DocumentBundle\Entity\ServiceDocument;
+use DocumentBundle\Service\ServiceGenerator;
+use KontragentBundle\Entity\Service;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
-use CoreBundle\Controller\BaseDocumentController;
 use Symfony\Component\HttpFoundation\Response;
 
-class AccurringController extends BaseDocumentController
+class ServiceController extends BaseDocumentController
 {
     /**
      * @var string
      */
-    protected $entity = AccurringDocument::class;
+    protected $entity = ServiceDocument::class;
 
     /**
-     * @Route("/accurring/{id}")
+     * @Route("/service_document/{id}")
      * @Method("GET")
      * @var int $id
      * @return JsonResponse
@@ -29,7 +31,7 @@ class AccurringController extends BaseDocumentController
     }
 
     /**
-     * @Route("/list/accurring")
+     * @Route("/list/service_document")
      * @Method("GET")
      * @var Request $request
      * @return JsonResponse
@@ -40,8 +42,8 @@ class AccurringController extends BaseDocumentController
     }
 
     /**
-     * @Route("/accurring/{id}")
-     * @Method("DELETE")
+     * @Route("/service_document/delete/{id}")
+     * @Method("GET")
      * @var int $id
      * @return JsonResponse
      */
@@ -51,7 +53,7 @@ class AccurringController extends BaseDocumentController
     }
 
     /**
-     * @Route("/accurring/{id}")
+     * @Route("/service_document/{id}")
      * @Method("POST")
      * @var Request $request
      * @var int     $id
@@ -63,7 +65,7 @@ class AccurringController extends BaseDocumentController
     }
 
     /**
-     * @Route("/accurring")
+     * @Route("/service_document")
      * @Method("POST")
      * @var Request $request
      * @return JsonResponse
@@ -74,42 +76,50 @@ class AccurringController extends BaseDocumentController
     }
 
     /**
-     * @Route("/get_service/accurring")
+     * @Route("/service_document/service")
      * @Method("GET")
      * @var Request $request
      * @return JsonResponse
      */
     public function getServiceAction(Request $request)
     {
+        $date = new \DateTime($request->get('date'));
+        $groundId = $request->get('groundId');
         $serviceId = $request->get('serviceId');
-        $date = $request->get('date');
-        $kontragentId = $request->get('kontragentId');
 
-        if (!$serviceId || !$kontragentId || !$date) {
-            return $this->sendResponse([], Response::HTTP_OK);;
+        if (!$date || !$groundId || !$serviceId) {
+            return $this->sendResponse([], Response::HTTP_BAD_REQUEST);
+        }
+        
+        $service = $this->getDoctrine()->getManager()->getRepository(Service::class)->find($serviceId);
+        
+        if (!$service) {
+            return $this->sendResponse([], Response::HTTP_BAD_REQUEST);
         }
 
+        /** @var ServiceGenerator $generator */
         $generator = $this->get('document.generator.service');
 
-        return $this->sendResponse($generator->generateByServiceId($kontragentId, $serviceId, new \DateTime($date)), Response::HTTP_OK);
+        return $this->sendResponse($generator->generateByService($date, $groundId, $service), Response::HTTP_OK);
     }
 
     /**
-     * @Route("/autofill/accurring")
+     * @Route("/service_document/all_service")
      * @Method("GET")
      * @var Request $request
      * @return JsonResponse
      */
-    public function autofillAction(Request $request)
+    public function getAllServiceAction(Request $request)
     {
-        $kontragentId = $request->get('search');
+        $date = new \DateTime($request->get('date'));
+        $groundId = $request->get('groundId');
 
-        if (!$kontragentId) {
-            return $this->sendResponse([], Response::HTTP_OK);
+        if (!$date || !$groundId) {
+            return $this->sendResponse([], Response::HTTP_BAD_REQUEST);
         }
 
         $generator = $this->get('document.generator.service');
 
-        return $this->sendResponse($generator->getServicesByKontragent($kontragentId), Response::HTTP_OK);
+        return $this->sendResponse($generator->generateByGroundId($date, $groundId, $this->getUnitId()), Response::HTTP_OK);
     }
 }

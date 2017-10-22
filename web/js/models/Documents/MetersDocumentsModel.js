@@ -6,6 +6,9 @@ function MetersDocumentsModel(params) {
         "id": RECORD_NUMBER_LANG,
         "date": DOCUMENT_DATE_LANG
     };
+    this.filters = {
+        'period': {name: PERIOD_LANG, type:'period'}
+    };
 
     this.MetersDocumentsModel = function (object) {
         this.DocumentsAbstractModel(object);

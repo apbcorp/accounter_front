@@ -6,6 +6,7 @@ use CoreBundle\BaseClasses\EntityFormatterAbstract;
 use CoreBundle\BaseClasses\Interfaces\EntityInterface;
 use KontragentBundle\Entity\Ground;
 use KontragentBundle\Entity\Meter;
+use KontragentBundle\Helper\KontragentHelper;
 
 class MeterFormatter extends EntityFormatterAbstract
 {
@@ -20,11 +21,7 @@ class MeterFormatter extends EntityFormatterAbstract
         return [
             'id' => $entity->getId(),
             'groundId' => $entity->getGround()->getId(),
-            'ground' => 'Л/с ' . $entity->getGround()->getAccNumber() . ' (' . implode(' ',[
-                    $entity->getGround()->getKontragent()->getSurname(),
-                    mb_substr($entity->getGround()->getKontragent()->getName(), 0, 1) . '.',
-                    mb_substr($entity->getGround()->getKontragent()->getName2(), 0, 1) . '.'
-                ]) . ')',
+            'ground' => 'Л/с ' . $entity->getGround()->getAccNumber() . ' (' . KontragentHelper::getShortName($entity->getGround()->getKontragent()) . ')',
             'number' => $entity->getNumber(),
             'type' => $entity->getType()
         ];

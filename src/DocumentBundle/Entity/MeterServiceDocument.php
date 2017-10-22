@@ -2,19 +2,18 @@
 
 namespace DocumentBundle\Entity;
 
-use CoreBundle\BaseClasses\Interfaces\DocumentEntityInterface;
+use CoreBundle\BaseClasses\DocumentEntityAbstract;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use KontragentBundle\Entity\Ground;
-use KontragentBundle\Entity\Kontragent;
 
 /**
- * AccurringDocument
+ * MeterServiceDocument
  *
- * @ORM\Table(name="document_accurring")
- * @ORM\Entity(repositoryClass="DocumentBundle\Repository\AccurringDocumentRepository")
+ * @ORM\Table(name="document_meter_service")
+ * @ORM\Entity(repositoryClass="DocumentBundle\Repository\MeterServiceDocumentRepository")
  */
-class AccurringDocument implements DocumentEntityInterface
+class MeterServiceDocument extends DocumentEntityAbstract
 {
     /**
      * @var int
@@ -42,7 +41,7 @@ class AccurringDocument implements DocumentEntityInterface
     /**
      * @var ArrayCollection
      *
-     * @ORM\OneToMany(targetEntity="AccurringRow", mappedBy="document")
+     * @ORM\OneToMany(targetEntity="ServiceRow", mappedBy="document")
      */
     private $rows;
 
@@ -57,7 +56,7 @@ class AccurringDocument implements DocumentEntityInterface
      * @var Ground
      *
      * @ORM\ManyToOne(targetEntity="\KontragentBundle\Entity\Ground")
-     * @ORM\JoinColumn(name="kontragent_id", referencedColumnName="id")
+     * @ORM\JoinColumn(name="ground_id", referencedColumnName="id")
      */
     private $ground;
 
@@ -76,57 +75,11 @@ class AccurringDocument implements DocumentEntityInterface
     private $date;
 
     /**
-     * TarifDocument constructor.
+     * ServiceDocument constructor.
      */
     public function __construct()
     {
         $this->rows = new ArrayCollection();
-    }
-
-    /**
-     * @return int
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-
-    /**
-     * @return \DateTime
-     */
-    public function getCreated()
-    {
-        return $this->created;
-    }
-
-    /**
-     * @param \DateTime $date
-     * @return $this
-     */
-    public function setCreated(\DateTime $date)
-    {
-        $this->created = $date;
-
-        return $this;
-    }
-
-    /**
-     * @return \DateTime
-     */
-    public function getUpdated()
-    {
-        return $this->updated;
-    }
-
-    /**
-     * @param \DateTime $date
-     * @return $this
-     */
-    public function setUpdated(\DateTime $date)
-    {
-        $this->updated = $date;
-
-        return $this;
     }
 
     /**
@@ -138,50 +91,12 @@ class AccurringDocument implements DocumentEntityInterface
     }
 
     /**
-     * @param AccurringRow $row
+     * @param ServiceRow $row
      * @return $this
      */
-    public function addRow(AccurringRow $row)
+    public function addRow(ServiceRow $row)
     {
         $this->rows->add($row);
-
-        return $this;
-    }
-
-    /**
-     * @return bool
-     */
-    public function isDeleted()
-    {
-        return $this->deleted;
-    }
-
-    /**
-     * @param bool $deleted
-     * @return $this
-     */
-    public function setIsDeleted($deleted)
-    {
-        $this->deleted = $deleted;
-
-        return $this;
-    }
-
-    /**
-     * @return Ground
-     */
-    public function getGround()
-    {
-        return $this->ground;
-    }
-
-    /**
-     * @param Ground $ground
-     * @return $this
-     */
-    public function setGround(Ground $ground)
-    {
-        $this->ground = $ground;
 
         return $this;
     }
@@ -201,6 +116,25 @@ class AccurringDocument implements DocumentEntityInterface
     public function setUnitId($unitId)
     {
         $this->unitId = $unitId;
+
+        return $this;
+    }
+
+    /**
+     * @return Ground
+     */
+    public function getGround()
+    {
+        return $this->ground;
+    }
+
+    /**
+     * @param Ground $ground
+     * @return $this
+     */
+    public function setGround(Ground $ground)
+    {
+        $this->ground = $ground;
 
         return $this;
     }

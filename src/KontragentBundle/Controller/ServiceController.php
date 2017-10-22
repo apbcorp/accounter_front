@@ -39,8 +39,8 @@ class ServiceController extends BaseEntityController
     }
 
     /**
-     * @Route("/service/{id}")
-     * @Method("DELETE")
+     * @Route("/service/delete/{id}")
+     * @Method("GET")
      * @var int $id
      * @return JsonResponse
      */

@@ -4,6 +4,7 @@ namespace DocumentBundle\Entity;
 
 use CoreBundle\BaseClasses\Interfaces\DocumentEntityInterface;
 use Doctrine\ORM\Mapping as ORM;
+use KontragentBundle\Entity\Ground;
 use KontragentBundle\Entity\Service;
 
 /**
@@ -59,6 +60,14 @@ class PayRow implements DocumentEntityInterface
      * @ORM\JoinColumn(name="service_id", referencedColumnName="id")
      */
     private $service;
+
+    /**
+     * @var Ground
+     *
+     * @ORM\ManyToOne(targetEntity="\KontragentBundle\Entity\Ground")
+     * @ORM\JoinColumn(name="ground_id", referencedColumnName="id")
+     */
+    private $ground;
 
     /**
      * @var float
@@ -187,10 +196,33 @@ class PayRow implements DocumentEntityInterface
         return $this->sum;
     }
 
+    /**
+     * @param $sum
+     * @return $this
+     */
     public function setSum($sum)
     {
         $this->sum = $this->toFloat($sum);
 
-        return $htis;
+        return $this;
+    }
+
+    /**
+     * @param Ground $ground
+     * @return $this
+     */
+    public function setGround(Ground $ground)
+    {
+        $this->ground = $ground;
+
+        return $this;
+    }
+
+    /**
+     * @return Ground
+     */
+    public function getGround()
+    {
+        return $this->ground;
     }
 }

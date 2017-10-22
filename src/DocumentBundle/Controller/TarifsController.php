@@ -39,8 +39,8 @@ class TarifsController extends BaseDocumentController
     }
 
     /**
-     * @Route("/tarif/{id}")
-     * @Method("DELETE")
+     * @Route("/tarif/delete/{id}")
+     * @Method("GET")
      * @var int $id
      * @return JsonResponse
      */

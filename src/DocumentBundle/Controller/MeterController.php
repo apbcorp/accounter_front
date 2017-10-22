@@ -40,8 +40,8 @@ class MeterController extends BaseDocumentController
     }
 
     /**
-     * @Route("/meter/{id}")
-     * @Method("DELETE")
+     * @Route("/meter/delete/{id}")
+     * @Method("GET")
      * @var int $id
      * @return JsonResponse
      */

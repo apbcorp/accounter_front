@@ -9,6 +9,7 @@ function AbstractModel() {
     this.collectionFields = {};
     this.backUrl = '';
     this.errors = '';
+    this.filters = {};
 
     this.AbstractModel = function (object) {
         this.creator = object;
@@ -24,7 +25,11 @@ function AbstractModel() {
 
     this.appendDataToRequest = function (data) {
         for (var key in data) {
-            this.requestData[key] = data[key];
+            if (data[key]) {
+                this.requestData[key] = data[key];
+            } else {
+                delete(this.requestData[key]);
+            }
         }
     };
 
@@ -42,7 +47,7 @@ function AbstractModel() {
         var requester = kernel.getServiceContainer().get('requester.ajax');
         requester.setUrl('/api/v1.0' + url);
         requester.setData('');
-        requester.setMethod(HTTP_METHOD_DELETE);
+        requester.setMethod(HTTP_METHOD_GET);
         requester.setSuccess(this.refresh.bind(this));
         requester.setError(this.onRequestErrorEvent);
         requester.request();

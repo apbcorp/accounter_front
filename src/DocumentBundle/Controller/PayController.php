@@ -3,11 +3,13 @@
 namespace DocumentBundle\Controller;
 
 use DocumentBundle\Entity\PayDocument;
+use KontragentBundle\Entity\Service;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use CoreBundle\Controller\BaseDocumentController;
+use Symfony\Component\HttpFoundation\Response;
 
 class PayController extends BaseDocumentController
 {
@@ -39,8 +41,8 @@ class PayController extends BaseDocumentController
     }
 
     /**
-     * @Route("/pay/{id}")
-     * @Method("DELETE")
+     * @Route("/pay/delete/{id}")
+     * @Method("GET")
      * @var int $id
      * @return JsonResponse
      */
@@ -70,5 +72,42 @@ class PayController extends BaseDocumentController
     public function postAction(Request $request)
     {
         return parent::postAction($request);
+    }
+
+    /**
+     * @Route("/debt/{groundId}/{serviceId}")
+     * @Method("POST")
+     * @var Request $request
+     * @var int     $groundId
+     * @var int     $serviceId
+     * @return JsonResponse
+     */
+    public function getDebtAction(Request $request, $groundId, $serviceId)
+    {
+        $date = new \DateTime($request->get('date'));
+        $service = $this->getDoctrine()->getManager()->getRepository(Service::class)->find($serviceId);
+
+        if (!$date || !$service) {
+            return $this->sendResponse([], Response::HTTP_BAD_REQUEST);
+        }
+
+        $generator = $this->get('document.generator.debt');
+
+        return $this->sendResponse($generator->getDebtByService($date, $groundId, $service), Response::HTTP_OK);
+    }
+
+    /**
+     * @Route("/all_debt/{groundId}")
+     * @Method("POST")
+     * @var Request $request
+     * @var int     $groundId
+     * @return JsonResponse
+     */
+    public function getAllPayAction(Request $request, $groundId)
+    {
+        $date = new \DateTime($request->get('date'));
+        $generator = $this->get('document.generator.debt');
+
+        return $this->sendResponse($generator->getDebtByGround($date, $groundId, $this->getUnitId()), Response::HTTP_OK);
     }
 }

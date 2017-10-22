@@ -39,8 +39,8 @@ class GroundController extends BaseEntityController
     }
 
     /**
-     * @Route("/ground/{id}")
-     * @Method("DELETE")
+     * @Route("/ground/delete/{id}")
+     * @Method("GET")
      * @var int $id
      * @return JsonResponse
      */

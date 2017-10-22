@@ -7,9 +7,11 @@ use CoreBundle\Dictionary\ServiceTypeDictionary;
 use Doctrine\ORM\EntityManager;
 use DocumentBundle\Entity\AccurringRow;
 use DocumentBundle\Entity\MeterRow;
+use DocumentBundle\Entity\ServiceRow;
 use DocumentBundle\Entity\TarifRow;
 use DocumentBundle\Repository\AccurringRowRepository;
 use DocumentBundle\Repository\MeterRowRepository;
+use DocumentBundle\Repository\ServiceRowRepository;
 use DocumentBundle\Repository\TarifRowRepository;
 use KontragentBundle\Entity\Ground;
 use KontragentBundle\Entity\Kontragent;
@@ -22,111 +24,125 @@ class ServiceGenerator
      * @var EntityManager
      */
     private $entityManager;
-    
+
+    /**
+     * ServiceGenerator constructor.
+     * @param EntityManager $entityManager
+     */
     public function __construct(EntityManager $entityManager)
     {
         $this->entityManager = $entityManager;
     }
 
     /**
-     * @param int       $kontragentId
-     * @param int       $serviceId
      * @param \DateTime $date
+     * @param int       $groundId
+     * @param int       $unitId
      * @return array
      */
-    public function generateByServiceId($kontragentId, $serviceId, \DateTime $date)
+    public function generateByGroundId(\DateTime $date, $groundId, $unitId)
     {
+        $services = $this->entityManager->getRepository(Service::class)->findBy([
+            'deleted' => false,
+            'unitId' => $unitId
+        ]);
+
+        $servicesList = [];
         /** @var Service $service */
-        $service = $this->entityManager->getRepository(Service::class)->find($serviceId);
-        /** @var Kontragent $kontragent */
-        $kontragent = $this->entityManager->getRepository(Kontragent::class)->find($kontragentId);
-
-        if (!$service) {
-            return [];
-        }
-
-        $result = [
-            'serviceId' => $serviceId,
-            'kontragentId' => $kontragentId,
-            'date' => $date->format('Y-m-d')
-        ];
-
-        /** @var TarifRowRepository $repository */
-        $repository = $this->entityManager->getRepository(TarifRow::class);
-        $result['price'] = $repository->getPrice($service, $date);
-
-        $base = $this->getBase($service, $kontragent, $date);
-        $usedBase = $this->entityManager->getRepository(AccurringRow::class)->getValueForPeriod($service, $kontragent, $date);
-        $result['base'] = ($base - $usedBase) > 0 ? $base - $usedBase : 0;
-
-        return $result;
-    }
-
-    /**
-     * @param Service    $service
-     * @param Kontragent $kontragent
-     * @param \DateTime  $date
-     * @return float|int
-     */
-    private function getBase(Service $service, Kontragent $kontragent, \DateTime $date)
-    {
-        if ($service->getType() == ServiceTypeDictionary::KONTRAGENT_TYPE) {
-            return 1;
-        } else {
-            switch ($service->getSubType()) {
-                case ServiceTypeDictionary::FIXED_SUBTYPE:
-                    return 1;
-                case ServiceTypeDictionary::ALL_AREA_SYBTYPE:
-                    $result = 0;
-                    /** @var Ground $ground */
-                    foreach ($kontragent->getGrounds() as $ground) {
-                        $result += $ground->getAllArea();
-                    }
-                    return $result;
-                case ServiceTypeDictionary::AREA_SUBTYPE:
-                    $result = 0;
-                    /** @var Ground $ground */
-                    foreach ($kontragent->getGrounds() as $ground) {
-                        $result += $ground->getArea();
-                    }
-                    return $result;
-                case ServiceTypeDictionary::ELECTRICITY_SUBTYPE:
-                    return $this->getMeterValue($kontragent, $date, MetricTypeDictionary::ELECTRICITY_TYPE);
-                case ServiceTypeDictionary::WATER_SUBTYPE:
-                    return $this->getMeterValue($kontragent, $date, MetricTypeDictionary::ELECTRICITY_TYPE);
+        foreach ($services as $service) {
+            if ($service->getSubType() != ServiceTypeDictionary::WATER_SUBTYPE && $service->getSubType() != ServiceTypeDictionary::ELECTRICITY_SUBTYPE) {
+                $servicesList[] = $service;
             }
         }
-    }
 
-    /**
-     * @param Kontragent $kontragent
-     * @param \DateTime  $date
-     * @param int        $type
-     * @return float
-     */
-    private function getMeterValue(Kontragent $kontragent, \DateTime $date, $type)
-    {
-        $result = 0;
-
-        $meters = [];
-        foreach ($kontragent->getGrounds() as $ground) {
-            $meters = array_merge($meters, $this->entityManager->getRepository(Meter::class)->findBy(['ground' => $ground, 'deleted' => false, 'type' => $type]));
-        }
-
-        if (!$meters) {
-            return $result;
-        }
-
-        /** @var MeterRowRepository $repository */
-        $repository = $this->entityManager->getRepository(MeterRow::class);
-        foreach ($meters as $meter) {
-            $dateStart = $date->modify('first day');
-            $dateEnd = $date->modify('last day');
-            $value = $repository->getValueByDate($meter, $dateStart, $dateEnd);
-
-            $result += $value;
+        $result = [];
+        foreach ($servicesList as $service) {
+            $result[] = $this->generateByService($date, $groundId, $service);
         }
 
         return $result;
+    }
+
+    /**
+     * @param \DateTime $date
+     * @param int       $groundId
+     * @param Service   $service
+     * @return array
+     */
+    public function generateByService(\DateTime $date, $groundId, Service $service)
+    {
+        /** @var Ground $ground */
+        $ground = $this->entityManager->getRepository(Ground::class)->find($groundId);
+        /** @var TarifRowRepository $tarifRepo */
+        $tarifRepo = $this->entityManager->getRepository(TarifRow::class);
+
+        $result = [
+            'serviceId' => $service->getId(),
+            'groundId' => $service->getType() == ServiceTypeDictionary::KONTRAGENT_TYPE ? null : $groundId,
+            'date' => $date,
+            'price' => $tarifRepo->getPrice($service, $date),
+            'count' => $this->getCount($service, $ground, $date)
+        ];
+        $result['sum'] = $result['count'] * $result['price'];
+
+        return $result;
+    }
+
+    /**
+     * @param Service   $service
+     * @param Ground    $ground
+     * @param \DateTime $date
+     * @return float
+     */
+    private function getCount(Service $service, Ground $ground, \DateTime $date)
+    {
+        $defaultCount = $this->getDefaultCount($service, $ground);
+        /** @var ServiceRowRepository $serviceRowRepo */
+        $serviceRowRepo = $this->entityManager->getRepository(ServiceRow::class);
+        $strDate = strtotime($date->format('Y-m-d'));
+        $usedCount = $serviceRowRepo->getCountByPeriod(
+            $service,
+            $ground,
+            new \DateTime(date('Y-m-1', $strDate)),
+            new \DateTime(date('Y-m-t', $strDate))
+        );
+
+        return $defaultCount > $usedCount ? $defaultCount - $usedCount : 0;
+    }
+
+    /**
+     * @param Service $service
+     * @param Ground  $ground
+     * @return float
+     */
+    private function getDefaultCount(Service $service, Ground $ground)
+    {
+        switch ($service->getType()) {
+            case ServiceTypeDictionary::KONTRAGENT_TYPE:
+                return 1;
+            case ServiceTypeDictionary::GROUND_TYPE:
+                return $this->getDefaultSubtypeCount($service->getSubType(), $ground);
+            default:
+                return 0;
+        }
+    }
+
+    /**
+     * @param int    $subtype
+     * @param Ground $ground
+     * @return float
+     */
+    private function getDefaultSubtypeCount($subtype, Ground $ground)
+    {
+        switch ($subtype) {
+            case ServiceTypeDictionary::FIXED_SUBTYPE:
+                return 1;
+            case ServiceTypeDictionary::ALL_AREA_SYBTYPE:
+                return $ground->getAllArea();
+            case ServiceTypeDictionary::AREA_SUBTYPE:
+                return $ground->getArea();
+            default:
+                return 0;
+        }
     }
 }

@@ -4,10 +4,12 @@ namespace CoreBundle\Factory;
 
 use CoreBundle\Entity\Users;
 use CoreBundle\Entity\Token;
-use DocumentBundle\Entity\AccurringDocument;
-use DocumentBundle\Entity\AccurringRow;
 use DocumentBundle\Entity\MeterDocument;
 use DocumentBundle\Entity\MeterRow;
+use DocumentBundle\Entity\MeterServiceDocument;
+use DocumentBundle\Entity\MeterServiceRow;
+use DocumentBundle\Entity\ServiceDocument;
+use DocumentBundle\Entity\ServiceRow;
 use DocumentBundle\Entity\TarifDocument;
 use DocumentBundle\Entity\TarifRow;
 use KontragentBundle\Entity\Ground;
@@ -99,26 +101,42 @@ class EntityFactory
     }
 
     /**
-     * @return AccurringRow
-     */
-    public function createAccurringRow()
-    {
-        return new AccurringRow();
-    }
-
-    /**
-     * @return AccurringDocument
-     */
-    public function createAccurringDocument()
-    {
-        return new AccurringDocument();
-    }
-
-    /**
      * @return GroundParts
      */
     public function createGroundPart()
     {
         return new GroundParts();
+    }
+
+    /**
+     * @return ServiceDocument
+     */
+    public function createServiceDocument()
+    {
+        return new ServiceDocument();
+    }
+
+    /**
+     * @return ServiceRow
+     */
+    public function createServiceRow()
+    {
+        return new ServiceRow();
+    }
+
+    /**
+     * @return MeterServiceDocument
+     */
+    public function createMeterServiceDocument()
+    {
+        return new MeterServiceDocument();
+    }
+
+    /**
+     * @return MeterServiceRow
+     */
+    public function createMeterServiceRow()
+    {
+        return new MeterServiceRow();
     }
 } 

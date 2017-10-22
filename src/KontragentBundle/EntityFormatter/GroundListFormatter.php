@@ -5,6 +5,7 @@ namespace KontragentBundle\EntityFormatter;
 use CoreBundle\BaseClasses\Interfaces\EntityInterface;
 use KontragentBundle\Entity\Ground;
 use KontragentBundle\Entity\GroundParts;
+use KontragentBundle\Helper\KontragentHelper;
 
 class GroundListFormatter
 {
@@ -36,11 +37,7 @@ class GroundListFormatter
             'freeArea' => $entity->getFreeArea(),
             'commonArea' => $entity->getCommonArea(),
             'allArea' => $entity->getAllArea(),
-            'owner' => implode(' ', [
-                $entity->getKontragent()->getSurname(),
-                $entity->getKontragent()->getName(),
-                $entity->getKontragent()->getName2(),
-            ]),
+            'owner' => KontragentHelper::getFullName($entity->getKontragent()),
             'rows' => $rows
         ];
     }

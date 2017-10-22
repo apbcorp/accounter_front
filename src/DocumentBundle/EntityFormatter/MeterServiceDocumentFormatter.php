@@ -3,26 +3,26 @@
 namespace DocumentBundle\EntityFormatter;
 
 use CoreBundle\BaseClasses\EntityFormatterAbstract;
-use CoreBundle\BaseClasses\Interfaces\EntityInterface;
-use DocumentBundle\Entity\AccurringDocument;
-use DocumentBundle\Entity\AccurringRow;
+use DocumentBundle\Entity\MeterServiceDocument;
+use DocumentBundle\Entity\MeterServiceRow;
 use KontragentBundle\Entity\Ground;
-use KontragentBundle\Entity\Kontragent;
+use KontragentBundle\Entity\Meter;
 use KontragentBundle\Entity\Service;
+use KontragentBundle\Helper\GroundHelper;
 
-class AccurringDocumentFormatter extends EntityFormatterAbstract
+class MeterServiceDocumentFormatter extends EntityFormatterAbstract
 {
-    protected $entityClass = AccurringDocument::class;
+    protected $entityClass = MeterServiceDocument::class;
 
     /**
-     * @param AccurringDocument $entity
+     * @param MeterServiceDocument $entity
      * @return array
      */
     public function getData($entity)
     {
         $rows = [];
 
-        /** @var AccurringRow $row */
+        /** @var MeterServiceRow $row */
         foreach ($entity->getRows() as $row) {
             if ($row->isDeleted()) {
                 continue;
@@ -32,36 +32,34 @@ class AccurringDocumentFormatter extends EntityFormatterAbstract
                 'id' => $row->getId(),
                 'serviceId' => $row->getService()->getId(),
                 'service' => $row->getService()->getName(),
+                'meterId' => $row->getMeter()->getId(),
+                'meter' => $row->getMeter()->getNumber(),
+                'startData' => $row->getStartData(),
+                'end_data' => $row->getEndData(),
                 'price' => $row->getPrice(),
-                'calcBase' => $row->getCalcBase(),
-                'period' => $row->getPeriod()->format('Y-m-d'),
-                'sum' => $row->getSum(),
-                'komment' => $row->getKomment()
+                'sum' => $row->getSum()
             ];
         }
 
         return [
             'id' => $entity->getId(),
+            'created' => $entity->getCreated()->format('Y-m-d'),
             'date' => $entity->getDate()->format('Y-m-d'),
-            'groundId' => $entity->getGround()->getId(),
-            'ground' => 'Л/с ' . $entity->getGround()->getAccNumber() . ' (' . implode(' ', [
-                $entity->getGround()->getKontragent()->getSurname(),
-                $entity->getGround()->getKontragent()->getName(),
-                $entity->getGround()->getKontragent()->getName2()
-            ]),
-            'rows' => $rows
+            'rows' => $rows,
+            'ground' => GroundHelper::getGroundWithShortName($entity->getGround()),
+            'groundId' => $entity->getGround()->getId()
         ];
     }
 
     /**
      * @param int $id
      * @param array $data
-     * @return EntityInterface|bool
+     * @return MeterServiceDocument|bool
      */
     public function setData($id, array $data)
     {
-        /** @var AccurringDocument $entity */
-        $entity = $this->getEntity($id, 'createAccurringDocument');
+        /** @var MeterServiceDocument $entity */
+        $entity = $this->getEntity($id, 'createMeterServiceDocument');
 
         if (!$entity) {
             return false;
@@ -70,9 +68,9 @@ class AccurringDocumentFormatter extends EntityFormatterAbstract
         $ids = [];
         foreach ($data['rows'] as $row) {
             if ($row['id']) {
-                $subEntity = $this->entityManager->getRepository(AccurringRow::class)->find($row['id']);
+                $subEntity = $this->entityManager->getRepository(MeterServiceRow::class)->find($row['id']);
             } else {
-                $subEntity = $this->entityFactory->createAccurringRow();
+                $subEntity = $this->entityFactory->createMeterServiceRow();
                 $subEntity->setCreated(new \DateTime());
                 $subEntity->setIsDeleted(false);
 
@@ -80,31 +78,33 @@ class AccurringDocumentFormatter extends EntityFormatterAbstract
             }
 
             $service = $this->entityManager->getReference(Service::class, $row['serviceId']);
+            $meter = $this->entityManager->getReference(Meter::class, $row['meterId']);
 
+            $subEntity->setMeter($meter);
             $subEntity->setService($service);
-            $subEntity->setUpdated(new \DateTime());
+            $subEntity->setDate(new \DateTime($row['date']));
             $subEntity->setPrice($row['price']);
+            $subEntity->setSum($row['sum']);
+            $subEntity->setStartData($row['startData']);
+            $subEntity->setEndData($row['endData']);
+            $subEntity->setUpdated(new \DateTime());
             $subEntity->setDocument($entity);
-            $subEntity->setPeriod(new \DateTime($row['period']));
-            $subEntity->setCalcBase($row['base']);
-            $subEntity->setKomment($row['komment']);
 
             if ($subEntity->getId()) {
                 $ids[] = $subEntity->getId();
             }
         }
 
-        $data['ground'] = $this->entityManager->getReference(Ground::class, $data['groundId']);
         unset($data['rows']);
-        unset($data['groundId']);
-        $data['date'] = new \DateTime($data['date']);
         $data['updated'] = new \DateTime();
+        $data['date'] = new \DateTime($data['date']);
+        $data['ground'] = $this->entityManager->getReference(Ground::class, $data['groundId']);
 
         if ($this->isNewEntity) {
             $data['created'] = new \DateTime();
         }
 
-        /** @var AccurringRow $row */
+        /** @var MeterServiceRow $row */
         foreach ($entity->getRows() as $row) {
             if (!in_array($row->getId(), $ids)) {
                 $row->setIsDeleted(true);
