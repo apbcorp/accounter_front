@@ -34,7 +34,14 @@ function ValidatorService() {
                     break;
                 case VALIDATION_TYPE_TABLE_ROWS:
                     for (var j = 0; j < data[i].data.length; j++) {
-                        var subData = data[i].subvalidation;
+                        var subData = [];
+                        for (var n = 0; n < data[i].subvalidation.length; n++) {
+                            var obj = {};
+                            for (var key in data[i].subvalidation[n]) {
+                                obj[key] = data[i].subvalidation[n][key];
+                            }
+                            subData.push(obj);
+                        }
 
                         for (var n = 0; n < subData.length; n++) {
                             subData[n].data = data[i].data[j][subData[n].data];

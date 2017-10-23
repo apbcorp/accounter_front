@@ -614,12 +614,12 @@ function ServiceDocumentController() {
         for (var i = 0; i < elements.length; i++) {
             rows.push({
                 id: elements[i].dataset.id,
-                serviceId: elements[0].childNodes[1].childNodes[0].childNodes[0].dataset.id,
-                period: elements[i].childNodes[2].childNodes[0].value,
-                base: elements[i].childNodes[3].childNodes[0].value,
-                price: elements[i].childNodes[4].childNodes[0].value,
-                sum: elements[i].childNodes[5].childNodes[0].value,
-                komment: elements[i].childNodes[6].childNodes[0].value
+                serviceId: elements[i].childNodes[1].childNodes[0].childNodes[0].dataset.id,
+                groundId: elements[i].childNodes[2].childNodes[0].value,
+                date: elements[i].childNodes[3].childNodes[0].value,
+                count: elements[i].childNodes[4].childNodes[0].value,
+                price: elements[i].childNodes[5].childNodes[0].value,
+                sum: elements[i].childNodes[6].childNodes[0].value
             })
         }
 
@@ -641,90 +641,98 @@ function ServiceDocumentController() {
     };
 
     this.afterOnBlur = function (event) {
-
+        if (event.target.firstElementChild.name == 'kontragent') {
+            this.model.fillGroundList(event.target.firstElementChild.dataset.id);
+        }
     };
 
     this.onIndexDataChanged = function (event) {
         var serviceId = event.target.parentNode.parentNode.childNodes[1].childNodes[0].childNodes[0].dataset.id;
-        var date = event.target.parentNode.parentNode.childNodes[2].childNodes[0].value;
+        var date = event.target.parentNode.parentNode.childNodes[3].childNodes[0].value;
         var kontragentId = $('[name=kontragent]')[0].dataset.id;
+        var groundId = event.target.parentNode.parentNode.childNodes[2].childNodes[0].value;
 
-        if (!serviceId || !date || !kontragentId) {
+        if (!serviceId || !date || !kontragentId || !groundId) {
             return;
         }
 
-        dateObject = new Date(date);
-
-        var recordId = this.getIndexDataId(kontragentId, serviceId, date);
-
-        if (recordId == null) {
-            this.indexData.push({kontragentId: kontragentId, serviceId: serviceId, date: date, event: event});
-
-            var requester = kernel.getServiceContainer().get('requester.ajax');
-            requester.setUrl('/api/v1.0/document/get_service/service_document');
-            requester.setData({serviceId: serviceId, date: date, kontragentId: kontragentId});
-            requester.setMethod(HTTP_METHOD_GET);
-            requester.setSuccess(this.setBaseAndTarif.bind(this));
-            requester.request();
-        } else {
-            event.target.parentNode.parentNode.childNodes[3].childNodes[0].value = this.indexData[recordId].base;
-            event.target.parentNode.parentNode.childNodes[4].childNodes[0].value = this.indexData[recordId].price;
-            event.target.parentNode.parentNode.childNodes[5].childNodes[0].value = this.indexData[recordId].price * this.indexData[recordId].base;
-        }
+        this.model.fillRow(date, kontragentId, groundId, serviceId);
     };
 
-    this.getIndexDataId = function (kontragentId, serviceId, date) {
-        for (var i = 0; i < this.indexData.length; i++) {
-            if (this.indexData[i].serviceId == serviceId && this.indexData[i].date == date && this.indexData[i].kontragentId == kontragentId) {
-                return i;
-            }
-        }
+    this.onRefreshComplete = function (data) {
+        this.model.fillGroundList(data.kontragentId);
+        var view = kernel.getServiceContainer().get(this.viewName);
+        view.render(data);
 
-        return null;
+        var eventContainer = kernel.getServiceContainer().get('container.event');
+        eventContainer.setEvents(this.events);
     };
 
-    this.setBaseAndTarif = function (data) {
-        if (!data) {
+    this.onAddRow = function () {
+        var fio = $('[name=kontragent]')[0];
+
+        if (!fio.dataset.id || !this.model.groundList) {
+            alert('Сначала необходимо указать ФИО собственника');
+
             return;
         }
-        var result = data.result;
 
-        var recordId = this.getIndexDataId(result.kontragentId, result.serviceId, result.date);
-        this.indexData[recordId].base = result.base;
-        this.indexData[recordId].price = result.price;
+        var groundList = '';
 
-        this.indexData[recordId].event.target.parentNode.parentNode.childNodes[3].childNodes[0].value = this.indexData[recordId].base;
-        this.indexData[recordId].event.target.parentNode.parentNode.childNodes[4].childNodes[0].value = this.indexData[recordId].price;
-        this.indexData[recordId].event.target.parentNode.parentNode.childNodes[5].childNodes[0].value = this.indexData[recordId].price * this.indexData[recordId].base;
+        var view = kernel.getServiceContainer().get(this.viewName);
+        var html = $(view.addData(view.rowTemplate, {groundList: this.model.generateGroundList(0)}))[0];
+
+        $('.subtable')[0].append(html);
+
+        var eventContainer = kernel.getServiceContainer().get('container.event');
+        eventContainer.setEvents(this.events);
     };
 
     this.onAutoFill = function () {
         var date = $('[name=date]')[0].value;
         var kontragentId = $('[name=kontragent]')[0].dataset.id;
 
-        var requester = kernel.getServiceContainer().get('requester.ajax');
-        requester.setUrl('api/v1.0/document/list/service_document/getAllServices');
-        requester.setData({date: date, kontragentId: kontragentId});
-        requester.setMethod(HTTP_METHOD_GET);
-        requester.setSuccess(this.onAutoFillComplete.bind(this));
-        requester.request();
+        this.model.fillAllRows(date, kontragentId);
     };
 
-    this.onAutoFillComplete = function () {
-        if (!data) {
-            return;
-        }
+    this.onAutoFillComplete = function (data) {
+        data = data.result;
+
+        var rows = $('.table_row');
+        var rowService = '';
+        var date = '';
+        var groundId = '';
+        var dateHelper = kernel.getServiceContainer().get('helper.date');
 
         for (var i = 0; i < data.length; i++) {
-            this.indexData.push({kontragentId: data[i].kontragentId, serviceId: data[i].serviceId, date: data[i].date, base: data[i].base, price: data[i].price});
-        }
-    };
+            var isRowInTable = false;
 
-    this.getRequestData = function () {
-        if (this.element.name == 'kontragent') {
-            return this.element.value;
-        } else if (this.element.name == 'service') {
-            return this.element.value;
+            for (var j = 0; j < rows.length; j++) {
+                rowService = parseInt(rows[j].childNodes[1].childNodes[0].childNodes[0].dataset.id);
+                date = rows[j].childNodes[3].childNodes[0].value;
+                groundId = parseInt(rows[j].childNodes[2].childNodes[0].value);
+                groundId = !groundId ? null : groundId;
+
+                if (rowService == data[i].serviceId && dateHelper.isEqualPeriodMonth(date, data[i].date.date) && groundId == data[i].groundId) {
+                    isRowInTable = true;
+
+                    break;
+                }
+            }
+
+            if (!isRowInTable) {
+                this.onAddRow();
+
+                rows = $('.table_row');
+                var row = rows[rows.length - 1];
+                row.childNodes[1].childNodes[0].childNodes[0].dataset.id = data[i].serviceId;
+                row.childNodes[1].childNodes[0].childNodes[0].value = data[i].service;
+                row.childNodes[2].childNodes[0].value = data[i].groundId;
+                row.childNodes[3].childNodes[0].value = dateHelper.getDateFormatInput(data[i].date.date);
+                row.childNodes[4].childNodes[0].value = data[i].count;
+                row.childNodes[5].childNodes[0].value = data[i].price;
+                row.childNodes[6].childNodes[0].value = data[i].sum;
+            }
         }
     };
     
@@ -1058,6 +1066,10 @@ function AbstractDictionaryController() {
         for (var i = 0; i < elements.length; i++) {
             elements[i].value = '';
         }
+
+        for (var key in this.model.filters) {
+            this.model.filters[key].value = '';
+        }
     }
 }
 function AbstractDocumentController() {
@@ -1369,6 +1381,7 @@ const SERVICES_LIST = {
     'container.event': {'class': 'EventContainer', 'args': {}},
     'container.collection': {'class': 'CollectionContainer', 'args': {}},
     'requester.ajax': {'class': 'AjaxRequester', 'args': {}},
+    'requester.ajax2': {'class': 'AjaxRequester', 'args': {}},
     //'requester.ajax': {'class': 'AjaxMockRequester', 'args': {}}, //mock
     'view.main': {'class': 'MainView', 'args': {}},
     'controller.serviceDictionary': {'class': 'ServiceDictionaryController', 'args': {}},
@@ -1439,7 +1452,22 @@ function DateHelper() {
         return this.getDateFormatInput(newDate);
     };
     this.getDateFormatInput = function (date) {
+        if (!(date instanceof Date)) {
+            date = new Date(date);
+        }
         return date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
+    };
+    this.isEqualDate = function (date1, date2) {
+        date1 = new Date(date1);
+        date2 = new Date(date2);
+
+        return date1.getFullYear() == date2.getFullYear() && date1.getMonth() == date2.getMonth() && date1.getDate() == date2.getDate();
+    };
+    this.isEqualPeriodMonth = function (date1, date2) {
+        date1 = new Date(date1);
+        date2 = new Date(date2);
+
+        return date1.getFullYear() == date2.getFullYear() && date1.getMonth() == date2.getMonth();
     }
 }
 function NavigatorHelper() {
@@ -1723,6 +1751,8 @@ function PayDocumentModel(params) {
 function ServiceDocumentModel(params) {
     DocumentAbstractModel.call(this);
     this.baseUrl = '/api/v1.0/document/service_document';
+    this.groundList = undefined;
+    this.groundListUrl = '/api/v1.0/dictionary/ground_by_kontragent/';
 
     this.ServiceDocumentModel = function (object) {
         var date = new Date();
@@ -1740,11 +1770,10 @@ function ServiceDocumentModel(params) {
             {data: data.rows, type: VALIDATION_TYPE_NOT_EMPTY_ARRAY, fieldName: SHEET_LANG},
             {data: data.rows, type: VALIDATION_TYPE_TABLE_ROWS, fieldName: '', subvalidation: [
                 {data: 'serviceId', type: VALIDATION_TYPE_OBJECT_ID, fieldName: SERVICE_NAME_LANG},
-                {data: 'period', type: VALIDATION_TYPE_DATE, fieldName: PERIOD_LANG},
-                {data: 'base', type: VALIDATION_TYPE_FLOAT, fieldName: SERVICE_CALC_BASE_LANG},
+                {data: 'date', type: VALIDATION_TYPE_DATE, fieldName: PERIOD_LANG},
+                {data: 'count', type: VALIDATION_TYPE_FLOAT, fieldName: SERVICE_CALC_BASE_LANG},
                 {data: 'price', type: VALIDATION_TYPE_FLOAT, fieldName: TARIF_LANG},
-                {data: 'sum', type: VALIDATION_TYPE_FLOAT, fieldName: SUM_LANG},
-                {data: 'komment', type: VALIDATION_TYPE_EMPTY_STRING, fieldName: KOMMENT_LANG}
+                {data: 'sum', type: VALIDATION_TYPE_FLOAT, fieldName: SUM_LANG}
             ]}
         ];
 
@@ -1752,6 +1781,100 @@ function ServiceDocumentModel(params) {
         this.errors = isValid ? '' : validator.getErrors();
 
         return isValid;
+    };
+
+    this.fillGroundList = function (id) {
+        this.groundList = undefined;
+        var requester = kernel.getServiceContainer().get('requester.ajax2');
+        requester.setUrl(this.groundListUrl + id);
+        requester.setData({});
+        requester.setMethod(HTTP_METHOD_GET);
+        requester.setSuccess(this.setGroundList.bind(this));
+        requester.request();
+    };
+
+    this.setGroundList = function (data) {
+        data = data.result;
+
+        this.groundList = [];
+        for (var i = 0; i < data.length; i++) {
+            this.groundList[data[i].id] = data[0].accNumber;
+        }
+
+        var rows = $('.table_row');
+        var list = '';
+        for (var i = 0; i < rows.length; i++) {
+            if (rows[i].childNodes[2].childNodes[0].dataset.id == 'null') {
+                continue;
+            }
+
+            list = this.generateGroundList(rows[i].childNodes[2].childNodes[0].dataset.id);
+            rows[i].childNodes[2].childNodes[0].innerHTML = list;
+        }
+    };
+
+    this.generateGroundList = function (id) {
+        var result = '';
+        var list = this.groundList;
+        for (var key in list) {
+            result += '<option value="' + key + '"' + (key == id ? ' selected' : '') + '>' + list[key] + '</option>';
+        }
+
+        return result;
+    };
+
+    this.fillRow = function (date, kontragentId, groundId, serviceId) {
+        var requester = kernel.getServiceContainer().get('requester.ajax');
+        requester.setUrl('/api/v1.0/document/fill_service_row');
+        requester.setData({date: date, groundId: groundId, serviceId:serviceId});
+        requester.setMethod(HTTP_METHOD_GET);
+        requester.setSuccess(this.setRowData.bind(this));
+        requester.request();
+    };
+
+    this.fillAllRows = function (date, kontragentId) {
+        var requester = kernel.getServiceContainer().get('requester.ajax');
+        requester.setUrl('/api/v1.0/document/fill_service');
+        requester.setData({date: date, kontragentId: kontragentId});
+        requester.setMethod(HTTP_METHOD_GET);
+        requester.setSuccess(this.creator.onAutoFillComplete.bind(this.creator));
+        requester.request();
+    };
+
+    this.setRowData = function (data) {
+        data = data.result;
+
+        var rows = $('.table_row');
+        var rowService = '';
+        var sum = '';
+        var row = '';
+        var date = '';
+        var dateHelper = kernel.getServiceContainer().get('helper.date');
+
+        for (var i = 0; i < rows.length; i++) {
+            rowService = parseInt(rows[i].childNodes[1].childNodes[0].childNodes[0].dataset.id);
+            date = rows[i].childNodes[3].childNodes[0].value;
+            sum = rows[i].childNodes[6].childNodes[0].value;
+
+            if (rowService == data.serviceId && dateHelper.isEqualDate(date, data.date.date) && !sum) {
+                if (!data.groundId) {
+                    row = rows[i];
+                } else {
+                    if (rows[i].childNodes[2].childNodes[0].value == data.groundId) {
+                        row = rows[i];
+                    }
+                }
+            }
+        }
+
+        if (!row) {
+            return;
+        }
+
+        row.childNodes[2].childNodes[0].value = data.groundId;
+        row.childNodes[4].childNodes[0].value = data.count;
+        row.childNodes[5].childNodes[0].value = data.price;
+        row.childNodes[6].childNodes[0].value = data.sum;
     };
 
     this.ServiceDocumentModel(params);
@@ -1834,7 +1957,11 @@ function ServiceDocumentsModel(params) {
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
         "date": DOCUMENT_DATE_LANG,
-        "ground": KONTRAGENT_ID_LANG
+        "kontragent": OWNER_FULL_NAME_LANG
+    };
+    this.filters = {
+        'period': {name: PERIOD_LANG, type:'period'},
+        'kontragent': {name:OWNER_FULL_NAME_LANG, value:''}
     };
 
     this.ServiceDocumentsModel = function (object) {
@@ -2078,7 +2205,7 @@ function DictionaryAbstractModel() {
         for (var key in this.filters) {
             var data = this.getRequestData('filter[' + key + ']');
             if (data) {
-                this.filters[key].value = data;
+                this.filters[key].value = decodeURI(data);
             }
         }
 
@@ -2342,7 +2469,14 @@ function ValidatorService() {
                     break;
                 case VALIDATION_TYPE_TABLE_ROWS:
                     for (var j = 0; j < data[i].data.length; j++) {
-                        var subData = data[i].subvalidation;
+                        var subData = [];
+                        for (var n = 0; n < data[i].subvalidation.length; n++) {
+                            var obj = {};
+                            for (var key in data[i].subvalidation[n]) {
+                                obj[key] = data[i].subvalidation[n][key];
+                            }
+                            subData.push(obj);
+                        }
 
                         for (var n = 0; n < subData.length; n++) {
                             subData[n].data = data[i].data[j][subData[n].data];
@@ -2522,7 +2656,7 @@ function ServiceCardView() {
 }
 function MeterDocumentView() {
     AbstractDocumentView.call(this);
-    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{DOCUMENT_DATE_LANG}<input type="date" name="date" value="{date}"></li></ul><ul class="card_row"><div class="table subtable"><ul class="button_panel"><button class="add_row_button"></button><button class="delete_button"></button></ul>{table}</div></ul></div>';
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{DOCUMENT_DATE_LANG}<input type="date" name="date" value="{date}"></li></ul><ul class="card_row"><div class="table subtable"><ul class="button_panel"><button class="add_row_button"></button><button class="delete_row_button"></button></ul>{table}</div></ul></div>';
     this.rowTemplate = '<ul class="table_row" data-id="{id}"><li><input type="checkbox" name="checker"></li><li><div class="selectbox" tabindex="-1"><input name="meter" data-id="{meterId}" data-type="meterDocument" value="{meter}" size="70"><p class="selectbox-list-hide"></p></div></li><li><input name="startValue" value="{startValue}" disabled></li><li><input name="endValue" value="{endValue}"></li></ul>';
     this.headTemplate = '<ul class="table_head"><li class="column_head"></li><li class="column_head" data-name="meter">{METER_NAME_LANG}</li><li class="column_head" data-name="startValue">{START_VALUE_LANG}</li><li class="column_head" data-name="endValue">{END_VALUE_LANG}</li></ul>';
 }
@@ -2534,13 +2668,13 @@ function PayDocumentView() {
 }
 function ServiceDocumentView() {
     AbstractDocumentView.call(this);
-    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{DOCUMENT_DATE_LANG}<input type="date" name="date" value="{date}"></li><li class="card_cell">{KONTRAGENT_ID_LANG}<div class="selectbox" tabindex="-1"><input name="kontragent" data-id="{groundId}" data-type="ground" value="{ground}"><p class="selectbox-list-hide"></p></div></li></ul><ul class="card_row"><div class="table subtable"><ul class="button_panel"><button class="add_row_button"></button><button class="delete_button"></button><button class="autoset_button"></button></ul>{table}</div></ul></div>';
-    this.rowTemplate = '<ul class="table_row" data-id="{id}"><li><input type="checkbox" name="checker"></li><li><div class="selectbox indexData" tabindex="-1"><input name="service" data-id="{serviceId}" data-type="service" value="{service}"><p class="selectbox-list-hide"></p></div></li><li><input class="indexData" type="date" name="period" value="{period}"></li><li><input name="calcBase" value="{calcBase}" disabled></li><li><input name="price" value="{price}" disabled></li><li><input name="sum" value="{sum}"></li><li><input name="komment" value="{komment}"></li></ul>';
-    this.headTemplate = '<ul class="table_head"><li class="column_head"></li><li class="column_head" data-name="service">{SERVICE_NAME_LANG}</li><li class="column_head" data-name="period">{PERIOD_LANG}</li><li class="column_head" data-name="calcBase">{SERVICE_CALC_BASE_LANG}</li><li class="column_head" data-name="price">{TARIF_LANG}</li><li class="column_head" data-name="sum">{SUM_LANG}</li><li class="column_head" data-name="komment">{KOMMENT_LANG}</li></ul>';
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{DOCUMENT_DATE_LANG}<input type="date" name="date" value="{date}"></li><li class="card_cell">{OWNER_FULL_NAME_LANG}<div class="selectbox" tabindex="-1"><input name="kontragent" data-id="{kontragentId}" data-type="kontragent" value="{kontragent}"><p class="selectbox-list-hide"></p></div></li></ul><ul class="card_row"><div class="table subtable"><ul class="button_panel"><button class="add_row_button"></button><button class="delete_row_button"></button><button class="autoset_button"></button></ul>{table}</div></ul></div>';
+    this.rowTemplate = '<ul class="table_row" data-id="{id}"><li><input type="checkbox" name="checker"></li><li><div class="selectbox indexData" tabindex="-1"><input name="service" data-id="{serviceId}" data-type="service" value="{service}"><p class="selectbox-list-hide"></p></div></li><li><select data-id="{groundId}" name="groundId">{groundList}</select></li><li><input class="indexData" type="date" name="date" value="{date}"></li><li><input name="calcBase" value="{count}" disabled></li><li><input name="price" value="{price}" disabled></li><li><input name="sum" value="{sum}" disabled></li></ul>';
+    this.headTemplate = '<ul class="table_head"><li class="column_head"></li><li class="column_head" data-name="service">{SERVICE_NAME_LANG}</li><li class="column_head" data-name="ground">{KONTRAGENT_ID_LANG}</li><li class="column_head" data-name="date">{PERIOD_LANG}</li><li class="column_head" data-name="count">{SERVICE_CALC_BASE_LANG}</li><li class="column_head" data-name="price">{TARIF_LANG}</li><li class="column_head" data-name="sum">{SUM_LANG}</li></ul>';
 }
 function TarifsDocumentView() {
     AbstractDocumentView.call(this);
-    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{TARIFS_DATE_START_LANG}<input type="date" name="dateStart" value="{dateStart}"></li></ul><ul class="card_row"><div class="table subtable"><ul class="button_panel"><button class="add_row_button"></button><button class="delete_button"></button></ul>{table}</div></ul></div>';
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{TARIFS_DATE_START_LANG}<input type="date" name="dateStart" value="{dateStart}"></li></ul><ul class="card_row"><div class="table subtable"><ul class="button_panel"><button class="add_row_button"></button><button class="delete_row_button"></button></ul>{table}</div></ul></div>';
     this.rowTemplate = '<ul class="table_row" data-id="{id}"><li><input type="checkbox" name="checker"></li><li><div class="selectbox" tabindex="-1"><input name="serviceId" data-id="{serviceId}" data-type="service" value="{service}"><p class="selectbox-list-hide"></p></div></li><li><input name="price" value="{price}"></li></ul>';
     this.headTemplate = '<ul class="table_head"><li class="column_head"></li><li class="column_head" data-name="serviceId">{SERVICE_NAME_LANG}</li><li class="column_head" data-name="price">{TARIF_LANG}</li></ul>';
 }
@@ -2704,6 +2838,8 @@ function TableView() {
                 var dateStart = filterList[key].periodStart ? filterList[key].periodStart : dateHelper.getFirstDayOfMonth(date);
                 var dateEnd = filterList[key].periodEnd ? filterList[key].periodEnd : dateHelper.getLastDayOfMonth(date);
                 result += '<ul>' + filterList[key].name + '&nbsp;<input type="date" name="' + key + 'Start" value="' + dateStart + '">&nbsp;<input type="date" name="' + key + 'End" value="' + dateEnd + '"></ul>';
+            } else {
+                result += '<ul>' + filterList[key].name + '&nbsp;<input name="' + key + '" value="' + filterList[key].value + '"></ul>';
             }
         }
 
@@ -2788,7 +2924,7 @@ function AbstractDocumentView() {
         }
 
         return result;
-    }
+    };
 }
 
 function AbstractDocumentsView() {

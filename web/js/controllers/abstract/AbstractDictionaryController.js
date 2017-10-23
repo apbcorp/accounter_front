@@ -132,5 +132,9 @@ function AbstractDictionaryController() {
         for (var i = 0; i < elements.length; i++) {
             elements[i].value = '';
         }
+
+        for (var key in this.model.filters) {
+            this.model.filters[key].value = '';
+        }
     }
 }

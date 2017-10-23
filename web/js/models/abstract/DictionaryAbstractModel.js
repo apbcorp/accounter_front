@@ -44,7 +44,7 @@ function DictionaryAbstractModel() {
         for (var key in this.filters) {
             var data = this.getRequestData('filter[' + key + ']');
             if (data) {
-                this.filters[key].value = data;
+                this.filters[key].value = decodeURI(data);
             }
         }
 

@@ -36,15 +36,34 @@ class ServiceGenerator
 
     /**
      * @param \DateTime $date
-     * @param int       $groundId
-     * @param int       $unitId
+     * @param int       $kontragentId
      * @return array
      */
-    public function generateByGroundId(\DateTime $date, $groundId, $unitId)
+    public function generateByKontragent(\DateTime $date, $kontragentId)
+    {
+        /** @var Kontragent $kontragent */
+        $kontragent = $this->entityManager->getRepository(Kontragent::class)->find($kontragentId);
+
+        $grounds = $this->entityManager->getRepository(Ground::class)->findBy(['deleted' => false, 'kontragent' => $kontragent]);
+
+        $result = [];
+        foreach ($grounds as $ground) {
+            $requestResult = $this->generateByGroundId($date, $ground->getId());
+            $result = array_merge($result, $requestResult);
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param \DateTime $date
+     * @param int       $groundId
+     * @return array
+     */
+    public function generateByGroundId(\DateTime $date, $groundId)
     {
         $services = $this->entityManager->getRepository(Service::class)->findBy([
-            'deleted' => false,
-            'unitId' => $unitId
+            'deleted' => false
         ]);
 
         $servicesList = [];
@@ -78,6 +97,7 @@ class ServiceGenerator
 
         $result = [
             'serviceId' => $service->getId(),
+            'service' => $service->getName(),
             'groundId' => $service->getType() == ServiceTypeDictionary::KONTRAGENT_TYPE ? null : $groundId,
             'date' => $date,
             'price' => $tarifRepo->getPrice($service, $date),

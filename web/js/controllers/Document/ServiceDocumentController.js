@@ -22,12 +22,12 @@ function ServiceDocumentController() {
         for (var i = 0; i < elements.length; i++) {
             rows.push({
                 id: elements[i].dataset.id,
-                serviceId: elements[0].childNodes[1].childNodes[0].childNodes[0].dataset.id,
-                period: elements[i].childNodes[2].childNodes[0].value,
-                base: elements[i].childNodes[3].childNodes[0].value,
-                price: elements[i].childNodes[4].childNodes[0].value,
-                sum: elements[i].childNodes[5].childNodes[0].value,
-                komment: elements[i].childNodes[6].childNodes[0].value
+                serviceId: elements[i].childNodes[1].childNodes[0].childNodes[0].dataset.id,
+                groundId: elements[i].childNodes[2].childNodes[0].value,
+                date: elements[i].childNodes[3].childNodes[0].value,
+                count: elements[i].childNodes[4].childNodes[0].value,
+                price: elements[i].childNodes[5].childNodes[0].value,
+                sum: elements[i].childNodes[6].childNodes[0].value
             })
         }
 
@@ -49,90 +49,98 @@ function ServiceDocumentController() {
     };
 
     this.afterOnBlur = function (event) {
-
+        if (event.target.firstElementChild.name == 'kontragent') {
+            this.model.fillGroundList(event.target.firstElementChild.dataset.id);
+        }
     };
 
     this.onIndexDataChanged = function (event) {
         var serviceId = event.target.parentNode.parentNode.childNodes[1].childNodes[0].childNodes[0].dataset.id;
-        var date = event.target.parentNode.parentNode.childNodes[2].childNodes[0].value;
+        var date = event.target.parentNode.parentNode.childNodes[3].childNodes[0].value;
         var kontragentId = $('[name=kontragent]')[0].dataset.id;
+        var groundId = event.target.parentNode.parentNode.childNodes[2].childNodes[0].value;
 
-        if (!serviceId || !date || !kontragentId) {
+        if (!serviceId || !date || !kontragentId || !groundId) {
             return;
         }
 
-        dateObject = new Date(date);
-
-        var recordId = this.getIndexDataId(kontragentId, serviceId, date);
-
-        if (recordId == null) {
-            this.indexData.push({kontragentId: kontragentId, serviceId: serviceId, date: date, event: event});
-
-            var requester = kernel.getServiceContainer().get('requester.ajax');
-            requester.setUrl('/api/v1.0/document/get_service/service_document');
-            requester.setData({serviceId: serviceId, date: date, kontragentId: kontragentId});
-            requester.setMethod(HTTP_METHOD_GET);
-            requester.setSuccess(this.setBaseAndTarif.bind(this));
-            requester.request();
-        } else {
-            event.target.parentNode.parentNode.childNodes[3].childNodes[0].value = this.indexData[recordId].base;
-            event.target.parentNode.parentNode.childNodes[4].childNodes[0].value = this.indexData[recordId].price;
-            event.target.parentNode.parentNode.childNodes[5].childNodes[0].value = this.indexData[recordId].price * this.indexData[recordId].base;
-        }
+        this.model.fillRow(date, kontragentId, groundId, serviceId);
     };
 
-    this.getIndexDataId = function (kontragentId, serviceId, date) {
-        for (var i = 0; i < this.indexData.length; i++) {
-            if (this.indexData[i].serviceId == serviceId && this.indexData[i].date == date && this.indexData[i].kontragentId == kontragentId) {
-                return i;
-            }
-        }
+    this.onRefreshComplete = function (data) {
+        this.model.fillGroundList(data.kontragentId);
+        var view = kernel.getServiceContainer().get(this.viewName);
+        view.render(data);
 
-        return null;
+        var eventContainer = kernel.getServiceContainer().get('container.event');
+        eventContainer.setEvents(this.events);
     };
 
-    this.setBaseAndTarif = function (data) {
-        if (!data) {
+    this.onAddRow = function () {
+        var fio = $('[name=kontragent]')[0];
+
+        if (!fio.dataset.id || !this.model.groundList) {
+            alert('Сначала необходимо указать ФИО собственника');
+
             return;
         }
-        var result = data.result;
 
-        var recordId = this.getIndexDataId(result.kontragentId, result.serviceId, result.date);
-        this.indexData[recordId].base = result.base;
-        this.indexData[recordId].price = result.price;
+        var groundList = '';
 
-        this.indexData[recordId].event.target.parentNode.parentNode.childNodes[3].childNodes[0].value = this.indexData[recordId].base;
-        this.indexData[recordId].event.target.parentNode.parentNode.childNodes[4].childNodes[0].value = this.indexData[recordId].price;
-        this.indexData[recordId].event.target.parentNode.parentNode.childNodes[5].childNodes[0].value = this.indexData[recordId].price * this.indexData[recordId].base;
+        var view = kernel.getServiceContainer().get(this.viewName);
+        var html = $(view.addData(view.rowTemplate, {groundList: this.model.generateGroundList(0)}))[0];
+
+        $('.subtable')[0].append(html);
+
+        var eventContainer = kernel.getServiceContainer().get('container.event');
+        eventContainer.setEvents(this.events);
     };
 
     this.onAutoFill = function () {
         var date = $('[name=date]')[0].value;
         var kontragentId = $('[name=kontragent]')[0].dataset.id;
 
-        var requester = kernel.getServiceContainer().get('requester.ajax');
-        requester.setUrl('api/v1.0/document/list/service_document/getAllServices');
-        requester.setData({date: date, kontragentId: kontragentId});
-        requester.setMethod(HTTP_METHOD_GET);
-        requester.setSuccess(this.onAutoFillComplete.bind(this));
-        requester.request();
+        this.model.fillAllRows(date, kontragentId);
     };
 
-    this.onAutoFillComplete = function () {
-        if (!data) {
-            return;
-        }
+    this.onAutoFillComplete = function (data) {
+        data = data.result;
+
+        var rows = $('.table_row');
+        var rowService = '';
+        var date = '';
+        var groundId = '';
+        var dateHelper = kernel.getServiceContainer().get('helper.date');
 
         for (var i = 0; i < data.length; i++) {
-            this.indexData.push({kontragentId: data[i].kontragentId, serviceId: data[i].serviceId, date: data[i].date, base: data[i].base, price: data[i].price});
-        }
-    };
+            var isRowInTable = false;
 
-    this.getRequestData = function () {
-        if (this.element.name == 'kontragent') {
-            return this.element.value;
-        } else if (this.element.name == 'service') {
-            return this.element.value;
+            for (var j = 0; j < rows.length; j++) {
+                rowService = parseInt(rows[j].childNodes[1].childNodes[0].childNodes[0].dataset.id);
+                date = rows[j].childNodes[3].childNodes[0].value;
+                groundId = parseInt(rows[j].childNodes[2].childNodes[0].value);
+                groundId = !groundId ? null : groundId;
+
+                if (rowService == data[i].serviceId && dateHelper.isEqualPeriodMonth(date, data[i].date.date) && groundId == data[i].groundId) {
+                    isRowInTable = true;
+
+                    break;
+                }
+            }
+
+            if (!isRowInTable) {
+                this.onAddRow();
+
+                rows = $('.table_row');
+                var row = rows[rows.length - 1];
+                row.childNodes[1].childNodes[0].childNodes[0].dataset.id = data[i].serviceId;
+                row.childNodes[1].childNodes[0].childNodes[0].value = data[i].service;
+                row.childNodes[2].childNodes[0].value = data[i].groundId;
+                row.childNodes[3].childNodes[0].value = dateHelper.getDateFormatInput(data[i].date.date);
+                row.childNodes[4].childNodes[0].value = data[i].count;
+                row.childNodes[5].childNodes[0].value = data[i].price;
+                row.childNodes[6].childNodes[0].value = data[i].sum;
+            }
         }
     };
     

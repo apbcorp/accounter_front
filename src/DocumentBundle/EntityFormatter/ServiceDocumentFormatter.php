@@ -33,8 +33,8 @@ class ServiceDocumentFormatter extends EntityFormatterAbstract
                 'id' => $row->getId(),
                 'service' => $row->getService()->getName(),
                 'serviceId' => $row->getService()->getId(),
-                'ground' => $row->getGround()->getAccNumber(),
-                'groundId' => $row->getGround()->getId(),
+                'ground' => $row->getGround() ? $row->getGround()->getAccNumber() : '',
+                'groundId' => $row->getGround() ? $row->getGround()->getId() : null,
                 'date' => $row->getDate()->format('Y-m-d'),
                 'price' => $row->getPrice(),
                 'count' => $row->getCount(),
@@ -79,7 +79,7 @@ class ServiceDocumentFormatter extends EntityFormatterAbstract
             }
 
             $service = $this->entityManager->getReference(Service::class, $row['serviceId']);
-            $ground = $this->entityManager->getReference(Ground::class, $row['groundId']);
+            $ground = $row['groundId'] ? $this->entityManager->getReference(Ground::class, $row['groundId']) : null;
 
             $subEntity->setGround($ground);
             $subEntity->setService($service);

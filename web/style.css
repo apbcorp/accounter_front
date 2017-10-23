@@ -107,6 +107,15 @@ button.delete_button {
     background-position-x: center;
     background-position-y: 3px;
 }
+button.delete_row_button {
+    margin-left: 3px;
+    width: 36px;
+    height: 31px;
+    background-image: url(img/delete.jpg);
+    background-repeat: no-repeat;
+    background-position-x: center;
+    background-position-y: 3px;
+}
 button.save_button {
     margin-left: 3px;
     width: 36px;

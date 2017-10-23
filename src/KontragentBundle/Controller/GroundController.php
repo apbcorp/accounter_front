@@ -4,10 +4,12 @@ namespace KontragentBundle\Controller;
 
 use CoreBundle\Controller\BaseEntityController;
 use KontragentBundle\Entity\Ground;
+use KontragentBundle\Entity\Kontragent;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
+use Symfony\Component\HttpFoundation\Response;
 
 class GroundController extends BaseEntityController
 {
@@ -81,5 +83,19 @@ class GroundController extends BaseEntityController
     public function supplyAction(Request $request)
     {
         return parent::suppplyAction($request);
+    }
+
+    /**
+     * @Route("/ground_by_kontragent/{id}")
+     * @Method("GET")
+     * @param Request $request
+     * @param int     $id
+     * @return JsonResponse
+     */
+    public function getGroundByKontragentAction(Request $request, $id)
+    {
+        $kontragentRef = $this->getDoctrine()->getManager()->getReference(Kontragent::class, $id);
+        
+        return $this->sendResponse($this->getRepository()->findBy(['kontragent' => $kontragentRef]), Response::HTTP_OK);
     }
 }

@@ -22,21 +22,21 @@ class PayDocument implements DocumentEntityInterface
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    private $id;
+    protected $id;
 
     /**
      * @var \DateTime
      *
      * @ORM\Column(name="created", type="datetime")
      */
-    private $created;
+    protected $created;
 
     /**
      * @var \DateTime
      *
      * @ORM\Column(name="updated", type="datetime")
      */
-    private $updated;
+    protected $updated;
 
     /**
      * @var ArrayCollection
@@ -50,7 +50,7 @@ class PayDocument implements DocumentEntityInterface
      *
      * @ORM\Column(name="deleted", type="integer")
      */
-    private $deleted;
+    protected $deleted;
 
 
     /**

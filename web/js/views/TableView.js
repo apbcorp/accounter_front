@@ -49,6 +49,8 @@ function TableView() {
                 var dateStart = filterList[key].periodStart ? filterList[key].periodStart : dateHelper.getFirstDayOfMonth(date);
                 var dateEnd = filterList[key].periodEnd ? filterList[key].periodEnd : dateHelper.getLastDayOfMonth(date);
                 result += '<ul>' + filterList[key].name + '&nbsp;<input type="date" name="' + key + 'Start" value="' + dateStart + '">&nbsp;<input type="date" name="' + key + 'End" value="' + dateEnd + '"></ul>';
+            } else {
+                result += '<ul>' + filterList[key].name + '&nbsp;<input name="' + key + '" value="' + filterList[key].value + '"></ul>';
             }
         }
 

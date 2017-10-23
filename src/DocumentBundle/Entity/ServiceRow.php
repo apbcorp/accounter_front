@@ -23,28 +23,28 @@ class ServiceRow extends DocumentEntityAbstract
      * @ORM\Id
      * @ORM\GeneratedValue(strategy="AUTO")
      */
-    private $id;
+    protected $id;
 
     /**
      * @var \DateTime
      *
      * @ORM\Column(name="created", type="datetime")
      */
-    private $created;
+    protected $created;
 
     /**
      * @var \DateTime
      *
      * @ORM\Column(name="updated", type="datetime")
      */
-    private $updated;
+    protected $updated;
 
     /**
      * @var bool
      *
      * @ORM\Column(name="deleted", type="integer")
      */
-    private $deleted;
+    protected $deleted;
 
     /**
      * @var ServiceDocument
@@ -145,10 +145,10 @@ class ServiceRow extends DocumentEntityAbstract
     }
 
     /**
-     * @param Ground $ground
+     * @param Ground|null $ground
      * @return $this
      */
-    public function setGround(Ground $ground)
+    public function setGround($ground)
     {
         $this->ground = $ground;
 

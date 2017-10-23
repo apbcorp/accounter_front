@@ -6,18 +6,18 @@
         <div class="selectbox indexData" tabindex="-1"><input name="service" data-id="{serviceId}" data-type="service" value="{service}"><p class="selectbox-list-hide"></p></div>
     </li>
     <li>
-        <input class="indexData" type="date" name="period" value="{period}">
+        <select data-id="{groundId}" name="groundId">{groundList}</select>
     </li>
     <li>
-        <input name="calcBase" value="{calcBase}" disabled>
+        <input class="indexData" type="date" name="date" value="{date}">
+    </li>
+    <li>
+        <input name="calcBase" value="{count}" disabled>
     </li>
     <li>
         <input name="price" value="{price}" disabled>
     </li>
     <li>
-        <input name="sum" value="{sum}">
-    </li>
-    <li>
-        <input name="komment" value="{komment}">
+        <input name="sum" value="{sum}" disabled>
     </li>
 </ul>

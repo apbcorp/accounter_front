@@ -23,5 +23,5 @@ function AbstractDocumentView() {
         }
 
         return result;
-    }
+    };
 }

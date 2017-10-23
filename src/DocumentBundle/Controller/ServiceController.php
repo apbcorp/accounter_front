@@ -76,7 +76,7 @@ class ServiceController extends BaseDocumentController
     }
 
     /**
-     * @Route("/service_document/service")
+     * @Route("/fill_service_row")
      * @Method("GET")
      * @var Request $request
      * @return JsonResponse
@@ -104,7 +104,7 @@ class ServiceController extends BaseDocumentController
     }
 
     /**
-     * @Route("/service_document/all_service")
+     * @Route("/fill_service")
      * @Method("GET")
      * @var Request $request
      * @return JsonResponse
@@ -112,14 +112,15 @@ class ServiceController extends BaseDocumentController
     public function getAllServiceAction(Request $request)
     {
         $date = new \DateTime($request->get('date'));
-        $groundId = $request->get('groundId');
+        $kontragentId = $request->get('kontragentId');
 
-        if (!$date || !$groundId) {
+        if (!$date || !$kontragentId) {
             return $this->sendResponse([], Response::HTTP_BAD_REQUEST);
         }
 
+        /** @var ServiceGenerator $generator */
         $generator = $this->get('document.generator.service');
 
-        return $this->sendResponse($generator->generateByGroundId($date, $groundId, $this->getUnitId()), Response::HTTP_OK);
+        return $this->sendResponse($generator->generateByKontragent($date, $kontragentId), Response::HTTP_OK);
     }
 }

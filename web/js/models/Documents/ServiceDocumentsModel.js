@@ -5,7 +5,11 @@ function ServiceDocumentsModel(params) {
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
         "date": DOCUMENT_DATE_LANG,
-        "ground": KONTRAGENT_ID_LANG
+        "kontragent": OWNER_FULL_NAME_LANG
+    };
+    this.filters = {
+        'period': {name: PERIOD_LANG, type:'period'},
+        'kontragent': {name:OWNER_FULL_NAME_LANG, value:''}
     };
 
     this.ServiceDocumentsModel = function (object) {

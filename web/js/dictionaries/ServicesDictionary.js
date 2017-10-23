@@ -11,6 +11,7 @@ const SERVICES_LIST = {
     'container.event': {'class': 'EventContainer', 'args': {}},
     'container.collection': {'class': 'CollectionContainer', 'args': {}},
     'requester.ajax': {'class': 'AjaxRequester', 'args': {}},
+    'requester.ajax2': {'class': 'AjaxRequester', 'args': {}},
     //'requester.ajax': {'class': 'AjaxMockRequester', 'args': {}}, //mock
     'view.main': {'class': 'MainView', 'args': {}},
     'controller.serviceDictionary': {'class': 'ServiceDictionaryController', 'args': {}},
