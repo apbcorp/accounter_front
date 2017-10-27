@@ -72,7 +72,7 @@ class PayRow implements DocumentEntityInterface
     /**
      * @var float
      *
-     * @ORM\Column(name="price", type="decimal", precision=7, scale=2)
+     * @ORM\Column(name="sum", type="decimal", precision=7, scale=2)
      */
     private $sum;
 

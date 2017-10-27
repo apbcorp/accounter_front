@@ -16,7 +16,8 @@ class Version20171027094049 extends AbstractMigration
     public function up(Schema $schema)
     {
         $this->addSql('
-            ALTER TABLE `document_meters_service_row` ADD COLUMN `date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+            ALTER TABLE `document_meters_service_row` ADD COLUMN `date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
+            ALTER TABLE `document_pay` ADD COLUMN `date` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP;
         ');
     }
 
@@ -26,7 +27,8 @@ class Version20171027094049 extends AbstractMigration
     public function down(Schema $schema)
     {
         $this->addSql('
-            ALTER TABLE `document_meters_service_row` DROP COLUMN `date`
+            ALTER TABLE `document_meters_service_row` DROP COLUMN `date`;
+            ALTER TABLE `document_pay` DROP COLUMN `date`;
         ');
 
     }

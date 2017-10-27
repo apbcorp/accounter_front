@@ -730,17 +730,60 @@ function PayDocumentController() {
         for (var i = 0; i < elements.length; i++) {
             rows.push({
                 id: elements[i].dataset.id,
-                serviceId: elements[i].childNodes[1].childNodes[0].childNodes[0].dataset.id,
-                price: elements[i].childNodes[2].childNodes[0].value
+                groundId: elements[i].childNodes[1].childNodes[0].dataset.id,
+                serviceId: elements[i].childNodes[2].childNodes[0].dataset.id,
+                sum: elements[i].childNodes[4].childNodes[0].value ? elements[i].childNodes[4].childNodes[0].value : 0
             })
         }
 
         var data = {
-            dateStart: $('[name="dateStart"]')[0].value,
+            date: $('[name="date"]')[0].value,
+            kontragentId: $('[name="kontragent"]')[0].dataset.id,
             rows: rows
         };
+
+        if (this.model.isValidData(data)) {
+            this.model.appendDataToRequest(data);
+
+            return true;
+        } else {
+            alert(this.model.getErrors())
+        }
+
         return false;
-        this.model.appendDataToRequest(data);
+    };
+
+    this.afterOnBlur = function (event) {
+        if (event.target.firstElementChild.name == 'kontragent') {
+            this.model.fillDocument(event.target.firstElementChild.dataset.id, $('[name=date]')[0].value);
+        }
+    };
+
+    this.fillDocument = function (data) {
+        var elements = $('[name=checker]');
+
+        if (elements.length) {
+            for (var i = 0; i < elements.length; i++) {
+                elements[i].checked = true;
+            }
+
+            this.onDeleteRow();
+        }
+
+        var row = undefined;
+
+        for (var i = 0; i < data.length; i++) {
+            this.onAddRow();
+
+            elements = $('.table_row');
+            row = elements[elements.length - 1];
+
+            row.childNodes[1].childNodes[0].value = data[i].ground;
+            row.childNodes[1].childNodes[0].dataset.id = data[i].groundId;
+            row.childNodes[2].childNodes[0].dataset.id = data[i].serviceId;
+            row.childNodes[2].childNodes[0].value = data[i].service;
+            row.childNodes[3].childNodes[0].value = data[i].dolg;
+        }
     };
 
     this.PayDocumentController();
@@ -1514,6 +1557,7 @@ var PERIOD_LANG = "Период";
 var SERVICE_CALC_BASE_LANG = "База расчета";
 var KOMMENT_LANG = "Комментарий";
 var SHEET_LANG = 'Таблица';
+var DOLG_LANG = 'Задолженность';
 const ROUTES = {
     '/index\.html': 'controller.main',
     '/login\.html': 'controller.login',
@@ -1898,7 +1942,7 @@ function MeterServiceDocumentModel(params) {
         var validator = kernel.getServiceContainer().get('service.validator');
         var validationData = [
             {data: data.date, type: VALIDATION_TYPE_DATE, fieldName: DOCUMENT_DATE_LANG},
-            {data: data.groundId, type: VALIDATION_TYPE_OBJECT_ID, fieldName: KONTRAGENT_ID_LANG},
+            {data: data.groundId, type: VALIDATION_TYPE_OBJECT_ID, fieldName: KONTRAGENT_PAY_FULL_NAME_LANG},
             {data: data.rows, type: VALIDATION_TYPE_NOT_EMPTY_ARRAY, fieldName: SHEET_LANG},
             {data: data.rows, type: VALIDATION_TYPE_TABLE_ROWS, fieldName: '', subvalidation: [
                 {data: 'serviceId', type: VALIDATION_TYPE_OBJECT_ID, fieldName: SERVICE_NAME_LANG},
@@ -2054,10 +2098,48 @@ function MetersDocumentModel(params) {
 }
 function PayDocumentModel(params) {
     DocumentAbstractModel.call(this);
-    this.baseUrl = '/api/v1.0/document/tarif';
+    this.baseUrl = '/api/v1.0/document/pay';
+    this.fillUrl = '/api/v1.0/document/fill_pays';
 
     this.PayDocumentModel = function (object) {
+        var date = new Date();
+        
+        this.defaultData.date = date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
+        
         this.DocumentAbstractModel(object);
+    };
+
+    this.isValidData = function (data) {
+        var validator = kernel.getServiceContainer().get('service.validator');
+        var validationData = [
+            {data: data.date, type: VALIDATION_TYPE_DATE, fieldName: DOCUMENT_DATE_LANG},
+            {data: data.kontragentId, type: VALIDATION_TYPE_OBJECT_ID, fieldName: OWNER_FULL_NAME_LANG},
+            {data: data.rows, type: VALIDATION_TYPE_NOT_EMPTY_ARRAY, fieldName: SHEET_LANG},
+            {data: data.rows, type: VALIDATION_TYPE_TABLE_ROWS, fieldName: '', subvalidation: [
+                {data: 'serviceId', type: VALIDATION_TYPE_OBJECT_ID, fieldName: SERVICE_NAME_LANG},
+                {data: 'groundId', type: VALIDATION_TYPE_OBJECT_ID, fieldName: KONTRAGENT_ID_LANG},
+                {data: 'sum', type: VALIDATION_TYPE_FLOAT, fieldName: SUM_LANG}
+            ]}
+        ];
+
+        var isValid = validator.validate(validationData);
+        this.errors = isValid ? '' : validator.getErrors();
+
+        return isValid;
+    };
+
+    this.fillDocument = function (id, date) {
+        this.meterList = undefined;
+        var requester = kernel.getServiceContainer().get('requester.ajax2');
+        requester.setUrl(this.fillUrl);
+        requester.setData({kontragentId: id, date: date});
+        requester.setMethod(HTTP_METHOD_GET);
+        requester.setSuccess(this.fillDocumentComplete.bind(this));
+        requester.request();
+    };
+
+    this.fillDocumentComplete = function (data) {
+        this.creator.fillDocument(data.result);
     };
 
     this.PayDocumentModel(params);
@@ -2283,8 +2365,12 @@ function PayDocumentsModel(params) {
     this.url = '/api/v1.0/document/list/pay';
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
-        "created": DOCUMENT_DATE_LANG,
+        "date": DOCUMENT_DATE_LANG,
         "kontragent": KONTRAGENT_PAY_FULL_NAME_LANG
+    };
+    this.filters = {
+        'period': {name: PERIOD_LANG, type:'period'},
+        'kontragent': {name:KONTRAGENT_PAY_FULL_NAME_LANG, value:''}
     };
 
     this.PayDocumentsModel = function (object) {
@@ -3011,9 +3097,9 @@ function MeterServiceDocumentView() {
 }
 function PayDocumentView() {
     AbstractDocumentView.call(this);
-    this.template = '';
-    this.rowTemplate = '';
-    this.headTemplate = '';
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{DOCUMENT_DATE_LANG}<input type="date" name="date" value="{date}"></li><li class="card_cell">{OWNER_FULL_NAME_LANG}<div class="selectbox" tabindex="-1"><input name="kontragent" data-id="{kontragentId}" data-type="kontragent" value="{kontragent}"><p class="selectbox-list-hide"></p></div></li></ul><ul class="card_row"><div class="table subtable">{table}</div></ul></div>';
+    this.rowTemplate = '<ul class="table_row" data-id="{id}"><li><input type="checkbox" name="checker"></li><li><input name="ground" data-id="{groundId}" value="{ground}" disabled></li><li><input name="service" data-id="{serviceId}" value="{service}" disabled></li><li><input name="dolg" value="{dolg}" disabled></li><li><input name="sum" value="{sum}"></li></ul>';
+    this.headTemplate = '<ul class="table_head"><li class="column_head"></li><li class="column_head" data-name="ground">{KONTRAGENT_ID_LANG}</li><li class="column_head" data-name="service">{SERVICE_NAME_LANG}</li><li class="column_head" data-name="dolg">{DOLG_LANG}</li><li class="column_head" data-name="sum">{SUM_LANG}</li></ul>';
 }
 function ServiceDocumentView() {
     AbstractDocumentView.call(this);

@@ -3,6 +3,7 @@
 namespace DocumentBundle\Controller;
 
 use DocumentBundle\Entity\PayDocument;
+use KontragentBundle\Entity\Kontragent;
 use KontragentBundle\Entity\Service;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -75,39 +76,23 @@ class PayController extends BaseDocumentController
     }
 
     /**
-     * @Route("/debt/{groundId}/{serviceId}")
-     * @Method("POST")
+     * @Route("/fill_pays")
+     * @Method("GET")
      * @var Request $request
-     * @var int     $groundId
-     * @var int     $serviceId
      * @return JsonResponse
      */
-    public function getDebtAction(Request $request, $groundId, $serviceId)
+    public function getDebtAction(Request $request)
     {
         $date = new \DateTime($request->get('date'));
-        $service = $this->getDoctrine()->getManager()->getRepository(Service::class)->find($serviceId);
+        $kontragentId = $request->get('kontragentId');
+        $kontragent = $this->getDoctrine()->getManager()->getRepository(Kontragent::class)->find($kontragentId);
 
-        if (!$date || !$service) {
+        if (!$date || !$kontragent) {
             return $this->sendResponse([], Response::HTTP_BAD_REQUEST);
         }
 
         $generator = $this->get('document.generator.debt');
 
-        return $this->sendResponse($generator->getDebtByService($date, $groundId, $service), Response::HTTP_OK);
-    }
-
-    /**
-     * @Route("/all_debt/{groundId}")
-     * @Method("POST")
-     * @var Request $request
-     * @var int     $groundId
-     * @return JsonResponse
-     */
-    public function getAllPayAction(Request $request, $groundId)
-    {
-        $date = new \DateTime($request->get('date'));
-        $generator = $this->get('document.generator.debt');
-
-        return $this->sendResponse($generator->getDebtByGround($date, $groundId, $this->getUnitId()), Response::HTTP_OK);
+        return $this->sendResponse($generator->getDebtByKontragent($date, $kontragent), Response::HTTP_OK);
     }
 }

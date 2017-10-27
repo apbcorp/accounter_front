@@ -4,20 +4,26 @@ namespace DocumentBundle\EntityFormatter;
 
 use CoreBundle\BaseClasses\EntityFormatterAbstract;
 use CoreBundle\BaseClasses\Interfaces\EntityInterface;
+use DocumentBundle\Entity\PayDocument;
+use DocumentBundle\Entity\PayRow;
+use KontragentBundle\Entity\Ground;
+use KontragentBundle\Entity\Kontragent;
+use KontragentBundle\Entity\Service;
+use KontragentBundle\Helper\KontragentHelper;
 
 class PayDocumentFormatter extends EntityFormatterAbstract
 {
-    protected $entityClass = TarifDocument::class;
+    protected $entityClass = PayDocument::class;
 
     /**
-     * @param TarifDocument $entity
+     * @param PayDocument $entity
      * @return array
      */
     public function getData($entity)
     {
         $rows = [];
 
-        /** @var TarifRow $row */
+        /** @var PayRow $row */
         foreach ($entity->getRows() as $row) {
             if ($row->isDeleted()) {
                 continue;
@@ -27,13 +33,17 @@ class PayDocumentFormatter extends EntityFormatterAbstract
                 'id' => $row->getId(),
                 'serviceId' => $row->getService()->getId(),
                 'service' => $row->getService()->getName(),
-                'price' => $row->getPrice()
+                'ground' => $row->getGround()->getId() ? $row->getGround()->getAccNumber() : null,
+                'groundId' => $row->getGround()->getId() ? $row->getGround()->getId() : null,
+                'sum' => $row->getSum()
             ];
         }
 
         return [
             'id' => $entity->getId(),
-            'dateStart' => $entity->getDateStart()->format('Y-m-d'),
+            'date' => $entity->getDate()->format('Y-m-d'),
+            'kontragent' => KontragentHelper::getShortName($entity->getKontragent()),
+            'kontragentId' => $entity->getKontragent()->getId(),
             'rows' => $rows
         ];
     }
@@ -45,8 +55,8 @@ class PayDocumentFormatter extends EntityFormatterAbstract
      */
     public function setData($id, array $data)
     {
-        /** @var TarifDocument $entity */
-        $entity = $this->getEntity($id, 'createTarifDocument');
+        /** @var PayDocument $entity */
+        $entity = $this->getEntity($id, 'createPayDocument');
 
         if (!$entity) {
             return false;
@@ -55,9 +65,9 @@ class PayDocumentFormatter extends EntityFormatterAbstract
         $ids = [];
         foreach ($data['rows'] as $row) {
             if ($row['id']) {
-                $subEntity = $this->entityManager->getRepository(TarifRow::class)->find($row['id']);
+                $subEntity = $this->entityManager->getRepository(PayRow::class)->find($row['id']);
             } else {
-                $subEntity = $this->entityFactory->createTarifRow();
+                $subEntity = $this->entityFactory->createPayRow();
                 $subEntity->setCreated(new \DateTime());
                 $subEntity->setIsDeleted(false);
 
@@ -65,10 +75,12 @@ class PayDocumentFormatter extends EntityFormatterAbstract
             }
 
             $service = $this->entityManager->getReference(Service::class, $row['serviceId']);
+            $ground = $this->entityManager->getReference(Ground::class, $row['groundId']);
 
             $subEntity->setService($service);
+            $subEntity->setGround($ground);
+            $subEntity->setSum($row['sum']);
             $subEntity->setUpdated(new \DateTime());
-            $subEntity->setPrice($row['price']);
             $subEntity->setDocument($entity);
 
             if ($subEntity->getId()) {
@@ -77,14 +89,15 @@ class PayDocumentFormatter extends EntityFormatterAbstract
         }
 
         unset($data['rows']);
-        $data['dateStart'] = new \DateTime($data['dateStart']);
+        $data['kontragent'] = $this->entityManager->getReference(Kontragent::class, $data['kontragentId']);
+        $data['date'] = new \DateTime($data['date']);
         $data['updated'] = new \DateTime();
 
         if ($this->isNewEntity) {
             $data['created'] = new \DateTime();
         }
 
-        /** @var TarifRow $row */
+        /** @var PayRow $row */
         foreach ($entity->getRows() as $row) {
             if (!in_array($row->getId(), $ids)) {
                 $row->setIsDeleted(true);

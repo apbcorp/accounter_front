@@ -8,6 +8,8 @@ use DocumentBundle\Entity\MeterDocument;
 use DocumentBundle\Entity\MeterRow;
 use DocumentBundle\Entity\MeterServiceDocument;
 use DocumentBundle\Entity\MeterServiceRow;
+use DocumentBundle\Entity\PayDocument;
+use DocumentBundle\Entity\PayRow;
 use DocumentBundle\Entity\ServiceDocument;
 use DocumentBundle\Entity\ServiceRow;
 use DocumentBundle\Entity\TarifDocument;
@@ -138,5 +140,21 @@ class EntityFactory
     public function createMeterServiceRow()
     {
         return new MeterServiceRow();
+    }
+
+    /**
+     * @return PayDocument
+     */
+    public function createPayDocument()
+    {
+        return new PayDocument();
+    }
+
+    /**
+     * @return PayRow
+     */
+    public function createPayRow()
+    {
+        return new PayRow();
     }
 } 

@@ -4,8 +4,10 @@ namespace DocumentBundle\Repository;
 
 use CoreBundle\BaseClasses\ListRepositoryAbstract;
 use Doctrine\ORM\Query\Expr\Join;
+use DocumentBundle\Entity\MeterServiceRow;
 use KontragentBundle\Entity\Ground;
 use KontragentBundle\Entity\Kontragent;
+use KontragentBundle\Entity\Service;
 
 class MeterServiceDocumentRepository extends ListRepositoryAbstract
 {
@@ -62,5 +64,41 @@ class MeterServiceDocumentRepository extends ListRepositoryAbstract
             'pageCount' => ceil($queryResult[0]['recordCount'] / $limit),
             'count' => count($result)
         ];
+    }
+
+    /**
+     * @param \DateTime   $date
+     * @param Ground|null $ground
+     * @param Service     $service
+     * @return float
+     */
+    public function getDebt(\DateTime $date, $ground, Service $service)
+    {
+        $qb = $this->getEntityManager()->createQueryBuilder();
+
+        $qb->select('SUM(p.sum) as summa')
+            ->from($this->getEntityName(), 'q')
+            ->join(MeterServiceRow::class, 'p', Join::WITH, 'p.document = q.id')
+            ->where(
+                $qb->expr()->andX(
+                    $qb->expr()->lte('q.date', ':date'),
+                    $qb->expr()->eq('q.deleted', ':false'),
+                    $qb->expr()->eq('p.service', ':service')
+                )
+            )
+            ->setParameter('false', false)
+            ->setParameter('date', $date)
+            ->setParameter('service', $service);
+
+        if ($ground) {
+            $qb->andWhere($qb->expr()->eq('q.ground', ':ground'))
+                ->setParameter('ground', $ground);
+        } else {
+            $qb->andWhere($qb->expr()->isNull('q.ground'));
+        }
+
+        $result = $qb->getQuery()->getResult();
+
+        return $result[0]['summa'];
     }
 }

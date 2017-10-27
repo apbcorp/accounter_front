@@ -62,6 +62,13 @@ class PayDocument implements DocumentEntityInterface
     private $kontragent;
 
     /**
+     * @var \DateTime
+     *
+     * @ORM\Column(name="date", type="datetime")
+     */
+    private $date;
+
+    /**
      * TarifDocument constructor.
      */
     public function __construct()
@@ -168,6 +175,25 @@ class PayDocument implements DocumentEntityInterface
     public function setKontragent(Kontragent $kontragent)
     {
         $this->kontragent = $kontragent;
+
+        return $this;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getDate()
+    {
+        return $this->date;
+    }
+
+    /**
+     * @param \DateTime $dateTime
+     * @return $this
+     */
+    public function setDate(\DateTime $dateTime)
+    {
+        $this->date = $dateTime;
 
         return $this;
     }
