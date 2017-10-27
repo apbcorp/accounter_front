@@ -78,7 +78,7 @@ class MeterServiceController extends BaseDocumentController
     }
 
     /**
-     * @Route("/meter_service/service")
+     * @Route("/fill_meter_service_row")
      * @Method("GET")
      * @var Request $request
      * @return JsonResponse
@@ -96,7 +96,7 @@ class MeterServiceController extends BaseDocumentController
         /** @var Meter $meter */
         $meter = $em->getRepository(Meter::class)->find($meterId);
 
-        if ($meter) {
+        if (!$meter) {
             return $this->sendResponse([], Response::HTTP_BAD_REQUEST);
         }
 
@@ -104,7 +104,6 @@ class MeterServiceController extends BaseDocumentController
         /** @var Service $service */
         $service = $em->getRepository(Service::class)->findOneBy([
             'deleted' => false,
-            'unitId' => $this->getUnitId(),
             'subtype' => $serviceSubType
         ]);
 
@@ -115,7 +114,7 @@ class MeterServiceController extends BaseDocumentController
     }
 
     /**
-     * @Route("/meter_service/all_service")
+     * @Route("/fill_meter_service")
      * @Method("GET")
      * @var Request $request
      * @return JsonResponse

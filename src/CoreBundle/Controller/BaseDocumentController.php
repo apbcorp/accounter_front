@@ -54,6 +54,12 @@ class BaseDocumentController extends BaseController
         $entity = $this->getRepository()->find($id);
         $entity->setIsDeleted(true);
 
+        if (method_exists($entity, 'getRows')) {
+            foreach ($entity->getRows() as $row) {
+                $row->setIsDeleted(true);
+            }
+        }
+
         $this->getDoctrine()->getManager()->flush();
 
         return $this->sendResponse([$id => true], Response::HTTP_OK);

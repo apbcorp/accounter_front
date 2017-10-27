@@ -8,6 +8,7 @@ function MainControllerAbstract() {
         this.onGetServicesDictionaryEvent = this.onGetServicesDictionary.bind(this);
         this.onGetPayDocumentsEvent = this.onGetPayDocuments.bind(this);
         this.onGetServiceDocumentsEvent = this.onGetServiceDocuments.bind(this);
+        this.onGetMeterServiceDocumentsEvent = this.onGetMeterServiceDocuments.bind(this);
         this.onGetMetersDocumentsEvent = this.onGetMetersDocuments.bind(this);
         this.onGetTarifsDocumentsEvent = this.onGetTarifDocuments.bind(this);
         this.onGetMainReportEvent = this.onGetMainReport.bind(this);
@@ -21,6 +22,7 @@ function MainControllerAbstract() {
         this.events.push({'selector': '.consumer_dictionary_button', 'action': 'click', 'event': this.onGetConsumerDictionaryEvent});
         this.events.push({'selector': '.pay_documents_button', 'action': 'click', 'event': this.onGetPayDocumentsEvent});
         this.events.push({'selector': '.service_documents_button', 'action': 'click', 'event': this.onGetServiceDocumentsEvent});
+        this.events.push({'selector': '.service_meter_documents_button', 'action': 'click', 'event': this.onGetMeterServiceDocumentsEvent});
         this.events.push({'selector': '.meters_documents_button', 'action': 'click', 'event': this.onGetMetersDocumentsEvent});
         this.events.push({'selector': '.tarifs_documents_button', 'action': 'click', 'event': this.onGetTarifsDocumentsEvent});
         this.events.push({'selector': '.main_report_button', 'action': 'click', 'event': this.onGetMainReportEvent});
@@ -51,6 +53,10 @@ function MainControllerAbstract() {
 
     this.onGetServiceDocuments = function () {
         kernel.getServiceContainer().get('helper.navigator').goTo('/document/service.html');
+    };
+
+    this.onGetMeterServiceDocuments = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo('/document/meter_service.html');
     };
 
     this.onGetMetersDocuments = function () {

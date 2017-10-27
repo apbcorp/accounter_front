@@ -1,0 +1,31 @@
+<div class="sheet">
+    <ul>
+        <button class="save_button">
+        </button>
+        <button class="cancel_button">
+        </button>
+    </ul>
+    <ul class="card_row">
+        <li class="card_cell">
+            {DOCUMENT_DATE_LANG}
+            <input type="date" name="date" value="{date}">
+        </li>
+        <li class="card_cell">
+            {KONTRAGENT_ID_LANG}
+            <div class="selectbox" tabindex="-1"><input name="ground" data-id="{groundId}" data-type="ground" value="{ground}"><p class="selectbox-list-hide"></p></div>
+        </li>
+    </ul>
+    <ul class="card_row">
+        <div class="table subtable">
+            <ul class="button_panel">
+                <button class="add_row_button">
+                </button>
+                <button class="delete_row_button">
+                </button>
+                <button class="autoset_button">
+                </button>
+            </ul>
+            {table}
+        </div>
+    </ul>
+</div>

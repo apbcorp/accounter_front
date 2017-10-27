@@ -1,16 +1,16 @@
-function ServiceDocumentModel(params) {
+function MeterServiceDocumentModel(params) {
     DocumentAbstractModel.call(this);
-    this.baseUrl = '/api/v1.0/document/service_document';
-    this.groundList = undefined;
-    this.kontragentId = 0;
-    this.groundListUrl = '/api/v1.0/dictionary/ground_by_kontragent/';
+    this.baseUrl = '/api/v1.0/document/meter_service';
+    this.groundId = 0;
+    this.meterList = undefined;
+    this.meterListUrl = '/api/v1.0/dictionary/meter_by_ground/';
 
-    this.ServiceDocumentModel = function (object) {
+    this.MeterServiceDocumentModel = function (object) {
         var date = new Date();
 
+        this.groundId = 0;
         this.defaultData.date = date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
-        this.kontragentId = 0;
-        
+
         this.DocumentAbstractModel(object);
     };
 
@@ -18,12 +18,14 @@ function ServiceDocumentModel(params) {
         var validator = kernel.getServiceContainer().get('service.validator');
         var validationData = [
             {data: data.date, type: VALIDATION_TYPE_DATE, fieldName: DOCUMENT_DATE_LANG},
-            {data: data.kontragentId, type: VALIDATION_TYPE_OBJECT_ID, fieldName: KONTRAGENT_ID_LANG},
+            {data: data.groundId, type: VALIDATION_TYPE_OBJECT_ID, fieldName: KONTRAGENT_ID_LANG},
             {data: data.rows, type: VALIDATION_TYPE_NOT_EMPTY_ARRAY, fieldName: SHEET_LANG},
             {data: data.rows, type: VALIDATION_TYPE_TABLE_ROWS, fieldName: '', subvalidation: [
                 {data: 'serviceId', type: VALIDATION_TYPE_OBJECT_ID, fieldName: SERVICE_NAME_LANG},
+                {data: 'meterId', type: VALIDATION_TYPE_OBJECT_ID, fieldName: METER_NUMBER_LANG},
                 {data: 'date', type: VALIDATION_TYPE_DATE, fieldName: PERIOD_LANG},
-                {data: 'count', type: VALIDATION_TYPE_FLOAT, fieldName: SERVICE_CALC_BASE_LANG},
+                {data: 'startData', type: VALIDATION_TYPE_FLOAT, fieldName: START_VALUE_LANG},
+                {data: 'endData', type: VALIDATION_TYPE_FLOAT, fieldName: END_VALUE_LANG},
                 {data: 'price', type: VALIDATION_TYPE_FLOAT, fieldName: TARIF_LANG},
                 {data: 'sum', type: VALIDATION_TYPE_FLOAT, fieldName: SUM_LANG}
             ]}
@@ -35,29 +37,29 @@ function ServiceDocumentModel(params) {
         return isValid;
     };
 
-    this.fillGroundList = function (id) {
-        if (this.kontragentId == id) {
+    this.fillMeterList = function (id) {
+        if (this.groundId == id) {
             return;
         }
-        this.groundList = undefined;
+        this.meterList = undefined;
         var requester = kernel.getServiceContainer().get('requester.ajax2');
-        requester.setUrl(this.groundListUrl + id);
+        requester.setUrl(this.meterListUrl + id);
         requester.setData({});
         requester.setMethod(HTTP_METHOD_GET);
-        requester.setSuccess(this.setGroundList.bind(this));
+        requester.setSuccess(this.setMeterList.bind(this));
         requester.request();
     };
 
-    this.setGroundList = function (data) {
+    this.setMeterList = function (data) {
         data = data.result;
 
-        if (data && data[0].kontragentId) {
-            this.kontragentId = data[0].kontragentId;
+        if (data && data[0].groundId) {
+            this.groundId = data[0].groundId;
         }
-
-        this.groundList = [];
+        
+        this.meterList = [];
         for (var i = 0; i < data.length; i++) {
-            this.groundList[data[i].id] = data[i].accNumber;
+            this.meterList[data[i].id] = data[i].number + '(' + data[i].type + ')';
         }
 
         var rows = $('.table_row');
@@ -67,14 +69,14 @@ function ServiceDocumentModel(params) {
                 continue;
             }
 
-            list = this.generateGroundList(rows[i].childNodes[2].childNodes[0].dataset.id);
+            list = this.generateMeterList(rows[i].childNodes[2].childNodes[0].dataset.id);
             rows[i].childNodes[2].childNodes[0].innerHTML = list;
         }
     };
 
-    this.generateGroundList = function (id) {
+    this.generateMeterList = function (id) {
         var result = '';
-        var list = this.groundList;
+        var list = this.meterList;
         for (var key in list) {
             result += '<option value="' + key + '"' + (key == id ? ' selected' : '') + '>' + list[key] + '</option>';
         }
@@ -82,19 +84,19 @@ function ServiceDocumentModel(params) {
         return result;
     };
 
-    this.fillRow = function (date, kontragentId, groundId, serviceId) {
+    this.fillRow = function (date, meterId, serviceId) {
         var requester = kernel.getServiceContainer().get('requester.ajax');
-        requester.setUrl('/api/v1.0/document/fill_service_row');
-        requester.setData({date: date, groundId: groundId, serviceId:serviceId});
+        requester.setUrl('/api/v1.0/document/fill_meter_service_row');
+        requester.setData({date: date, meterId: meterId, serviceId:serviceId});
         requester.setMethod(HTTP_METHOD_GET);
         requester.setSuccess(this.setRowData.bind(this));
         requester.request();
     };
 
-    this.fillAllRows = function (date, kontragentId) {
+    this.fillAllRows = function (date, groundId) {
         var requester = kernel.getServiceContainer().get('requester.ajax');
-        requester.setUrl('/api/v1.0/document/fill_service');
-        requester.setData({date: date, kontragentId: kontragentId});
+        requester.setUrl('/api/v1.0/document/fill_meter_service');
+        requester.setData({date: date, groundId: groundId});
         requester.setMethod(HTTP_METHOD_GET);
         requester.setSuccess(this.creator.onAutoFillComplete.bind(this.creator));
         requester.request();
@@ -104,25 +106,19 @@ function ServiceDocumentModel(params) {
         data = data.result;
 
         var rows = $('.table_row');
-        var rowService = '';
         var sum = '';
         var row = '';
         var date = '';
+        var meterId = '';
         var dateHelper = kernel.getServiceContainer().get('helper.date');
 
         for (var i = 0; i < rows.length; i++) {
-            rowService = parseInt(rows[i].childNodes[1].childNodes[0].childNodes[0].dataset.id);
             date = rows[i].childNodes[3].childNodes[0].value;
-            sum = rows[i].childNodes[6].childNodes[0].value;
+            meterId = parseInt(rows[i].childNodes[2].childNodes[0].value);
+            sum = rows[i].childNodes[7].childNodes[0].value;
 
-            if (rowService == data.serviceId && dateHelper.isEqualDate(date, data.date.date) && !sum) {
-                if (!data.groundId) {
-                    row = rows[i];
-                } else {
-                    if (rows[i].childNodes[2].childNodes[0].value == data.groundId) {
-                        row = rows[i];
-                    }
-                }
+            if (dateHelper.isEqualDate(date, data.date) && meterId == data.meterId && !sum) {
+                row = rows[i];
             }
         }
 
@@ -130,11 +126,11 @@ function ServiceDocumentModel(params) {
             return;
         }
 
-        row.childNodes[2].childNodes[0].value = data.groundId;
-        row.childNodes[4].childNodes[0].value = data.count;
-        row.childNodes[5].childNodes[0].value = data.price;
-        row.childNodes[6].childNodes[0].value = data.sum;
+        row.childNodes[4].childNodes[0].value = data.startData;
+        row.childNodes[5].childNodes[0].value = data.endData;
+        row.childNodes[6].childNodes[0].value = data.price;
+        row.childNodes[7].childNodes[0].value = data.sum;
     };
 
-    this.ServiceDocumentModel(params);
+    this.MeterServiceDocumentModel(params);
 }

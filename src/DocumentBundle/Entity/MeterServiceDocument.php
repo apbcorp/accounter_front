@@ -41,7 +41,7 @@ class MeterServiceDocument extends DocumentEntityAbstract
     /**
      * @var ArrayCollection
      *
-     * @ORM\OneToMany(targetEntity="ServiceRow", mappedBy="document")
+     * @ORM\OneToMany(targetEntity="MeterServiceRow", mappedBy="document")
      */
     private $rows;
 

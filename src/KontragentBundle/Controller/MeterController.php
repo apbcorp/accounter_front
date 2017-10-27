@@ -3,11 +3,13 @@
 namespace KontragentBundle\Controller;
 
 use CoreBundle\Controller\BaseEntityController;
+use KontragentBundle\Entity\Ground;
 use KontragentBundle\Entity\Meter;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
+use Symfony\Component\HttpFoundation\Response;
 
 class MeterController extends BaseEntityController
 {
@@ -81,5 +83,19 @@ class MeterController extends BaseEntityController
     public function supplyAction(Request $request)
     {
         return parent::suppplyAction($request);
+    }
+
+    /**
+     * @Route("/meter_by_ground/{id}")
+     * @Method("GET")
+     * @param Request $request
+     * @param int     $id
+     * @return JsonResponse
+     */
+    public function getMeterByGroundAction(Request $request, $id)
+    {
+        $groundRef = $this->getDoctrine()->getManager()->getReference(Ground::class, $id);
+
+        return $this->sendResponse($this->getRepository()->findBy(['ground' => $groundRef, 'deleted' => false]), Response::HTTP_OK);
     }
 }

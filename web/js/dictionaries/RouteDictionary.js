@@ -11,6 +11,8 @@ const ROUTES = {
     '/dictionary/consumer/(.*)\.html': 'controller.consumerCard',
     '/document/pays\.html': 'controller.payDocuments',
     '/document/service\.html': 'controller.serviceDocuments',
+    '/document/meter_service\.html': 'controller.meterServiceDocuments',
+    '/document/meter_service/(.*)\.html': 'controller.meterServiceDocument',
     '/document/meters\.html': 'controller.metersDocuments',
     '/document/tarifs\.html': 'controller.tarifsDocuments',
     '/document/tarifs/(.*)\.html': 'controller.tarifsDocument',

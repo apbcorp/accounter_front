@@ -96,6 +96,6 @@ class GroundController extends BaseEntityController
     {
         $kontragentRef = $this->getDoctrine()->getManager()->getReference(Kontragent::class, $id);
         
-        return $this->sendResponse($this->getRepository()->findBy(['kontragent' => $kontragentRef]), Response::HTTP_OK);
+        return $this->sendResponse($this->getRepository()->findBy(['kontragent' => $kontragentRef, 'deleted' => false]), Response::HTTP_OK);
     }
 }

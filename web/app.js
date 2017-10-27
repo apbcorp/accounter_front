@@ -504,6 +504,161 @@ function ServiceCardController() {
 
     this.ServiceCardController();
 }
+function MeterServiceDocumentController() {
+    AbstractDocumentController.call(this);
+    this.viewName = 'view.meterServiceDocument';
+    this.backUrl = '/document/meter_service.html';
+    this.model = new MeterServiceDocumentModel(this);
+    this.indexData = [];
+
+    this.MeterServiceDocumentController = function () {
+        this.onIndexDataChangedEvent = this.onIndexDataChanged.bind(this);
+        this.onAutoFillEvent = this.onAutoFill.bind(this);
+
+        this.events.push({'selector': '.indexData', 'action': 'blur', 'event': this.onIndexDataChangedEvent});
+        this.events.push({'selector': '.autoset_button', 'action': 'click', 'event': this.onAutoFillEvent});
+
+        this.AbstractDocumentController();
+    };
+
+    this.fillModel = function () {
+        var rows = [];
+        var elements = $('.table_row');
+
+        for (var i = 0; i < elements.length; i++) {
+            rows.push({
+                id: elements[i].dataset.id,
+                serviceId: elements[i].childNodes[1].childNodes[0].childNodes[0].dataset.id,
+                meterId: elements[i].childNodes[2].childNodes[0].value,
+                date: elements[i].childNodes[3].childNodes[0].value,
+                startData: elements[i].childNodes[4].childNodes[0].value,
+                endData: elements[i].childNodes[5].childNodes[0].value,
+                price: elements[i].childNodes[6].childNodes[0].value,
+                sum: elements[i].childNodes[7].childNodes[0].value
+            })
+        }
+
+        var data = {
+            date: $('[name="date"]')[0].value,
+            groundId: $('[name="ground"]')[0].dataset.id,
+            rows: rows
+        };
+
+        if (this.model.isValidData(data)) {
+            this.model.appendDataToRequest(data);
+
+            return true;
+        } else {
+            alert(this.model.getErrors())
+        }
+
+        return false;
+    };
+
+    this.afterOnBlur = function (event) {
+        if (event.target.firstElementChild.name == 'ground') {
+            this.model.fillMeterList(event.target.firstElementChild.dataset.id);
+        }
+    };
+
+    this.onIndexDataChanged = function (event) {
+        var serviceId = event.target.parentNode.parentNode.childNodes[1].childNodes[0].childNodes[0].dataset.id;
+        var date = event.target.parentNode.parentNode.childNodes[3].childNodes[0].value;
+        var meterId = event.target.parentNode.parentNode.childNodes[2].childNodes[0].value;
+
+        if (!serviceId || !date || !meterId) {
+            return;
+        }
+
+        this.model.fillRow(date, meterId, serviceId);
+    };
+
+    this.onRefreshComplete = function (data) {
+        if (data.groundId) {
+            this.model.groundId = 0;
+            this.model.fillMeterList(data.groundId);
+        }
+        var view = kernel.getServiceContainer().get(this.viewName);
+        view.render(data);
+
+        var eventContainer = kernel.getServiceContainer().get('container.event');
+        eventContainer.setEvents(this.events);
+    };
+
+    this.onAddRow = function () {
+        var ground = $('[name=ground]')[0];
+
+        if (!ground.dataset.id || !this.model.meterList) {
+            alert('Сначала необходимо указать Л/с');
+
+            return;
+        }
+
+        var view = kernel.getServiceContainer().get(this.viewName);
+        var html = $(view.addData(view.rowTemplate, {meterList: this.model.generateMeterList(0)}))[0];
+
+        $('.subtable')[0].append(html);
+
+        var eventContainer = kernel.getServiceContainer().get('container.event');
+        eventContainer.setEvents(this.events);
+    };
+
+    this.onAutoFill = function () {
+        var date = $('[name=date]')[0].value;
+        var groundId = $('[name=ground]')[0].dataset.id;
+
+        if(!groundId) {
+            alert('Сначала необходимо указать Л/с');
+
+            return;
+        }
+
+        this.model.fillAllRows(date, groundId);
+    };
+
+    this.onAutoFillComplete = function (data) {
+        data = data.result;
+
+        var rows = $('.table_row');
+        var rowService = '';
+        var date = '';
+        var meterId = '';
+        var dateHelper = kernel.getServiceContainer().get('helper.date');
+
+        for (var i = 0; i < data.length; i++) {
+            var isRowInTable = false;
+
+            for (var j = 0; j < rows.length; j++) {
+                rowService = parseInt(rows[j].childNodes[1].childNodes[0].childNodes[0].dataset.id);
+                date = rows[j].childNodes[3].childNodes[0].value;
+                meterId = parseInt(rows[j].childNodes[2].childNodes[0].value);
+
+                if (rowService == data[i].serviceId && dateHelper.isEqualPeriodMonth(date, data[i].date.date) && meterId == data[i].meterId) {
+                    isRowInTable = true;
+
+                    break;
+                }
+            }
+
+            if (!isRowInTable) {
+                this.onAddRow();
+
+                rows = $('.table_row');
+                var row = rows[rows.length - 1];
+                row.childNodes[1].childNodes[0].childNodes[0].dataset.id = data[i].serviceId;
+                row.childNodes[1].childNodes[0].childNodes[0].value = data[i].service;
+                row.childNodes[2].childNodes[0].value = data[i].meterId;
+                row.childNodes[3].childNodes[0].value = dateHelper.getDateFormatInput(data[i].date);
+                row.childNodes[4].childNodes[0].value = data[i].startData;
+                row.childNodes[5].childNodes[0].value = data[i].endData;
+                row.childNodes[6].childNodes[0].value = data[i].price;
+                row.childNodes[7].childNodes[0].value = data[i].sum;
+            }
+        }
+    };
+
+    this.MeterServiceDocumentController();
+}
 function MetersDocumentController() {
     AbstractDocumentController.call(this);
     this.viewName = 'view.meterDocument';
@@ -660,7 +815,10 @@ function ServiceDocumentController() {
     };
 
     this.onRefreshComplete = function (data) {
-        this.model.fillGroundList(data.kontragentId);
+        if (data.kontragentId) {
+            this.model.kontragentId = 0;
+            this.model.fillGroundList(data.kontragentId);
+        }
         var view = kernel.getServiceContainer().get(this.viewName);
         view.render(data);
 
@@ -777,6 +935,14 @@ function TarifsDocumentController() {
     };
 
     this.TarifsDocumentController();
+}
+function MeterServiceDocumentsController() {
+    AbstractDocumentsController.call(this);
+    this.model = new MeterServiceDocumentsModel(this);
+    this.cardPath = '/document/meter_service/';
+    this.viewName = 'view.meterServiceDocuments';
+
+    this.AbstractDocumentsController();
 }
 function MetersDocumentsController() {
     AbstractDocumentsController.call(this);
@@ -1157,6 +1323,7 @@ function MainControllerAbstract() {
         this.onGetServicesDictionaryEvent = this.onGetServicesDictionary.bind(this);
         this.onGetPayDocumentsEvent = this.onGetPayDocuments.bind(this);
         this.onGetServiceDocumentsEvent = this.onGetServiceDocuments.bind(this);
+        this.onGetMeterServiceDocumentsEvent = this.onGetMeterServiceDocuments.bind(this);
         this.onGetMetersDocumentsEvent = this.onGetMetersDocuments.bind(this);
         this.onGetTarifsDocumentsEvent = this.onGetTarifDocuments.bind(this);
         this.onGetMainReportEvent = this.onGetMainReport.bind(this);
@@ -1170,6 +1337,7 @@ function MainControllerAbstract() {
         this.events.push({'selector': '.consumer_dictionary_button', 'action': 'click', 'event': this.onGetConsumerDictionaryEvent});
         this.events.push({'selector': '.pay_documents_button', 'action': 'click', 'event': this.onGetPayDocumentsEvent});
         this.events.push({'selector': '.service_documents_button', 'action': 'click', 'event': this.onGetServiceDocumentsEvent});
+        this.events.push({'selector': '.service_meter_documents_button', 'action': 'click', 'event': this.onGetMeterServiceDocumentsEvent});
         this.events.push({'selector': '.meters_documents_button', 'action': 'click', 'event': this.onGetMetersDocumentsEvent});
         this.events.push({'selector': '.tarifs_documents_button', 'action': 'click', 'event': this.onGetTarifsDocumentsEvent});
         this.events.push({'selector': '.main_report_button', 'action': 'click', 'event': this.onGetMainReportEvent});
@@ -1200,6 +1368,10 @@ function MainControllerAbstract() {
 
     this.onGetServiceDocuments = function () {
         kernel.getServiceContainer().get('helper.navigator').goTo('/document/service.html');
+    };
+
+    this.onGetMeterServiceDocuments = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo('/document/meter_service.html');
     };
 
     this.onGetMetersDocuments = function () {
@@ -1355,6 +1527,8 @@ const ROUTES = {
     '/dictionary/consumer/(.*)\.html': 'controller.consumerCard',
     '/document/pays\.html': 'controller.payDocuments',
     '/document/service\.html': 'controller.serviceDocuments',
+    '/document/meter_service\.html': 'controller.meterServiceDocuments',
+    '/document/meter_service/(.*)\.html': 'controller.meterServiceDocument',
     '/document/meters\.html': 'controller.metersDocuments',
     '/document/tarifs\.html': 'controller.tarifsDocuments',
     '/document/tarifs/(.*)\.html': 'controller.tarifsDocument',
@@ -1406,6 +1580,8 @@ const SERVICES_LIST = {
     'view.consumerCard': {'class': 'ConsumerCardView', 'args': {}},
     'controller.serviceDocuments': {'class': 'ServiceDocumentsController', 'args': {}},
     'controller.serviceDocument': {'class': 'ServiceDocumentController', 'args': {}},
+    'controller.meterServiceDocuments': {'class': 'MeterServiceDocumentsController', 'args': {}},
+    'controller.meterServiceDocument': {'class': 'MeterServiceDocumentController', 'args': {}},
     'controller.metersDocuments': {'class': 'MetersDocumentsController', 'args': {}},
     'controller.metersDocument': {'class': 'MetersDocumentController', 'args': {}},
     'controller.payDocuments': {'class': 'PayDocumentsController', 'args': {}},
@@ -1417,12 +1593,14 @@ const SERVICES_LIST = {
     'controller.metersReport': {'class': 'MetersReportController', 'args': {}},
     'controller.smsReport': {'class': 'SmsReportController', 'args': {}},
     'view.serviceDocuments': {'class': 'ServiceDocumentsView', 'args': {}},
+    'view.meterServiceDocuments': {'class': 'MeterServiceDocumentsView', 'args': {}},
     'view.metersDocuments': {'class': 'MetersDocumentsView', 'args': {}},
     'view.paysDocuments': {'class': 'PayDocumentsView', 'args': {}},
     'view.tarifsDocuments': {'class': 'TarifsDocumentsView', 'args': {}},
     'view.tarifDocument': {'class': 'TarifsDocumentView', 'args': {}},
     'view.payDocument': {'class': 'PayDocumentView', 'args': {}},
     'view.meterDocument': {'class': 'MeterDocumentView', 'args': {}},
+    'view.meterServiceDocument': {'class': 'MeterServiceDocumentView', 'args': {}},
     'view.serviceDocument': {'class': 'ServiceDocumentView', 'args': {}},
     'view.balanceReports': {'class': 'BalanceReportsView', 'args': {}},
     'view.mainReports': {'class': 'MainReportsView', 'args': {}},
@@ -1700,6 +1878,142 @@ function ServiceCardModel(object) {
 
     this.AbstractCardModel(object);
 }
+function MeterServiceDocumentModel(params) {
+    DocumentAbstractModel.call(this);
+    this.baseUrl = '/api/v1.0/document/meter_service';
+    this.groundId = 0;
+    this.meterList = undefined;
+    this.meterListUrl = '/api/v1.0/dictionary/meter_by_ground/';
+
+    this.MeterServiceDocumentModel = function (object) {
+        var date = new Date();
+
+        this.groundId = 0;
+        this.defaultData.date = date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
+
+        this.DocumentAbstractModel(object);
+    };
+
+    this.isValidData = function (data) {
+        var validator = kernel.getServiceContainer().get('service.validator');
+        var validationData = [
+            {data: data.date, type: VALIDATION_TYPE_DATE, fieldName: DOCUMENT_DATE_LANG},
+            {data: data.groundId, type: VALIDATION_TYPE_OBJECT_ID, fieldName: KONTRAGENT_ID_LANG},
+            {data: data.rows, type: VALIDATION_TYPE_NOT_EMPTY_ARRAY, fieldName: SHEET_LANG},
+            {data: data.rows, type: VALIDATION_TYPE_TABLE_ROWS, fieldName: '', subvalidation: [
+                {data: 'serviceId', type: VALIDATION_TYPE_OBJECT_ID, fieldName: SERVICE_NAME_LANG},
+                {data: 'meterId', type: VALIDATION_TYPE_OBJECT_ID, fieldName: METER_NUMBER_LANG},
+                {data: 'date', type: VALIDATION_TYPE_DATE, fieldName: PERIOD_LANG},
+                {data: 'startData', type: VALIDATION_TYPE_FLOAT, fieldName: START_VALUE_LANG},
+                {data: 'endData', type: VALIDATION_TYPE_FLOAT, fieldName: END_VALUE_LANG},
+                {data: 'price', type: VALIDATION_TYPE_FLOAT, fieldName: TARIF_LANG},
+                {data: 'sum', type: VALIDATION_TYPE_FLOAT, fieldName: SUM_LANG}
+            ]}
+        ];
+
+        var isValid = validator.validate(validationData);
+        this.errors = isValid ? '' : validator.getErrors();
+
+        return isValid;
+    };
+
+    this.fillMeterList = function (id) {
+        if (this.groundId == id) {
+            return;
+        }
+        this.meterList = undefined;
+        var requester = kernel.getServiceContainer().get('requester.ajax2');
+        requester.setUrl(this.meterListUrl + id);
+        requester.setData({});
+        requester.setMethod(HTTP_METHOD_GET);
+        requester.setSuccess(this.setMeterList.bind(this));
+        requester.request();
+    };
+
+    this.setMeterList = function (data) {
+        data = data.result;
+
+        if (data && data[0].groundId) {
+            this.groundId = data[0].groundId;
+        }
+        
+        this.meterList = [];
+        for (var i = 0; i < data.length; i++) {
+            this.meterList[data[i].id] = data[i].number + '(' + data[i].type + ')';
+        }
+
+        var rows = $('.table_row');
+        var list = '';
+        for (var i = 0; i < rows.length; i++) {
+            if (rows[i].childNodes[2].childNodes[0].dataset.id == 'null') {
+                continue;
+            }
+
+            list = this.generateMeterList(rows[i].childNodes[2].childNodes[0].dataset.id);
+            rows[i].childNodes[2].childNodes[0].innerHTML = list;
+        }
+    };
+
+    this.generateMeterList = function (id) {
+        var result = '';
+        var list = this.meterList;
+        for (var key in list) {
+            result += '<option value="' + key + '"' + (key == id ? ' selected' : '') + '>' + list[key] + '</option>';
+        }
+
+        return result;
+    };
+
+    this.fillRow = function (date, meterId, serviceId) {
+        var requester = kernel.getServiceContainer().get('requester.ajax');
+        requester.setUrl('/api/v1.0/document/fill_meter_service_row');
+        requester.setData({date: date, meterId: meterId, serviceId:serviceId});
+        requester.setMethod(HTTP_METHOD_GET);
+        requester.setSuccess(this.setRowData.bind(this));
+        requester.request();
+    };
+
+    this.fillAllRows = function (date, groundId) {
+        var requester = kernel.getServiceContainer().get('requester.ajax');
+        requester.setUrl('/api/v1.0/document/fill_meter_service');
+        requester.setData({date: date, groundId: groundId});
+        requester.setMethod(HTTP_METHOD_GET);
+        requester.setSuccess(this.creator.onAutoFillComplete.bind(this.creator));
+        requester.request();
+    };
+
+    this.setRowData = function (data) {
+        data = data.result;
+
+        var rows = $('.table_row');
+        var sum = '';
+        var row = '';
+        var date = '';
+        var meterId = '';
+        var dateHelper = kernel.getServiceContainer().get('helper.date');
+
+        for (var i = 0; i < rows.length; i++) {
+            date = rows[i].childNodes[3].childNodes[0].value;
+            meterId = parseInt(rows[i].childNodes[2].childNodes[0].value);
+            sum = rows[i].childNodes[7].childNodes[0].value;
+
+            if (dateHelper.isEqualDate(date, data.date) && meterId == data.meterId && !sum) {
+                row = rows[i];
+            }
+        }
+
+        if (!row) {
+            return;
+        }
+
+        row.childNodes[4].childNodes[0].value = data.startData;
+        row.childNodes[5].childNodes[0].value = data.endData;
+        row.childNodes[6].childNodes[0].value = data.price;
+        row.childNodes[7].childNodes[0].value = data.sum;
+    };
+
+    this.MeterServiceDocumentModel(params);
+}
 function MetersDocumentModel(params) {
     DocumentAbstractModel.call(this);
     this.baseUrl = '/api/v1.0/document/meter';
@@ -1752,12 +2066,14 @@ function ServiceDocumentModel(params) {
     DocumentAbstractModel.call(this);
     this.baseUrl = '/api/v1.0/document/service_document';
     this.groundList = undefined;
+    this.kontragentId = 0;
     this.groundListUrl = '/api/v1.0/dictionary/ground_by_kontragent/';
 
     this.ServiceDocumentModel = function (object) {
         var date = new Date();
 
         this.defaultData.date = date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
+        this.kontragentId = 0;
         
         this.DocumentAbstractModel(object);
     };
@@ -1784,6 +2100,9 @@ function ServiceDocumentModel(params) {
     };
 
     this.fillGroundList = function (id) {
+        if (this.kontragentId == id) {
+            return;
+        }
         this.groundList = undefined;
         var requester = kernel.getServiceContainer().get('requester.ajax2');
         requester.setUrl(this.groundListUrl + id);
@@ -1796,9 +2115,13 @@ function ServiceDocumentModel(params) {
     this.setGroundList = function (data) {
         data = data.result;
 
+        if (data && data[0].kontragentId) {
+            this.kontragentId = data[0].kontragentId;
+        }
+
         this.groundList = [];
         for (var i = 0; i < data.length; i++) {
-            this.groundList[data[i].id] = data[0].accNumber;
+            this.groundList[data[i].id] = data[i].accNumber;
         }
 
         var rows = $('.table_row');
@@ -1915,6 +2238,26 @@ function TarifsDocumentModel(params) {
     };
 
     this.TarifsDocumentModel(params);
+}
+function MeterServiceDocumentsModel(params) {
+    DocumentsAbstractModel.call(this);
+
+    this.url = '/api/v1.0/document/list/meter_service';
+    this.dataNames = {
+        "id": RECORD_NUMBER_LANG,
+        "date": DOCUMENT_DATE_LANG,
+        "ground": KONTRAGENT_ID_LANG
+    };
+    this.filters = {
+        'period': {name: PERIOD_LANG, type:'period'},
+        'ground': {name:KONTRAGENT_ID_LANG, value:''}
+    };
+
+    this.MeterServiceDocumentsModel = function (object) {
+        this.DocumentsAbstractModel(object);
+    };
+
+    this.MeterServiceDocumentsModel(params);
 }
 function MetersDocumentsModel(params) {
     DocumentsAbstractModel.call(this);
@@ -2660,6 +3003,12 @@ function MeterDocumentView() {
     this.rowTemplate = '<ul class="table_row" data-id="{id}"><li><input type="checkbox" name="checker"></li><li><div class="selectbox" tabindex="-1"><input name="meter" data-id="{meterId}" data-type="meterDocument" value="{meter}" size="70"><p class="selectbox-list-hide"></p></div></li><li><input name="startValue" value="{startValue}" disabled></li><li><input name="endValue" value="{endValue}"></li></ul>';
     this.headTemplate = '<ul class="table_head"><li class="column_head"></li><li class="column_head" data-name="meter">{METER_NAME_LANG}</li><li class="column_head" data-name="startValue">{START_VALUE_LANG}</li><li class="column_head" data-name="endValue">{END_VALUE_LANG}</li></ul>';
 }
+function MeterServiceDocumentView() {
+    AbstractDocumentView.call(this);
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{DOCUMENT_DATE_LANG}<input type="date" name="date" value="{date}"></li><li class="card_cell">{KONTRAGENT_ID_LANG}<div class="selectbox" tabindex="-1"><input name="ground" data-id="{groundId}" data-type="ground" value="{ground}"><p class="selectbox-list-hide"></p></div></li></ul><ul class="card_row"><div class="table subtable"><ul class="button_panel"><button class="add_row_button"></button><button class="delete_row_button"></button><button class="autoset_button"></button></ul>{table}</div></ul></div>';
+    this.rowTemplate = '<ul class="table_row" data-id="{id}"><li><input type="checkbox" name="checker"></li><li><div class="selectbox indexData" tabindex="-1"><input name="service" data-id="{serviceId}" data-type="service" value="{service}"><p class="selectbox-list-hide"></p></div></li><li><select class="indexData" data-id="{meterId}" name="meterId">{meterList}</select></li><li><input class="indexData" type="date" name="date" value="{date}"></li><li><input name="startData" value="{startData}" disabled></li><li><input name="endData" value="{endData}" disabled></li><li><input name="price" value="{price}" disabled></li><li><input name="sum" value="{sum}" disabled></li></ul>';
+    this.headTemplate = '<ul class="table_head"><li class="column_head"></li><li class="column_head" data-name="service">{SERVICE_NAME_LANG}</li><li class="column_head" data-name="meter">{METER_NUMBER_LANG}</li><li class="column_head" data-name="date">{PERIOD_LANG}</li><li class="column_head" data-name="startData">{START_VALUE_LANG}</li><li class="column_head" data-name="endData">{END_VALUE_LANG}</li><li class="column_head" data-name="price">{TARIF_LANG}</li><li class="column_head" data-name="sum">{SUM_LANG}</li></ul>';
+}
 function PayDocumentView() {
     AbstractDocumentView.call(this);
     this.template = '';
@@ -2677,6 +3026,9 @@ function TarifsDocumentView() {
     this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{TARIFS_DATE_START_LANG}<input type="date" name="dateStart" value="{dateStart}"></li></ul><ul class="card_row"><div class="table subtable"><ul class="button_panel"><button class="add_row_button"></button><button class="delete_row_button"></button></ul>{table}</div></ul></div>';
     this.rowTemplate = '<ul class="table_row" data-id="{id}"><li><input type="checkbox" name="checker"></li><li><div class="selectbox" tabindex="-1"><input name="serviceId" data-id="{serviceId}" data-type="service" value="{service}"><p class="selectbox-list-hide"></p></div></li><li><input name="price" value="{price}"></li></ul>';
     this.headTemplate = '<ul class="table_head"><li class="column_head"></li><li class="column_head" data-name="serviceId">{SERVICE_NAME_LANG}</li><li class="column_head" data-name="price">{TARIF_LANG}</li></ul>';
+}
+function MeterServiceDocumentsView() {
+    AbstractDocumentsView.call(this);
 }
 function MetersDocumentsView() {
     AbstractDocumentsView.call(this);

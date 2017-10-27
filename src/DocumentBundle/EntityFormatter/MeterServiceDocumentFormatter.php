@@ -34,8 +34,9 @@ class MeterServiceDocumentFormatter extends EntityFormatterAbstract
                 'service' => $row->getService()->getName(),
                 'meterId' => $row->getMeter()->getId(),
                 'meter' => $row->getMeter()->getNumber(),
+                'date' => $row->getDate()->format('Y-m-d'),
                 'startData' => $row->getStartData(),
-                'end_data' => $row->getEndData(),
+                'endData' => $row->getEndData(),
                 'price' => $row->getPrice(),
                 'sum' => $row->getSum()
             ];

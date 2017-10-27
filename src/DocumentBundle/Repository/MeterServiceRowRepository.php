@@ -24,7 +24,7 @@ class MeterServiceRowRepository extends EntityRepository
                 $qb->expr()->andX(
                     $qb->expr()->eq('q.deleted', ':false'),
                     $qb->expr()->eq('q.meter', ':meter'),
-                    $qb->expr()->lte('q.created', ':date')
+                    $qb->expr()->lte('q.date', ':date')
                 )
             )
             ->setParameter('false', false)

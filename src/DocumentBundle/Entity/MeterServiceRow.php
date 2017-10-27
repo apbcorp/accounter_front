@@ -98,6 +98,13 @@ class MeterServiceRow extends DocumentEntityAbstract
     private $sum;
 
     /**
+     * @var \DateTime
+     *
+     * @ORM\Column(name="date", type="datetime")
+     */
+    private $date;
+
+    /**
      * @return MeterServiceDocument
      */
     public function getDocument()
@@ -226,6 +233,25 @@ class MeterServiceRow extends DocumentEntityAbstract
     public function setSum($sum)
     {
         $this->sum = $sum;
+
+        return $this;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function getDate()
+    {
+        return $this->date;
+    }
+
+    /**
+     * @param \DateTime $date
+     * @return $this
+     */
+    public function setDate(\DateTime $date)
+    {
+        $this->date = $date;
 
         return $this;
     }

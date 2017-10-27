@@ -1,11 +1,11 @@
-function ServiceDocumentController() {
+function MeterServiceDocumentController() {
     AbstractDocumentController.call(this);
-    this.viewName = 'view.serviceDocument';
-    this.backUrl = '/document/service.html';
-    this.model = new ServiceDocumentModel(this);
+    this.viewName = 'view.meterServiceDocument';
+    this.backUrl = '/document/meter_service.html';
+    this.model = new MeterServiceDocumentModel(this);
     this.indexData = [];
 
-    this.ServiceDocumentController = function () {
+    this.MeterServiceDocumentController = function () {
         this.onIndexDataChangedEvent = this.onIndexDataChanged.bind(this);
         this.onAutoFillEvent = this.onAutoFill.bind(this);
 
@@ -23,17 +23,18 @@ function ServiceDocumentController() {
             rows.push({
                 id: elements[i].dataset.id,
                 serviceId: elements[i].childNodes[1].childNodes[0].childNodes[0].dataset.id,
-                groundId: elements[i].childNodes[2].childNodes[0].value,
+                meterId: elements[i].childNodes[2].childNodes[0].value,
                 date: elements[i].childNodes[3].childNodes[0].value,
-                count: elements[i].childNodes[4].childNodes[0].value,
-                price: elements[i].childNodes[5].childNodes[0].value,
-                sum: elements[i].childNodes[6].childNodes[0].value
+                startData: elements[i].childNodes[4].childNodes[0].value,
+                endData: elements[i].childNodes[5].childNodes[0].value,
+                price: elements[i].childNodes[6].childNodes[0].value,
+                sum: elements[i].childNodes[7].childNodes[0].value
             })
         }
 
         var data = {
             date: $('[name="date"]')[0].value,
-            kontragentId: $('[name="kontragent"]')[0].dataset.id,
+            groundId: $('[name="ground"]')[0].dataset.id,
             rows: rows
         };
 
@@ -49,28 +50,27 @@ function ServiceDocumentController() {
     };
 
     this.afterOnBlur = function (event) {
-        if (event.target.firstElementChild.name == 'kontragent') {
-            this.model.fillGroundList(event.target.firstElementChild.dataset.id);
+        if (event.target.firstElementChild.name == 'ground') {
+            this.model.fillMeterList(event.target.firstElementChild.dataset.id);
         }
     };
 
     this.onIndexDataChanged = function (event) {
         var serviceId = event.target.parentNode.parentNode.childNodes[1].childNodes[0].childNodes[0].dataset.id;
         var date = event.target.parentNode.parentNode.childNodes[3].childNodes[0].value;
-        var kontragentId = $('[name=kontragent]')[0].dataset.id;
-        var groundId = event.target.parentNode.parentNode.childNodes[2].childNodes[0].value;
+        var meterId = event.target.parentNode.parentNode.childNodes[2].childNodes[0].value;
 
-        if (!serviceId || !date || !kontragentId || !groundId) {
+        if (!serviceId || !date || !meterId) {
             return;
         }
 
-        this.model.fillRow(date, kontragentId, groundId, serviceId);
+        this.model.fillRow(date, meterId, serviceId);
     };
 
     this.onRefreshComplete = function (data) {
-        if (data.kontragentId) {
-            this.model.kontragentId = 0;
-            this.model.fillGroundList(data.kontragentId);
+        if (data.groundId) {
+            this.model.groundId = 0;
+            this.model.fillMeterList(data.groundId);
         }
         var view = kernel.getServiceContainer().get(this.viewName);
         view.render(data);
@@ -80,18 +80,16 @@ function ServiceDocumentController() {
     };
 
     this.onAddRow = function () {
-        var fio = $('[name=kontragent]')[0];
+        var ground = $('[name=ground]')[0];
 
-        if (!fio.dataset.id || !this.model.groundList) {
-            alert('Сначала необходимо указать ФИО собственника');
+        if (!ground.dataset.id || !this.model.meterList) {
+            alert('Сначала необходимо указать Л/с');
 
             return;
         }
 
-        var groundList = '';
-
         var view = kernel.getServiceContainer().get(this.viewName);
-        var html = $(view.addData(view.rowTemplate, {groundList: this.model.generateGroundList(0)}))[0];
+        var html = $(view.addData(view.rowTemplate, {meterList: this.model.generateMeterList(0)}))[0];
 
         $('.subtable')[0].append(html);
 
@@ -101,9 +99,15 @@ function ServiceDocumentController() {
 
     this.onAutoFill = function () {
         var date = $('[name=date]')[0].value;
-        var kontragentId = $('[name=kontragent]')[0].dataset.id;
+        var groundId = $('[name=ground]')[0].dataset.id;
 
-        this.model.fillAllRows(date, kontragentId);
+        if(!groundId) {
+            alert('Сначала необходимо указать Л/с');
+
+            return;
+        }
+
+        this.model.fillAllRows(date, groundId);
     };
 
     this.onAutoFillComplete = function (data) {
@@ -112,7 +116,7 @@ function ServiceDocumentController() {
         var rows = $('.table_row');
         var rowService = '';
         var date = '';
-        var groundId = '';
+        var meterId = '';
         var dateHelper = kernel.getServiceContainer().get('helper.date');
 
         for (var i = 0; i < data.length; i++) {
@@ -121,10 +125,9 @@ function ServiceDocumentController() {
             for (var j = 0; j < rows.length; j++) {
                 rowService = parseInt(rows[j].childNodes[1].childNodes[0].childNodes[0].dataset.id);
                 date = rows[j].childNodes[3].childNodes[0].value;
-                groundId = parseInt(rows[j].childNodes[2].childNodes[0].value);
-                groundId = !groundId ? null : groundId;
+                meterId = parseInt(rows[j].childNodes[2].childNodes[0].value);
 
-                if (rowService == data[i].serviceId && dateHelper.isEqualPeriodMonth(date, data[i].date.date) && groundId == data[i].groundId) {
+                if (rowService == data[i].serviceId && dateHelper.isEqualPeriodMonth(date, data[i].date.date) && meterId == data[i].meterId) {
                     isRowInTable = true;
 
                     break;
@@ -138,14 +141,15 @@ function ServiceDocumentController() {
                 var row = rows[rows.length - 1];
                 row.childNodes[1].childNodes[0].childNodes[0].dataset.id = data[i].serviceId;
                 row.childNodes[1].childNodes[0].childNodes[0].value = data[i].service;
-                row.childNodes[2].childNodes[0].value = data[i].groundId;
-                row.childNodes[3].childNodes[0].value = dateHelper.getDateFormatInput(data[i].date.date);
-                row.childNodes[4].childNodes[0].value = data[i].count;
-                row.childNodes[5].childNodes[0].value = data[i].price;
-                row.childNodes[6].childNodes[0].value = data[i].sum;
+                row.childNodes[2].childNodes[0].value = data[i].meterId;
+                row.childNodes[3].childNodes[0].value = dateHelper.getDateFormatInput(data[i].date);
+                row.childNodes[4].childNodes[0].value = data[i].startData;
+                row.childNodes[5].childNodes[0].value = data[i].endData;
+                row.childNodes[6].childNodes[0].value = data[i].price;
+                row.childNodes[7].childNodes[0].value = data[i].sum;
             }
         }
     };
-    
-    this.ServiceDocumentController();
+
+    this.MeterServiceDocumentController();
 }

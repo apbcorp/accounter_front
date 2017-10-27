@@ -50,11 +50,13 @@ class MeterServiceGenerator
             'endData' => $meterRepo->getEndValueByDate($meter, $date),
             'price' => $tarifRepo->getPrice($service, $date),
             'meterId' => $meter->getId(),
-            'date' => $date->format('Y-m-d')
+            'date' => $date->format('Y-m-d'),
+            'serviceId' => $service->getId(),
+            'service' => $service->getName()
         ];
 
-        $result['sum'] = $result['endDate'] > $result['startDate']
-            ? ($result['endDate'] - $result['startDate']) * $result['price']
+        $result['sum'] = $result['endData'] > $result['startData']
+            ? ($result['endData'] - $result['startData']) * $result['price']
             : 0;
 
         return $result;
@@ -66,10 +68,10 @@ class MeterServiceGenerator
      * @return array
      * @throws \Doctrine\ORM\ORMException
      */
-    public function generateByGroundId(\DateTime $date, $groundId, $unitId)
+    public function generateByGroundId(\DateTime $date, $groundId)
     {
         $groundReference = $this->em->getReference(Ground::class, $groundId);
-        $meterList = $this->em->getRepository(Meter::class)->find(['deleted' => false, 'ground' => $groundReference]);
+        $meterList = $this->em->getRepository(Meter::class)->findBy(['deleted' => false, 'ground' => $groundReference]);
 
         $result = [];
         /** @var Meter $meter */
@@ -78,7 +80,6 @@ class MeterServiceGenerator
             /** @var Service $service */
             $service = $this->em->getRepository(Service::class)->findOneBy([
                 'deleted' => false,
-                'unitId' => $unitId,
                 'subtype' => $serviceSubType
             ]);
             $result[] = $this->generateByMeter($date, $meter, $service);

@@ -13,7 +13,7 @@ class BaseEntityController extends BaseDocumentController
      */
     public function suppplyAction(Request $request)
     {
-        $search = $request->get('search');
+        $search = urldecode($request->get('search'));
 
         if (!$search) {
             return $this->sendResponse([], Response::HTTP_OK);
