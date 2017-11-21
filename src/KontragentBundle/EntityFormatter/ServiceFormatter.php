@@ -20,7 +20,8 @@ class ServiceFormatter extends EntityFormatterAbstract
             'id' => $entity->getId(),
             'name' => $entity->getName(),
             'type' => $entity->getType(),
-            'subtype' => $entity->getSubType()
+            'subtype' => $entity->getSubType(),
+            'periodType' => $entity->getPeriodType()
         ];
     }
 

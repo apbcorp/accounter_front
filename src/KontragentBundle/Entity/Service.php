@@ -52,6 +52,13 @@ class Service implements EntityInterface
     private $deleted;
 
     /**
+     * @var int
+     *
+     * @ORM\Column(name="period_type", type="integer")
+     */
+    private $periodType;
+
+    /**
      * @return int
      */
     public function getId()
@@ -131,6 +138,25 @@ class Service implements EntityInterface
     public function setIsDeleted($deleted)
     {
         $this->deleted = $deleted;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPeriodType()
+    {
+        return $this->periodType;
+    }
+
+    /**
+     * @param int $periodType
+     * @return $this
+     */
+    public function setPeriodType($periodType)
+    {
+        $this->periodType = $periodType;
 
         return $this;
     }

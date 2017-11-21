@@ -26,7 +26,8 @@ function ServiceCardController() {
         var data = {
             name: $('[name="name"]')[0].value,
             type: $('[name="type"]')[0].value,
-            subtype: $('[name="subtype"]')[0].value
+            subtype: $('[name="subtype"]')[0].value,
+            periodType: $('[name="periodType"]')[0].value
         };
 
         if (this.model.isValidData(data)) {

@@ -62,6 +62,10 @@ class GroundFormatter extends EntityFormatterAbstract
         }
 
         foreach ($data['rows'] as $row) {
+            if (!$row['id'] && !$row['number'] && !$row['line'] && !$row['groundNumber']) {
+                continue;
+            }
+
             if (!$row['id']) {
                 $groundPart = $this->entityFactory->createGroundPart();
                 $this->entityManager->persist($groundPart);
@@ -72,6 +76,12 @@ class GroundFormatter extends EntityFormatterAbstract
                     $groundPart = $this->entityFactory->createGroundPart();
                     $this->entityManager->persist($groundPart);
                 }
+            }
+
+            if (!$row['number'] && !$row['line'] && !$row['groundNumber']) {
+                $this->entityManager->remove($groundPart);
+                
+                continue;
             }
 
             $groundPart->setNumber($row['number']);

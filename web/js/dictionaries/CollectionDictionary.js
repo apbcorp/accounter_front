@@ -63,6 +63,14 @@ var collections = {
             5: {name: 'По занимаемой площади'}
         }
     },
+    servicePeriodTypesCollection: {
+        type: 'static',
+        data: {
+            1: {name: 'Без периодизации'},
+            2: {name: 'Ежемесячно'},
+            3: {name: 'Ежегодно'}
+        }
+    },
     serviceCollection: {
         type: 'static',
         data: {}

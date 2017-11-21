@@ -31,15 +31,13 @@ function GroundCardController() {
     this.fillModel = function () {
         var rows = [];
 
-        for (var i = 1; i < 5; i++) {
+        for (var i = 1; i <= 5; i++) {
             var id = $('[name=id' + i + ']')[0].value;
             var number = $('[name=number' + i + ']')[0].value;
             var line = $('[name=line' + i + ']')[0].value;
             var lineNumber = $('[name=line_number' + i + ']')[0].value;
 
-            if (number || line || lineNumber) {
-                rows.push({number: number, line: line, groundNumber: lineNumber, id: id});
-            }
+            rows.push({number: number, line: line, groundNumber: lineNumber, id: id});
         }
 
         var data = {
@@ -73,7 +71,7 @@ function GroundCardController() {
         commonArea = commonArea ? commonArea : 0;
         
         var sum = parseFloat(area) + parseFloat(freeArea) + parseFloat(commonArea);
-        $('[name="allArea"]')[0].value = !sum ? 0 : sum;
+        $('[name="allArea"]')[0].value = !sum ? 0 : sum.toFixed(3);
     };
 
     this.GroundCardController();

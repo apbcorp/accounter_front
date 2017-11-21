@@ -120,11 +120,30 @@ class ServiceGenerator
         /** @var ServiceRowRepository $serviceRowRepo */
         $serviceRowRepo = $this->entityManager->getRepository(ServiceRow::class);
         $strDate = strtotime($date->format('Y-m-d'));
+
+        switch ($service->getPeriodType()) {
+            case ServiceTypeDictionary::MONTH__PERIOD_TYPE:
+                $startDate = new \DateTime(date('Y-m-1', $strDate));
+                $endDate = new \DateTime(date('Y-m-t', $strDate));
+
+                break;
+            case ServiceTypeDictionary::YEAR__PERIOD_TYPE:
+                $startDate = new \DateTime(date('Y-1-1', $strDate));
+                $endDate = new \DateTime(date('Y-12-31', $strDate));
+
+                break;
+            default:
+                $startDate = new \DateTime(date('1990-1-1', $strDate));
+                $endDate = new \DateTime(date('1990-1-1', $strDate));
+
+                break;
+        }
+
         $usedCount = $serviceRowRepo->getCountByPeriod(
             $service,
             $ground,
-            new \DateTime(date('Y-m-1', $strDate)),
-            new \DateTime(date('Y-m-t', $strDate))
+            $startDate,
+            $endDate
         );
 
         return $defaultCount > $usedCount ? $defaultCount - $usedCount : 0;

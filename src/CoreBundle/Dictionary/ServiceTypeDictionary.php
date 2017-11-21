@@ -11,6 +11,9 @@ class ServiceTypeDictionary
     const ELECTRICITY_SUBTYPE = 3;
     const WATER_SUBTYPE = 4;
     const AREA_SUBTYPE = 5;
+    const NO_PERIOD__PERIOD_TYPE = 1;
+    const MONTH__PERIOD_TYPE = 2;
+    const YEAR__PERIOD_TYPE = 3;
 
     const TYPE_LANGS = [
         self::KONTRAGENT_TYPE => 'Член сообщества',

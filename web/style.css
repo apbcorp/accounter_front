@@ -137,7 +137,7 @@ button.cancel_button {
 div.sheet {
     margin: 30px auto 30px auto;
     width: 70%;
-    height: 90%;
+    min-height: 90%;
     background-color: lightgray;
 }
 div.table {

@@ -369,15 +369,13 @@ function GroundCardController() {
     this.fillModel = function () {
         var rows = [];
 
-        for (var i = 1; i < 5; i++) {
+        for (var i = 1; i <= 5; i++) {
             var id = $('[name=id' + i + ']')[0].value;
             var number = $('[name=number' + i + ']')[0].value;
             var line = $('[name=line' + i + ']')[0].value;
             var lineNumber = $('[name=line_number' + i + ']')[0].value;
 
-            if (number || line || lineNumber) {
-                rows.push({number: number, line: line, groundNumber: lineNumber, id: id});
-            }
+            rows.push({number: number, line: line, groundNumber: lineNumber, id: id});
         }
 
         var data = {
@@ -411,7 +409,7 @@ function GroundCardController() {
         commonArea = commonArea ? commonArea : 0;
         
         var sum = parseFloat(area) + parseFloat(freeArea) + parseFloat(commonArea);
-        $('[name="allArea"]')[0].value = !sum ? 0 : sum;
+        $('[name="allArea"]')[0].value = !sum ? 0 : sum.toFixed(3);
     };
 
     this.GroundCardController();
@@ -488,7 +486,8 @@ function ServiceCardController() {
         var data = {
             name: $('[name="name"]')[0].value,
             type: $('[name="type"]')[0].value,
-            subtype: $('[name="subtype"]')[0].value
+            subtype: $('[name="subtype"]')[0].value,
+            periodType: $('[name="periodType"]')[0].value
         };
 
         if (this.model.isValidData(data)) {
@@ -1009,6 +1008,7 @@ function ServiceDocumentsController() {
     this.model = new ServiceDocumentsModel(this);
     this.cardPath = '/document/service/';
     this.viewName = 'view.serviceDocuments';
+    this.apiPath = '/document/service_document/';
 
     this.AbstractDocumentsController();
 }
@@ -1082,9 +1082,25 @@ function BalanceReportController() {
 }
 function MainReportController() {
     AbstractReportController.call(this);
+    this.viewName = 'view.mainReportView';
+    this.reportUrl = '/api/v1.0/report/main';
+
+    this.MainReportController = function () {
+        this.AbstractReportController();
+    };
+
+    this.MainReportController();
 }
 function MetersReportController() {
     AbstractReportController.call(this);
+    this.viewName = 'view.metersReportView';
+    this.reportUrl = '/api/v1.0/document/report/meters';
+
+    this.MetersReportController = function () {
+        this.AbstractReportController();
+    };
+
+    this.MetersReportController();
 }
 function SmsReportController() {
     AbstractReportController.call(this);
@@ -1348,6 +1364,15 @@ function AbstractDocumentController() {
 }
 function AbstractDocumentsController() {
     AbstractDictionaryController.call(this);
+    this.apiPath = '';
+
+    this.onDeleteRecord = function () {
+        if (this.model.currentId === undefined) {
+            return;
+        }
+
+        this.model.delete(this.apiPath + 'delete/' + this.model.currentId);
+    };
 
     this.AbstractDocumentsController = function () {
         this.AbstractDictionaryController()
@@ -1355,6 +1380,35 @@ function AbstractDocumentsController() {
 }
 function AbstractReportController() {
     MainControllerAbstract.call(this);
+    this.viewName = '';
+    this.reportUrl = '';
+
+    this.AbstractReportController = function () {
+        this.MainControllerAbstract();
+    };
+
+    this.init = function () {
+        this.getData();
+    };
+
+    this.getData = function () {
+        var requester = kernel.getServiceContainer().get('requester.ajax');
+        var dataHelper = kernel.getServiceContainer().get('helper.date');
+        var selector = $('[name="dateStart"]');
+        var startDate = selector.length ? selector[0].value : dataHelper.getFirstDayOfMonth(new Date());
+        selector = $('[name="dateEnd"]');
+        var endDate = selector.length ? selector[0].value : dataHelper.getLastDayOfMonth(new Date());
+        requester.setUrl(this.reportUrl);
+        requester.setData({dateStart: startDate, dateEnd: endDate});
+        requester.setMethod(HTTP_METHOD_GET);
+        requester.setSuccess(this.onRender.bind(this));
+        requester.request();
+    };
+
+    this.onRender = function (data) {
+        var view = kernel.getServiceContainer().get(this.view);
+        view.render(data);
+    };
 }
 function MainControllerAbstract() {
     this.events = [];
@@ -1506,6 +1560,14 @@ var collections = {
             5: {name: 'По занимаемой площади'}
         }
     },
+    servicePeriodTypesCollection: {
+        type: 'static',
+        data: {
+            1: {name: 'Без периодизации'},
+            2: {name: 'Ежемесячно'},
+            3: {name: 'Ежегодно'}
+        }
+    },
     serviceCollection: {
         type: 'static',
         data: {}
@@ -1546,6 +1608,7 @@ var METER_GROUND_OWNER_LANG = "Участок установки";
 var SERVICE_NAME_LANG = "Название услуги";
 var SERVICE_TYPE_LANG = "Тип потребителя услуги";
 var SERVICE_CALC_TYPE_BASE_LANG = "Тип базы для расчета";
+var SERVICE_PERIOD_TYPE_LANG = "Период начисления";
 var TARIFS_DATE_START_LANG = "Дата начала действия";
 var DOCUMENT_DATE_LANG = "Дата документа";
 var TARIF_LANG = "Тариф, грн";
@@ -3071,12 +3134,13 @@ function MeterCardView() {
 }
 function ServiceCardView() {
     AbstractCardView.call(this);
-    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{SERVICE_NAME_LANG}<input name="name" value="{name}"></li><li class="card_cell">{SERVICE_TYPE_LANG}<select name="type">{type}</select></li></ul><ul class="card_row"><li class="card_cell">{SERVICE_CALC_TYPE_BASE_LANG}<select name="subtype">{subtype}</select></li></ul></div>';
+    this.template = '<div class="sheet"><ul><button class="save_button"></button><button class="cancel_button"></button></ul><ul class="card_row"><li class="card_cell">{SERVICE_NAME_LANG}<input name="name" value="{name}"></li><li class="card_cell">{SERVICE_TYPE_LANG}<select name="type">{type}</select></li></ul><ul class="card_row"><li class="card_cell">{SERVICE_CALC_TYPE_BASE_LANG}<select name="subtype">{subtype}</select></li><li class="card_cell">{SERVICE_PERIOD_TYPE_LANG}<select name="periodType">{periodType}</select></li></ul></div>';
 
     this.buildTemplate = function (data) {
         var container = kernel.getServiceContainer().get('container.collection');
         data['type'] = container.getDataForSelect('serviceTypes', data['type']);
         data['subtype'] = container.getDataForSelect('serviceSubtypes', data['subtype']);
+        data['periodType'] = container.getDataForSelect('servicePeriodTypes', data['periodType']);
         var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
         html += this.addData(this.template, data) + '</div>';
 
