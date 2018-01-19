@@ -5,7 +5,8 @@ function MeterServiceDocumentsModel(params) {
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
         "date": DOCUMENT_DATE_LANG,
-        "ground": KONTRAGENT_ID_LANG
+        "ground": KONTRAGENT_ID_LANG,
+        "doc": RECEIPT
     };
     this.filters = {
         'period': {name: PERIOD_LANG, type:'period'},
