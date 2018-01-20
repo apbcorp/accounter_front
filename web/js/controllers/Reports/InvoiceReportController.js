@@ -17,15 +17,21 @@ function InvoiceReportController() {
     };
 
     this.getRequestUrl = function () {
-        var selector = $('[name="id"]');
+        var selector = $('.invoice[name="id"]');
 
         if (selector.length) {
+            this.currentId = selector[0].value;
+            
             return this.reportUrl + selector[0].value;
         }
 
         var data = kernel.getServiceContainer().get('helper.url').getUrlParamsObject(document.location.href);
 
-        return data['id'] === undefined ? this.reportUrl + '1' : this.reportUrl + data['id'];
+        if (!data['id'] !== undefined) {
+            this.currentId = data['id'];
+        }
+        
+        return this.reportUrl + this.currentId;
     };
 
     this.InvoiceReportController();

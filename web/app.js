@@ -1113,15 +1113,21 @@ function InvoiceReportController() {
     };
 
     this.getRequestUrl = function () {
-        var selector = $('[name="id"]');
+        var selector = $('.invoice[name="id"]');
 
         if (selector.length) {
+            this.currentId = selector[0].value;
+            
             return this.reportUrl + selector[0].value;
         }
 
         var data = kernel.getServiceContainer().get('helper.url').getUrlParamsObject(document.location.href);
 
-        return data['id'] === undefined ? this.reportUrl + '1' : this.reportUrl + data['id'];
+        if (!data['id'] !== undefined) {
+            this.currentId = data['id'];
+        }
+        
+        return this.reportUrl + this.currentId;
     };
 
     this.InvoiceReportController();
@@ -1162,15 +1168,21 @@ function MeterInvoiceReportController() {
     };
 
     this.getRequestUrl = function () {
-        var selector = $('[name="id"]');
+        var selector = $('.meter-invoice[name="id"]');
 
         if (selector.length) {
+            this.currentId = selector[0].value;
+            
             return this.reportUrl + selector[0].value;
         }
 
         var data = kernel.getServiceContainer().get('helper.url').getUrlParamsObject(document.location.href);
 
-        return data['id'] === undefined ? this.reportUrl + '1' : this.reportUrl + data['id'];
+        if (!data['id'] !== undefined) {
+            this.currentId = data['id'];
+        }
+
+        return this.reportUrl + this.currentId;
     };
 
     this.MeterInvoiceReportController();
@@ -1213,15 +1225,21 @@ function SocialInvoiceReportController() {
     };
 
     this.getRequestUrl = function () {
-        var selector = $('[name="id"]');
+        var selector = $('.social-invoice[name="id"]');
 
         if (selector.length) {
+            this.currentId = selector[0].value;
+            
             return this.reportUrl + selector[0].value;
         }
 
         var data = kernel.getServiceContainer().get('helper.url').getUrlParamsObject(document.location.href);
 
-        return data['id'] === undefined ? this.reportUrl + '1' : this.reportUrl + data['id'];
+        if (!data['id'] !== undefined) {
+            this.currentId = data['id'];
+        }
+        
+        return this.reportUrl + this.currentId;
     };
 
     this.SocialInvoiceReportController();
@@ -1507,6 +1525,7 @@ function AbstractReportController() {
     MainControllerAbstract.call(this);
     this.viewName = '';
     this.reportUrl = '';
+    this.currentId = 1;
 
     this.AbstractReportController = function () {
         this.MainControllerAbstract();
@@ -1541,6 +1560,7 @@ function AbstractReportController() {
 
     this.onRender = function (data) {
         var view = kernel.getServiceContainer().get(this.view);
+        data.currentId = this.currentId;
         view.render(data);
 
         var eventContainer = kernel.getServiceContainer().get('container.event');
@@ -1639,15 +1659,15 @@ function MainControllerAbstract() {
     };
 
     this.onInvoiceReport = function () {
-        kernel.getServiceContainer().get('helper.navigator').goTo('/report/invoice.html');
+        kernel.getServiceContainer().get('helper.navigator').goTo('/report/invoice.html?id=2');
     };
 
     this.onMeterInvoiceReport = function () {
-        kernel.getServiceContainer().get('helper.navigator').goTo('/report/meter_invoice.html');
+        kernel.getServiceContainer().get('helper.navigator').goTo('/report/meter_invoice.html?id=2');
     };
 
     this.onSocialInvoiceReport = function () {
-        kernel.getServiceContainer().get('helper.navigator').goTo('/report/social_invoice.html');
+        kernel.getServiceContainer().get('helper.navigator').goTo('/report/social_invoice.html?id=2');
     };
 }
 var collections = {
@@ -3474,16 +3494,14 @@ function InvoiceReportView() {
     AbstractCardView.call(this);
 
     this.buildTemplate = function (data) {
+        var id = data.currentId;
         data = data.result;
         var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
-        var id = 1;
         if (data.id === undefined) {
             alert('Квитанция с таким номером не найдена');
-        } else {
-            id = data.id;
         }
 
-        html += '<div class="reportSheet"><li><ul><table><tr><td class="noprint">Номер квитанции&nbsp;<input name="id" value="';
+        html += '<div class="reportSheet"><li><ul><table><tr><td class="noprint">Номер квитанции&nbsp;<input class="invoice" name="id" value="';
         html += id + '">&nbsp;&nbsp;<button class="submit">Сформировать</button></td></tr>';
 
         if (data.id === undefined) {
@@ -3625,16 +3643,14 @@ function MeterInvoiceReportView() {
     AbstractCardView.call(this);
 
     this.buildTemplate = function (data) {
+        var id = data.currentId;
         data = data.result;
         var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
-        var id = 1;
         if (data.id === undefined) {
             alert('Квитанция с таким номером не найдена');
-        } else {
-            id = data.id;
         }
 
-        html += '<div class="reportSheet"><li><ul><table><tr><td class="noprint">Номер квитанции&nbsp;<input name="id" value="';
+        html += '<div class="reportSheet"><li><ul><table><tr><td class="noprint">Номер квитанции&nbsp;<input class="meter-invoice" name="id" value="';
         html += id + '">&nbsp;&nbsp;<button class="submit">Сформировать</button></td></tr>';
 
         if (data.id === undefined) {
@@ -3734,16 +3750,14 @@ function SocialInvoiceReportView() {
     AbstractCardView.call(this);
 
     this.buildTemplate = function (data) {
+        var id = data.currentId;
         data = data.result;
         var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
-        var id = 1;
         if (data.id === undefined) {
             alert('Квитанция с таким номером не найдена');
-        } else {
-            id = data.id;
         }
 
-        html += '<div class="reportSheet"><li><ul><table><tr><td class="noprint">Номер квитанции&nbsp;<input name="id" value="';
+        html += '<div class="reportSheet"><li><ul><table><tr><td class="noprint">Номер квитанции&nbsp;<input class="social-invoice" name="id" value="';
         html += id + '">&nbsp;&nbsp;<button class="submit">Сформировать</button></td></tr>';
 
         if (data.id === undefined) {

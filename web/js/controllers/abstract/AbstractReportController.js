@@ -2,6 +2,7 @@ function AbstractReportController() {
     MainControllerAbstract.call(this);
     this.viewName = '';
     this.reportUrl = '';
+    this.currentId = 1;
 
     this.AbstractReportController = function () {
         this.MainControllerAbstract();
@@ -36,6 +37,7 @@ function AbstractReportController() {
 
     this.onRender = function (data) {
         var view = kernel.getServiceContainer().get(this.view);
+        data.currentId = this.currentId;
         view.render(data);
 
         var eventContainer = kernel.getServiceContainer().get('container.event');

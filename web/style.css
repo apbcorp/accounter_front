@@ -140,6 +140,11 @@ div.sheet {
     min-height: 90%;
     background-color: lightgray;
 }
+div.reportSheet {
+    margin: 30px auto 30px auto;
+    width: 70%;
+    min-height: 90%;
+}
 div.table {
     display: inline-block;
     border: 1px groove black;
@@ -227,4 +232,12 @@ button.paginator-button.active {
 }
 div.table > ul.button_panel {
     display: block;
+}
+td.head1 {
+    text-align: center;
+}
+@media print {
+    .noprint {
+        display: none !important;
+    }
 }
