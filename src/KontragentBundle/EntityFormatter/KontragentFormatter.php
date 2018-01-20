@@ -48,6 +48,9 @@ class KontragentFormatter extends EntityFormatterAbstract
             return false;
         }
         
+        $data['phone'] = $data['phone'] ? : '';
+        $data['adress'] = $data['adress'] ? : '';
+        
         foreach ($data as $key => $value) {
             $method = $this->getSetter($key, $entity);
 

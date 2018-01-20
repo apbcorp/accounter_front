@@ -54,12 +54,26 @@ class MeterServiceRow extends DocumentEntityAbstract
     private $document;
 
     /**
+     * @var integer
+     *
+     * @ORM\Column(name="document_id", type="integer")
+     */
+    private $documentId;
+
+    /**
      * @var Service
      *
      * @ORM\ManyToOne(targetEntity="\KontragentBundle\Entity\Service")
      * @ORM\JoinColumn(name="service_id", referencedColumnName="id")
      */
     private $service;
+
+    /**
+     * @var integer
+     *
+     * @ORM\Column(name="service_id", type="integer")
+     */
+    private $serviceId;
 
     /**
      * @var Meter

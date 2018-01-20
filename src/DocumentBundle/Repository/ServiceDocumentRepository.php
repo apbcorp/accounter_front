@@ -4,8 +4,10 @@ namespace DocumentBundle\Repository;
 
 use CoreBundle\BaseClasses\ListRepositoryAbstract;
 use Doctrine\ORM\Query\Expr\Join;
+use DocumentBundle\Entity\ServiceDocument;
 use DocumentBundle\Entity\ServiceRow;
 use KontragentBundle\Entity\Ground;
+use KontragentBundle\Entity\GroundParts;
 use KontragentBundle\Entity\Kontragent;
 use KontragentBundle\Entity\Service;
 
@@ -101,5 +103,98 @@ class ServiceDocumentRepository extends ListRepositoryAbstract
         $result = $qb->getQuery()->getResult();
 
         return $result[0]['summa'];
+    }
+
+    public function getReport(\DateTime $dateStart, \DateTime $dateEnd, $unitId)
+    {
+        $qb = $this->getEntityManager()->createQueryBuilder();
+        $qb->select('q.id, q.kontragentId, q.accNumber, q.area, q.freeArea, q.commonArea, q.allArea, k.name, k.surname, k.name2')
+            ->from(Ground::class, 'q')
+            ->join(Kontragent::class, 'k', Join::WITH, 'q.kontragentId = k.id')
+            ->where(
+                $qb->expr()->andX(
+                    $qb->expr()->eq('q.deleted', ':false'),
+                    $qb->expr()->eq('q.unitId', ':unitId')
+                )
+            )
+            ->setParameter('false', false)
+            ->setParameter('unitId', $unitId);
+
+        $grounds = $qb->getQuery()->getResult();
+
+        $qb = $this->getEntityManager()->createQueryBuilder();
+        $qb->select('q.groundId, q.number, q.line, q.groundNumber')
+            ->from(GroundParts::class, 'q')
+            ->where($qb->expr()->eq('q.deleted', ':false'))
+            ->setParameter('false', false);
+
+        $groundParts = $qb->getQuery()->getResult();
+
+        $qb = $this->getEntityManager()->createQueryBuilder();
+        $qb->select('q.groundId, q.serviceId, SUM(q.sum) as summa, d.kontragentId')
+            ->from(ServiceRow::class, 'q')
+            ->join(ServiceDocument::class, 'd', Join::WITH, 'q.documentId = d.id')
+            ->where(
+                $qb->expr()->andX(
+                    $qb->expr()->eq('q.deleted', ':false'),
+                    $qb->expr()->gte('q.date', ':dateStart'),
+                    $qb->expr()->lte('q.date', ':dateEnd')
+                )
+            )
+            ->groupBy('q.groundId, q.serviceId')
+            ->setParameter('false', false)
+            ->setParameter('dateStart', $dateStart)
+            ->setParameter('dateEnd', $dateEnd);
+
+        $services = $qb->getQuery()->getResult();
+
+        $serviceNames = [];
+        $result = [];
+
+        foreach ($grounds as $ground) {
+            $record = [
+                'kontragent' => implode(' ', [$ground['surname'], $ground['name'], $ground['name2']]),
+                'account' => $ground['accNumber'],
+                'house' => [],
+                'area' => $ground['area'],
+                'freeArea' => $ground['freeArea'],
+                'commonArea' => $ground['commonArea'],
+                'allArea' => $ground['allArea'],
+                'services' => []
+            ];
+
+            foreach ($groundParts as $part) {
+                if ($part['groundId'] == $ground['id']) {
+                    $record['house'][] = ['number' => $part['number'], 'line' => $part['line'], 'groundNumber' => $part['groundNumber']];
+                }
+            }
+
+            foreach ($services as $key => $service) {
+                if ($service['groundId'] == $ground['id'] || (!$service['groundId'] && $service['kontragentId'] == $ground['kontragentId'])) {
+                    if (!isset($serviceNames[$service['serviceId']])) {
+                        /** @var Service $serviceEntity */
+                        $serviceEntity = $this->getEntityManager()->getRepository(Service::class)->find($service['serviceId']);
+                        $serviceNames[$service['serviceId']] = $serviceEntity->getName();
+                    }
+
+                    $record['services'][] = ['name' => $serviceNames[$service['serviceId']], 'sum' => $service['summa'], 'id' => $service['serviceId']];
+
+                    if (!$service['groundId']) {
+                        $services[$key]['summa'] = 0;
+                    }
+                }
+            }
+
+            $result[] = $record;
+        }
+
+        return [
+            'result' => $result,
+            'services' => $serviceNames,
+            'additionalInfo' => [
+                'dateStart' => $dateStart,
+                'dateEnd' => $dateEnd
+            ]
+        ];
     }
 }

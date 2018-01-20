@@ -107,6 +107,23 @@ class MeterDocumentRepository extends ListRepositoryAbstract
 
         $result = [];
         foreach ($meters as $meter) {
+            $kontragent = implode(' ', [$meter['surname'], $meter['name'], $meter['name2']]);
+            $ground = $meter['accNumber'];
+            $type = MetricTypeDictionary::LANGS[$meter['type']];
+            $meterName = $meter['meterName'];
+
+            if (!isset($result[$kontragent])) {
+                $result[$kontragent] = [];
+            }
+
+            if (!isset($result[$kontragent][$ground])) {
+                $result[$kontragent][$ground] = [];
+            }
+
+            if (!isset($result[$kontragent][$ground][$type])) {
+                $result[$kontragent][$ground][$type] = [];
+            }
+
             $qb = $this->getEntityManager()->createQueryBuilder();
 
             $qb->select('r.endValue')
@@ -130,16 +147,18 @@ class MeterDocumentRepository extends ListRepositoryAbstract
             $qb->setParameter('date', $dateEnd);
             $query2Result = $qb->getQuery()->getResult();
 
-            $result[] = [
-                'kontragent' => implode(' ', [$meter['surname'], $meter['name'], $meter['name2']]),
-                'ground' => $meter['accNumber'],
-                'meter' => $meter['meterName'],
-                'type' => MetricTypeDictionary::LANGS[$meter['type']],
+            $result[$kontragent][$ground][$type][$meterName] = [
                 'dataStart' => isset($queryResult[0]) ? $queryResult[0]['endValue'] : 0,
                 'dataEnd' => isset($query2Result[0]) ? $query2Result[0]['endValue'] : 0
             ];
         }
 
-        return $result;
+        return [
+            'result' => $result,
+            'additionalInfo' => [
+                'dateStart' => $dateStart,
+                'dateEnd' => $dateEnd
+            ]
+        ];
     }
 }

@@ -61,6 +61,13 @@ class MeterServiceDocument extends DocumentEntityAbstract
     private $ground;
 
     /**
+     * @var integer
+     *
+     * @ORM\Column(name="ground_id", type="integer")
+     */
+    private $groundId;
+
+    /**
      * @var int
      *
      * @ORM\Column(name="unit_id", type="integer")

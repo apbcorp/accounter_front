@@ -55,6 +55,13 @@ class ServiceRow extends DocumentEntityAbstract
     private $document;
 
     /**
+     * @var integer
+     *
+     * @ORM\Column(name="document_id", type="integer")
+     */
+    private $documentId;
+
+    /**
      * @var Service
      *
      * @ORM\ManyToOne(targetEntity="\KontragentBundle\Entity\Service")
@@ -63,12 +70,26 @@ class ServiceRow extends DocumentEntityAbstract
     private $service;
 
     /**
+     * @var integer
+     *
+     * @ORM\Column(name="service_id", type="integer")
+     */
+    private $serviceId;
+
+    /**
      * @var Ground
      *
      * @ORM\ManyToOne(targetEntity="\KontragentBundle\Entity\Ground")
      * @ORM\JoinColumn(name="ground_id", referencedColumnName="id")
      */
     private $ground;
+
+    /**
+     * @var integer
+     *
+     * @ORM\Column(name="ground_id", type="integer")
+     */
+    private $groundId;
 
     /**
      * @var \DateTime

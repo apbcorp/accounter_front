@@ -63,6 +63,13 @@ class GroundParts implements EntityInterface
     private $ground;
 
     /**
+     * @var integer
+     *
+     * @ORM\Column(name="ground_id", type="integer")
+     */
+    private $groundId;
+
+    /**
      * @return int
      */
     public function getId()

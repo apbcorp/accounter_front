@@ -62,6 +62,13 @@ class PayDocument implements DocumentEntityInterface
     private $kontragent;
 
     /**
+     * @var integer
+     *
+     * @ORM\Column(name="kontragent_id", type="integer")
+     */
+    private $kontragentId;
+
+    /**
      * @var \DateTime
      *
      * @ORM\Column(name="date", type="datetime")

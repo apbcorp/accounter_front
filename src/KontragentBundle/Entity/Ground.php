@@ -100,6 +100,13 @@ class Ground implements EntityInterface
     private $kontragent;
 
     /**
+     * @var integer
+     *
+     * @ORM\Column(name="kontragent_id", type="integer")
+     */
+    private $kontragentId;
+
+    /**
      * @var int
      *
      * @ORM\Column(name="unit_id", type="integer")
