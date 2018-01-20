@@ -33,7 +33,7 @@ function GroundDictionaryView() {
             data.data.result[i].line = line.join('<br>');
             data.data.result[i].groundNumber = ground.join('<br>');
         }
-        
+
         var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
         html += kernel.getServiceContainer().get('view.table').buildTemplate(data);
         html += '</div>';

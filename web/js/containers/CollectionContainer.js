@@ -2,14 +2,14 @@ function CollectionContainer() {
     this.data = collections;
     this.event = undefined;
     this.thisCollection = undefined;
-    
+
     this.getDataById = function (collectionName, id) {
         var name = collectionName + 'Collection';
         var collection = this.data[name];
 
         return collection.data[id];
     };
-    
+
     this.getDataForSelect = function (collectionName, id) {
         var name = collectionName + 'Collection';
         var collection = this.data[name];

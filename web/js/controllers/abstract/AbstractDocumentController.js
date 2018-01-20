@@ -28,7 +28,7 @@ function AbstractDocumentController() {
     this.onAddRow = function () {
         var view = kernel.getServiceContainer().get(this.viewName);
         var html = $(view.addData(view.rowTemplate, {}))[0];
-        
+
         $('.subtable')[0].append(html);
 
         var eventContainer = kernel.getServiceContainer().get('container.event');
@@ -58,8 +58,8 @@ function AbstractDocumentController() {
     this.onAutoFill = function () {
         alert(1);
     };
-    
+
     this.onAutoFillComplete = function () {
-        
+
     };
 }

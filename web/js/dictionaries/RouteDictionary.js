@@ -22,7 +22,10 @@ const ROUTES = {
     '/report/main\.html': 'controller.mainReport',
     '/report/meters\.html': 'controller.metersReport',
     '/report/balance\.html': 'controller.balanceReport',
-    '/report/sms\.html': 'controller.smsReport'
+    '/report/sms\.html': 'controller.smsReport',
+    '/report/invoice\.html': 'controller.invoiceReport',
+    '/report/meter_invoice\.html': 'controller.meterInvoiceReport',
+    '/report/social_invoice\.html': 'controller.socialInvoiceReport'
 };
 
 LOGIN_ROUTE = '/login.html';

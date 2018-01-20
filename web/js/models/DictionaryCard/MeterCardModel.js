@@ -7,7 +7,7 @@ function MeterCardModel(object) {
             name: 'ground'
         }
     };
-    
+
     this.isValidData = function (data) {
         var validator = kernel.getServiceContainer().get('service.validator');
         var validationData = [

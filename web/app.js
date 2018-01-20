@@ -68,14 +68,14 @@ function CollectionContainer() {
     this.data = collections;
     this.event = undefined;
     this.thisCollection = undefined;
-    
+
     this.getDataById = function (collectionName, id) {
         var name = collectionName + 'Collection';
         var collection = this.data[name];
 
         return collection.data[id];
     };
-    
+
     this.getDataForSelect = function (collectionName, id) {
         var name = collectionName + 'Collection';
         var collection = this.data[name];
@@ -221,7 +221,7 @@ function UserContainer() {
         this.onGetUserSuccessEvent = this.onGetUserSuccess.bind(this);
         this.onGetUserErrorEvent = this.onGetUserError.bind(this);
     };
-    
+
     this.isLogin = function () {
         if (this.user === undefined) {
             this.getUser();
@@ -229,7 +229,7 @@ function UserContainer() {
 
         this.onGetUserSuccess();
     };
-    
+
     this.getUser = function () {
         var requester = kernel.getServiceContainer().get('requester.ajax');
         requester.setUrl(this.url);
@@ -239,7 +239,7 @@ function UserContainer() {
         requester.setError(this.onGetUserErrorEvent);
         requester.request();
     };
-    
+
     this.onGetUserSuccess = function (data) {
         if (data !== undefined && data.result !== undefined) {
             this.setUserData(data.result);
@@ -247,7 +247,7 @@ function UserContainer() {
 
         kernel.processShow();
     };
-    
+
     this.onGetUserError = function () {
         kernel.redirectToLogin();
     };
@@ -319,18 +319,18 @@ function ConsumerCardController() {
             name: $('[name="name"]')[0].value,
             surname: $('[name="surname"]')[0].value,
             name2: $('[name="name2"]')[0].value,
-            phone: $('[name="phone"]')[0].value,
-            adress: $('[name="adress"]')[0].value
+            phone: !$('[name="phone"]')[0].value ? '' : $('[name="phone"]')[0].value,
+            adress: !$('[name="adress"]')[0].value ? '' : $('[name="adress"]')[0].value
         };
 
         if (this.model.isValidData(data)) {
             this.model.appendDataToRequest(data);
-            
+
             return true;
         } else {
             alert(this.model.getErrors())
         }
-        
+
         return false;
     };
 
@@ -390,12 +390,12 @@ function GroundCardController() {
 
         if (this.model.isValidData(data)) {
             this.model.appendDataToRequest(data);
-            
+
             return true;
         } else {
             alert(this.model.getErrors())
         }
-        
+
         return false;
     };
 
@@ -407,7 +407,7 @@ function GroundCardController() {
         area = area ? area : 0;
         freeArea = freeArea ? freeArea : 0;
         commonArea = commonArea ? commonArea : 0;
-        
+
         var sum = parseFloat(area) + parseFloat(freeArea) + parseFloat(commonArea);
         $('[name="allArea"]')[0].value = !sum ? 0 : sum.toFixed(3);
     };
@@ -935,7 +935,7 @@ function ServiceDocumentController() {
             }
         }
     };
-    
+
     this.ServiceDocumentController();
 }
 function TarifsDocumentController() {
@@ -1079,25 +1079,81 @@ function MainController() {
 }
 function BalanceReportController() {
     AbstractReportController.call(this);
+    this.view = 'view.balanceReports';
+    this.reportUrl = '/api/v1.0/document/report/balance';
+
+    this.BalanceReportController = function () {
+        this.events.push({'selector': '.submit', 'action': 'click', 'event': this.refreshReport.bind(this)});
+        this.AbstractReportController();
+    };
+
+    this.refreshReport = function () {
+        this.getData();
+    };
+
+    this.BalanceReportController();
 }
+function InvoiceReportController() {
+    AbstractReportController.call(this);
+    this.view = 'view.invoiceReportView';
+    this.reportUrl = '/api/v1.0/document/service_document/';
+
+    this.InvoiceReportController = function () {
+        this.events.push({'selector': '.submit', 'action': 'click', 'event': this.refreshReport.bind(this)});
+        this.AbstractReportController();
+    };
+
+    this.refreshReport = function () {
+        this.getData();
+    };
+
+    this.getRequestData = function () {
+        return {};
+    };
+
+    this.getRequestUrl = function () {
+        var selector = $('[name="id"]');
+
+        if (selector.length) {
+            return this.reportUrl + selector[0].value;
+        }
+
+        var data = kernel.getServiceContainer().get('helper.url').getUrlParamsObject(document.location.href);
+
+        return data['id'] === undefined ? this.reportUrl + '1' : this.reportUrl + data['id'];
+    };
+
+    this.InvoiceReportController();
+}
+
 function MainReportController() {
     AbstractReportController.call(this);
-    this.viewName = 'view.mainReportView';
-    this.reportUrl = '/api/v1.0/report/main';
+    this.view = 'view.mainReport';
+    this.reportUrl = '/api/v1.0/document/report/main';
 
     this.MainReportController = function () {
+        this.events.push({'selector': '.submit', 'action': 'click', 'event': this.refreshReport.bind(this)});
         this.AbstractReportController();
+    };
+
+    this.refreshReport = function () {
+        this.getData();
     };
 
     this.MainReportController();
 }
 function MetersReportController() {
     AbstractReportController.call(this);
-    this.viewName = 'view.metersReportView';
+    this.view = 'view.metersReport';
     this.reportUrl = '/api/v1.0/document/report/meters';
 
     this.MetersReportController = function () {
+        this.events.push({'selector': '.submit', 'action': 'click', 'event': this.refreshReport.bind(this)});
         this.AbstractReportController();
+    };
+
+    this.refreshReport = function () {
+        this.getData();
     };
 
     this.MetersReportController();
@@ -1224,15 +1280,19 @@ function AbstractDictionaryController() {
     };
 
     this.onEditRecord = function (event) {
+        var id = 0;
         if (event.currentTarget.class == 'table_row') {
             this.onSelectRecord(event);
+            id = event.currentTarget.childNodes[0].innerHTML;
+        } else {
+            id = this.model.currentId;
         }
 
         if (this.model.currentId === undefined) {
             return;
         }
 
-        kernel.getServiceContainer().get('helper.navigator').goTo(this.cardPath + this.model.currentId + '.html')
+        kernel.getServiceContainer().get('helper.navigator').goTo(this.cardPath + id + '.html')
     };
 
     this.onDeleteRecord = function () {
@@ -1251,7 +1311,7 @@ function AbstractDictionaryController() {
 
         event.currentTarget.classList.add('active');
     };
-    
+
     this.pageChanged = function (event) {
         var urlHelper = kernel.getServiceContainer().get('helper.url');
         this.model.appendDataToRequest({
@@ -1265,7 +1325,7 @@ function AbstractDictionaryController() {
             )
         );
     };
-    
+
     this.onFilterRecords = function () {
         var urlHelper = kernel.getServiceContainer().get('helper.url');
         var elements = $('input');
@@ -1284,7 +1344,7 @@ function AbstractDictionaryController() {
             )
         );
     };
-    
+
     this.onClearFilters = function () {
         var elements = $('input');
 
@@ -1327,7 +1387,7 @@ function AbstractDocumentController() {
     this.onAddRow = function () {
         var view = kernel.getServiceContainer().get(this.viewName);
         var html = $(view.addData(view.rowTemplate, {}))[0];
-        
+
         $('.subtable')[0].append(html);
 
         var eventContainer = kernel.getServiceContainer().get('container.event');
@@ -1357,9 +1417,9 @@ function AbstractDocumentController() {
     this.onAutoFill = function () {
         alert(1);
     };
-    
+
     this.onAutoFillComplete = function () {
-        
+
     };
 }
 function AbstractDocumentsController() {
@@ -1391,15 +1451,24 @@ function AbstractReportController() {
         this.getData();
     };
 
-    this.getData = function () {
-        var requester = kernel.getServiceContainer().get('requester.ajax');
+    this.getRequestData = function () {
         var dataHelper = kernel.getServiceContainer().get('helper.date');
         var selector = $('[name="dateStart"]');
         var startDate = selector.length ? selector[0].value : dataHelper.getFirstDayOfMonth(new Date());
         selector = $('[name="dateEnd"]');
         var endDate = selector.length ? selector[0].value : dataHelper.getLastDayOfMonth(new Date());
-        requester.setUrl(this.reportUrl);
-        requester.setData({dateStart: startDate, dateEnd: endDate});
+
+        return {dateStart: startDate, dateEnd: endDate};
+    };
+
+    this.getRequestUrl = function () {
+        return this.reportUrl;
+    };
+
+    this.getData = function () {
+        var requester = kernel.getServiceContainer().get('requester.ajax');
+        requester.setUrl(this.getRequestUrl());
+        requester.setData(this.getRequestData());
         requester.setMethod(HTTP_METHOD_GET);
         requester.setSuccess(this.onRender.bind(this));
         requester.request();
@@ -1408,6 +1477,9 @@ function AbstractReportController() {
     this.onRender = function (data) {
         var view = kernel.getServiceContainer().get(this.view);
         view.render(data);
+
+        var eventContainer = kernel.getServiceContainer().get('container.event');
+        eventContainer.setEvents(this.events);
     };
 }
 function MainControllerAbstract() {
@@ -1427,6 +1499,9 @@ function MainControllerAbstract() {
         this.onGetMetersReportEvent = this.onGetMetersReport.bind(this);
         this.onGetBalanceReportEvent = this.onGetBalanceReport.bind(this);
         this.onGetSmsReportEvent = this.onGetSmsReport.bind(this);
+        this.onInvoiceReportEvent = this.onInvoiceReport.bind(this);
+        this.onMeterInvoiceReportEvent = this.onMeterInvoiceReport.bind(this);
+        this.onSocialInvoiceReportEvent = this.onSocialInvoiceReport.bind(this);
 
         this.events.push({'selector': '.ground_dictionary_button', 'action': 'click', 'event': this.onGetGroundDictionaryEvent});
         this.events.push({'selector': '.services_dictionary_button', 'action': 'click', 'event': this.onGetServicesDictionaryEvent});
@@ -1441,6 +1516,9 @@ function MainControllerAbstract() {
         this.events.push({'selector': '.meters_report_button', 'action': 'click', 'event': this.onGetMetersReportEvent});
         this.events.push({'selector': '.balance_report_button', 'action': 'click', 'event': this.onGetBalanceReportEvent});
         this.events.push({'selector': '.sms_report_button', 'action': 'click', 'event': this.onGetSmsReportEvent});
+        this.events.push({'selector': '.invoice_report_button', 'action': 'click', 'event': this.onInvoiceReportEvent});
+        this.events.push({'selector': '.meter_invoice_report_button', 'action': 'click', 'event': this.onMeterInvoiceReportEvent});
+        this.events.push({'selector': '.social_invoice_report_button', 'action': 'click', 'event': this.onSocialInvoiceReportEvent});
     };
 
     this.onGetConsumerDictionary = function () {
@@ -1493,6 +1571,18 @@ function MainControllerAbstract() {
 
     this.onGetSmsReport = function () {
         kernel.getServiceContainer().get('helper.navigator').goTo('/report/sms.html');
+    };
+
+    this.onInvoiceReport = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo('/report/invoice.html');
+    };
+
+    this.onMeterInvoiceReport = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo('/report/meter_invoice.html');
+    };
+
+    this.onSocialInvoiceReport = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo('/report/social_invoice.html');
     };
 }
 var collections = {
@@ -1621,6 +1711,8 @@ var SERVICE_CALC_BASE_LANG = "База расчета";
 var KOMMENT_LANG = "Комментарий";
 var SHEET_LANG = 'Таблица';
 var DOLG_LANG = 'Задолженность';
+var RECEIPT = "Квитанция";
+var RECEIPT_SOC = "Квитанция (общественная)";
 const ROUTES = {
     '/index\.html': 'controller.main',
     '/login\.html': 'controller.login',
@@ -1645,7 +1737,10 @@ const ROUTES = {
     '/report/main\.html': 'controller.mainReport',
     '/report/meters\.html': 'controller.metersReport',
     '/report/balance\.html': 'controller.balanceReport',
-    '/report/sms\.html': 'controller.smsReport'
+    '/report/sms\.html': 'controller.smsReport',
+    '/report/invoice\.html': 'controller.invoiceReport',
+    '/report/meter_invoice\.html': 'controller.meterInvoiceReport',
+    '/report/social_invoice\.html': 'controller.socialInvoiceReport'
 };
 
 LOGIN_ROUTE = '/login.html';
@@ -1709,10 +1804,16 @@ const SERVICES_LIST = {
     'view.meterDocument': {'class': 'MeterDocumentView', 'args': {}},
     'view.meterServiceDocument': {'class': 'MeterServiceDocumentView', 'args': {}},
     'view.serviceDocument': {'class': 'ServiceDocumentView', 'args': {}},
-    'view.balanceReports': {'class': 'BalanceReportsView', 'args': {}},
-    'view.mainReports': {'class': 'MainReportsView', 'args': {}},
-    'view.metersReports': {'class': 'MetersReportsView', 'args': {}},
-    'view.smsReports': {'class': 'SmsReportsView', 'args': {}}
+    'view.balanceReports': {'class': 'BalanceReportView', 'args': {}},
+    'view.mainReport': {'class': 'MainReportView', 'args': {}},
+    'view.metersReport': {'class': 'MetersReportView', 'args': {}},
+    'view.smsReports': {'class': 'SmsReportsView', 'args': {}},
+    'controller.invoiceReport': {'class': 'InvoiceReportController', 'args': {}},
+    'controller.meterInvoiceReport': {'class': 'MeterInvoiceReportController', 'args': {}},
+    'controller.socialInvoiceReport': {'class': 'SocialInvoiceReportController', 'args': {}},
+    'view.invoiceReportView': {'class': 'InvoiceReportView', 'args': {}},
+    'view.meterInvoiceReportView': {'class': 'MeterInvoiceReportView', 'args': {}},
+    'view.socialInvoiceReportView': {'class': 'SocialInvoiceReportView', 'args': {}},
 };
 
 var VALIDATION_TYPE_STRING = 'string';
@@ -1724,7 +1825,6 @@ var VALIDATION_TYPE_DATE = 'date';
 var VALIDATION_TYPE_NOT_EMPTY_ARRAY = 'notEmptyArray';
 var VALIDATION_TYPE_TABLE_ROWS = 'tableRows';
 var VALIDATION_TYPE_NOT_EMPTY_FLOAT = 'notEmptyFloat';
-
 function DateHelper() {
     this.getFirstDayOfMonth = function (date) {
         var newDate = new Date(date.getFullYear(), date.getMonth(), 1);
@@ -1951,7 +2051,7 @@ function MeterCardModel(object) {
             name: 'ground'
         }
     };
-    
+
     this.isValidData = function (data) {
         var validator = kernel.getServiceContainer().get('service.validator');
         var validationData = [
@@ -1976,10 +2076,10 @@ function ServiceCardModel(object) {
         var validationData = [
             {data: data.name, type: VALIDATION_TYPE_STRING, fieldName: SERVICE_NAME_LANG}
         ];
-        
+
         var isValid = validator.validate(validationData);
         this.errors = isValid ? '' : validator.getErrors();
-        
+
         return isValid;
     };
 
@@ -2043,7 +2143,7 @@ function MeterServiceDocumentModel(params) {
         if (data && data[0].groundId) {
             this.groundId = data[0].groundId;
         }
-        
+
         this.meterList = [];
         for (var i = 0; i < data.length; i++) {
             this.meterList[data[i].id] = data[i].number + '(' + data[i].type + ')';
@@ -2166,9 +2266,9 @@ function PayDocumentModel(params) {
 
     this.PayDocumentModel = function (object) {
         var date = new Date();
-        
+
         this.defaultData.date = date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
-        
+
         this.DocumentAbstractModel(object);
     };
 
@@ -2219,7 +2319,7 @@ function ServiceDocumentModel(params) {
 
         this.defaultData.date = date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
         this.kontragentId = 0;
-        
+
         this.DocumentAbstractModel(object);
     };
 
@@ -2391,7 +2491,8 @@ function MeterServiceDocumentsModel(params) {
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
         "date": DOCUMENT_DATE_LANG,
-        "ground": KONTRAGENT_ID_LANG
+        "ground": KONTRAGENT_ID_LANG,
+        "doc": RECEIPT
     };
     this.filters = {
         'period': {name: PERIOD_LANG, type:'period'},
@@ -2449,7 +2550,9 @@ function ServiceDocumentsModel(params) {
     this.dataNames = {
         "id": RECORD_NUMBER_LANG,
         "date": DOCUMENT_DATE_LANG,
-        "kontragent": OWNER_FULL_NAME_LANG
+        "kontragent": OWNER_FULL_NAME_LANG,
+        "doc": RECEIPT,
+        "docSoc": RECEIPT_SOC
     };
     this.filters = {
         'period': {name: PERIOD_LANG, type:'period'},
@@ -2528,7 +2631,7 @@ function AbstractCardModel(object) {
         if (!this.backUrl) {
             return;
         }
-        
+
         kernel.getServiceContainer().get('helper.navigator').goTo(this.backUrl);
     };
 
@@ -2601,7 +2704,7 @@ function AbstractModel() {
 
     this.onRefreshSuccess = function (data) {
         this.data = data.result;
-        
+
         this.saveDataToCollection();
 
         if (this.successCallback !== undefined) {
@@ -2610,10 +2713,10 @@ function AbstractModel() {
             this.creator.onRefreshComplete(this.getDataForView());
         }
     };
-    
+
     this.saveDataToCollection = function () {
         var container = kernel.getServiceContainer().get('container.collection');
-        
+
         for (var key in this.collectionFields) {
             container.addDataRow(key, this.data[this.collectionFields[key].id], this.data[this.collectionFields[key].name]);
         }
@@ -2679,7 +2782,7 @@ function DictionaryAbstractModel() {
         if (!Object.keys(this.filters).length) {
             return {};
         }
-        
+
         if (this.filters.period) {
             if (this.getRequestData('filter[periodStart]') && this.filters.period) {
                 this.filters.period['periodStart'] = this.getRequestData('filter[periodStart]');
@@ -3097,7 +3200,7 @@ function GroundDictionaryView() {
             data.data.result[i].line = line.join('<br>');
             data.data.result[i].groundNumber = ground.join('<br>');
         }
-        
+
         var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
         html += kernel.getServiceContainer().get('view.table').buildTemplate(data);
         html += '</div>';
@@ -3179,6 +3282,19 @@ function TarifsDocumentView() {
 }
 function MeterServiceDocumentsView() {
     AbstractDocumentsView.call(this);
+
+    this.buildTemplate = function (data) {
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+
+        var urlHelper = kernel.getServiceContainer().get('helper.url');
+        for (var key in data.data.result) {
+            data.data.result[key].doc = '<a href="' + urlHelper.getDomain(window.location.href) + '/report/meter_invoice.html?id=' + data.data.result[key].id + '">' + data.columns.doc + '</a>';
+        }
+        html += kernel.getServiceContainer().get('view.table').buildTemplate(data);
+        html += '</div>';
+
+        return html;
+    };
 }
 function MetersDocumentsView() {
     AbstractDocumentsView.call(this);
@@ -3188,6 +3304,20 @@ function PayDocumentsView() {
 }
 function ServiceDocumentsView() {
     AbstractDocumentsView.call(this);
+
+    this.buildTemplate = function (data) {
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+
+        var urlHelper = kernel.getServiceContainer().get('helper.url');
+        for (var key in data.data.result) {
+            data.data.result[key].doc = '<a href="' + urlHelper.getDomain(window.location.href) + '/report/invoice.html?id=' + data.data.result[key].id + '">' + data.columns.doc + '</a>';
+            data.data.result[key].docSoc = '<a href="' + urlHelper.getDomain(window.location.href) + '/report/social_invoice.html?id=' + data.data.result[key].id + '">' + data.columns.docSoc + '</a>';
+        }
+        html += kernel.getServiceContainer().get('view.table').buildTemplate(data);
+        html += '</div>';
+
+        return html;
+    };
 }
 function TarifsDocumentsView() {
     AbstractDocumentsView.call(this);
@@ -3209,13 +3339,298 @@ function MainView() {
     };
 }
 function BalanceReportView() {
-    
+    AbstractCardView.call(this);
+
+    this.buildTemplate = function (data) {
+        data = data.result;
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+        var dateStart = kernel.getServiceContainer().get('helper.date').getDateFormatInput(data.additionalInfo.dateStart.date);
+        var dateEnd = kernel.getServiceContainer().get('helper.date').getDateFormatInput(data.additionalInfo.dateEnd.date);
+        html += '<div class="reportSheet"><li><ul><table><tr><td class="noprint">Пероид с <input type="date" name="dateStart" value="';
+        html += dateStart + '"> по <input type="date" name="dateEnd" value="';
+        html += dateEnd + '">&nbsp;&nbsp;<button class="submit">Сформировать</button></td></tr><tr><td><table border="1" cellspacing="0"><tr>';
+
+        var columns = ['№', 'ФИО', 'Л/с', 'Услуга', 'На начало периода', 'Начисленнло', 'Оплаченно', 'На конец периода'];
+
+        for (i = 0; i < columns.length; i++) {
+            html += '<td class="head1">' + columns[i] + '</td>'
+        }
+
+        html += '</tr>';
+
+        html += this.showRows(data.result);
+
+        html += '</table></td></tr>';
+        html += '</table></div>';
+
+        return html;
+    };
+
+    this.showRows = function (data) {
+        result = '';
+
+        var rowInfo = {};
+        var elements = [];
+        var i = 1;
+        for (var fio in data) {
+            rowInfo = this.getRowInfo(data[fio]);
+            elements['fio'] = '<td rowspan="' + rowInfo.count + '">' + i + '</td><td rowspan="' + rowInfo.count + '">' + fio + '</td>';
+            for (var account in data[fio]) {
+                elements['account'] = '<td rowspan="' + rowInfo.data[account].count + '">' + account + '</td>';
+                for (var service in data[fio][account]) {
+                    result += '<tr>' + elements['fio'] + elements['account'];
+                    result += '<td>' + service + '</td><td>' + data[fio][account][service]['startData'] + '</td><td>' + data[fio][account][service]['out'] + '</td><td>' + data[fio][account][service]['in'] + '</td><td>' + data[fio][account][service]['endData'] + '</td></tr>';
+
+                    elements['fio'] = '';
+                    elements['account'] = '';
+                    i++;
+                }
+            }
+        }
+
+        return result;
+    };
+
+    this.getRowInfo = function (data) {
+        var result = {count: 0, data: []};
+
+        for (var account in data) {
+            result.data[account] = {count: 0, data: []};
+            for (var service in data[account]) {
+                result.data[account].count++;
+                result.count++;
+            }
+        }
+
+        return result;
+    };
+}
+function InvoiceReportView() {
+    AbstractCardView.call(this);
+
+    this.buildTemplate = function (data) {
+        data = data.result;
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+        var id = 1;
+        if (data.id === undefined) {
+            alert('Квитанция с таким номером не найдена');
+        } else {
+            id = data.id;
+        }
+
+        html += '<div class="reportSheet"><li><ul><table><tr><td class="noprint">Номер квитанции&nbsp;<input name="id" value="';
+        html += id + '">&nbsp;&nbsp;<button class="submit">Сформировать</button></td></tr>';
+
+        if (data.id === undefined) {
+            html += '</table></div>';
+
+            return html;
+        }
+
+        html += '<tr><td><table border="1" cellspacing="0">';
+
+        html += '</table></td></tr>';
+        html += '</table></div>';
+
+        return html;
+    }
 }
 function MainReportView() {
-    
+    AbstractCardView.call(this);
+
+    this.buildTemplate = function (data) {
+        data = data.result;
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+        var dateStart = kernel.getServiceContainer().get('helper.date').getDateFormatInput(data.additionalInfo.dateStart.date);
+        var dateEnd = kernel.getServiceContainer().get('helper.date').getDateFormatInput(data.additionalInfo.dateEnd.date);
+        html += '<div class="reportSheet"><li><ul><table><tr><td class="noprint">Пероид с <input type="date" name="dateStart" value="';
+        html += dateStart + '"> по <input type="date" name="dateEnd" value="';
+        html += dateEnd + '">&nbsp;&nbsp;<button class="submit">Сформировать</button></td></tr><tr><td><table border="1" cellspacing="0">';
+
+        var columns = ['№', 'ФИО', 'Л/с', '№ кур', 'Ряд', 'Место', 'Площадь', 'Не относится к земле причала', 'Площадь общего пользования', 'Всего площадь'];
+        var payColumns = [];
+
+        for (var key in data.services) {
+            columns.push(data.services[key]);
+            payColumns.push(key);
+        }
+
+        var head = [{name: '', cols: 2}, {name: 'Адрес:', cols: 4}, {name: 'Площадь:', cols: 4}, {name: 'Платежи:', cols: columns.length - 10}];
+
+        html += this.showColumns(head, columns);
+
+        html += this.showData(data.result, payColumns);
+
+        html += '</table></td></tr>';
+        html += this.showCalcTables();
+        html += this.showNames();
+        html += '</table></div>';
+
+        return html;
+    };
+
+    this.showCalcTables = function () {
+        var result = '<tr><td align="center"><table border="1" cellspacing="0"><tr><td colspan="3" class="head1">Расчет платы за землю</td></tr>';
+        result += '<tr><td class="head1">Сумма аренды</td><td class="head1">Общая площадь</td><td class="head1">Цена за 1м.кв.</td></tr>';
+        result += '<tr><td class="head1">433405.44</td><td class="head1">33942</td><td class="head1">12.769</td></tr></table></td></tr>';
+
+        result += '<tr><td align="center"><table border="1" cellspacing="0"><tr><td colspan="5" class="head1">Расчет коэффициента для взноса на содержание причала</td></tr>';
+        result += '<tr><td class="head1" colspan="2">Занимаемая площадь</td><td class="head1"></td><td class="head1" rowspan="2">Сумма взноса на<br>содерж. причала</td><td class="head1" rowspan="2">Коэффициент</td></tr>';
+        result += '<tr><td class="head1">наша</td><td class="head1">порт</td><td class="head1">всего</td></tr>';
+        result += '<tr><td class="head1">23742</td><td class="head1">980.2</td><td class="head1">24722.2</td><td class="head1">999086</td><td class="head1">40.4125</td></tr></table></td></tr>';
+
+        return result;
+    };
+
+    this.showNames = function () {
+        var result = '<tr style="height: 50px"><td></td></tr><tr><td><table width="100%">';
+        result += '<tr><td width="50%">Начальник причала №114 "Бугово"</td><td>А. В. Григоращенко</td></tr>';
+        result += '<tr><td width="50%">Зам. начальник причала №114 "Бугово"</td><td>В. В. Белашевский</td></tr>';
+        result += '<tr><td width="50%">Кассир причала №114 "Бугово"</td><td>Н. М. Артемьева</td></tr>';
+        result += '<tr><td width="50%">Главный бухгалтер ОО "ВМСООРЛ"</td><td>В. В. Обозовская</td></tr>';
+        result += '</table></td></tr>';
+
+        return result;
+    };
+
+    this.showColumns = function (heads, columns) {
+        var result = '<tr>';
+
+        for (var i = 0; i < heads.length; i++) {
+            if (heads[i].cols) {
+                result += '<td colspan="' + heads[i].cols + '" class="head1">' + heads[i].name + '</td>';
+            }
+        }
+
+        result += '</tr><tr>';
+
+        for (var i = 0; i < columns.length; i++) {
+            result += '<td>' + columns[i] + '</td>';
+        }
+
+        result += '</tr>';
+
+        return result;
+    };
+
+    this.showData = function (reportData, payColumns) {
+        var result = '';
+        var j = 0;
+        var n = 0;
+        var cell = '';
+
+        var tag = '';
+        for (var i = 0; i < reportData.length; i++) {
+            if (reportData[i].house.length > 1) {
+                tag = '<td rowspan="' + reportData[i].house.length + '">';
+            } else {
+                tag = '<td>';
+            }
+
+            result += '<tr>' + tag + (i + 1) + '</td>' + tag + reportData[i].kontragent + '</td><' + tag + reportData[i].account + '</td>';
+            result += '<td>' + reportData[i].house[0].number + '</td><td>' + reportData[i].house[0].line + '</td><td>' + reportData[i].house[0].groundNumber + '</td>';
+            result += tag + reportData[i].area + '</td>' + tag + reportData[i].freeArea + '</td>' + tag + reportData[i].commonArea + '</td>' + tag + reportData[i].allArea + '</td>';
+
+            for (j = 0; j < payColumns.length; j++) {
+                cell = tag + '0.00</td>';
+                for (n = 0; n < reportData[i].services.length; n++) {
+                    if (payColumns[j] == reportData[i].services[n].id) {
+                        cell = tag + reportData[i].services[n].sum + '</td>';
+
+                        break;
+                    }
+                }
+
+                result += cell;
+            }
+
+            if (reportData[i].house.length > 1) {
+                for (j = 1; j < reportData[i].house.length; j++) {
+                    result += '</tr><tr><td>' + reportData[i].house[j].number + '</td><td>' + reportData[i].house[j].line + '</td><td>' + reportData[i].house[j].groundNumber + '</td>';
+                }
+            }
+
+            result += '</tr>'
+        }
+
+        return result;
+    }
 }
 function MetersReportView() {
-    
+    AbstractCardView.call(this);
+
+    this.buildTemplate = function (data) {
+        data = data.result;
+        var i = 0;
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+        var dateStart = kernel.getServiceContainer().get('helper.date').getDateFormatInput(data.additionalInfo.dateStart.date);
+        var dateEnd = kernel.getServiceContainer().get('helper.date').getDateFormatInput(data.additionalInfo.dateEnd.date);
+        html += '<div class="reportSheet"><li><ul><table><tr><td class="noprint">Пероид с <input type="date" name="dateStart" value="';
+        html += dateStart + '"> по <input type="date" name="dateEnd" value="';
+        html += dateEnd + '">&nbsp;&nbsp;<button class="submit">Сформировать</button></td></tr><tr><td><table border="1" cellspacing="0"><tr>';
+
+        var columns = ['№', 'ФИО', 'Л/с', 'Тип', 'Номер', 'На начало периода', 'На конец периода']
+
+        for (i = 0; i < columns.length; i++) {
+            html += '<td class="head1">' + columns[i] + '</td>'
+        }
+
+        html += '</tr>';
+
+        html += this.showRows(data.result);
+
+        html += '</table></td></tr>';
+        html += '</table></div>';
+
+        return html;
+    };
+
+    this.showRows = function (data) {
+        result = '';
+
+        var rowInfo = {};
+        var elements = [];
+        var i = 1;
+        for (var fio in data) {
+            rowInfo = this.getRowInfo(data[fio]);
+            elements['fio'] = '<td rowspan="' + rowInfo.count + '">' + i + '</td><td rowspan="' + rowInfo.count + '">' + fio + '</td>';
+            for (var account in data[fio]) {
+                elements['account'] = '<td rowspan="' + rowInfo.data[account].count + '">' + account + '</td>';
+                for (var type in data[fio][account]) {
+                    elements['type'] = '<td rowspan="' + rowInfo.data[account].data[type].count + '">' + type + '</td>';
+                    for (var number in data[fio][account][type]) {
+                        result += '<tr>' + elements['fio'] + elements['account'] + elements['type'];
+                        result += '<td>' + number + '</td><td>' + data[fio][account][type][number]['dataStart'] + '</td><td>' + data[fio][account][type][number]['dataEnd'] + '</td></tr>';
+
+                        elements['fio'] = '';
+                        elements['account'] = '';
+                        elements['type'] = '';
+                        i++;
+                    }
+                }
+            }
+        }
+
+        return result;
+    };
+
+    this.getRowInfo = function (data) {
+        var result = {count: 0, data: []};
+
+        for (var account in data) {
+            result.data[account] = {count: 0, data: []};
+            for (var type in data[account]) {
+                result.data[account].data[type] = {count: 0, data: []};
+                for (var number in data[account][type]) {
+                    result.data[account].data[type].count++;
+                    result.data[account].count++;
+                    result.count++;
+                }
+            }
+        }
+
+        return result;
+    };
 }
 function SmsReportView() {
     
@@ -3251,16 +3666,24 @@ function TableHeadView() {
 }
 function TablePaginatorView() {
     this.buildTemplate = function (data) {
-        if (data.pageCount == 1) {
+        if (data.pageCount < 2 || data.pageCount === undefined) {
             return '';
         }
 
-        var startPage = data.page - 1 > 0 ? data.page - 1 : 1;
-        var endPage = startPage + 5 < data.pageCount ? startPage + 5 : data.pageCount;
+        var startPage = data.page - 2 > 0 ? data.page - 2 : 1;
+        var endPage = startPage + 5 <= data.pageCount ? startPage + 5 : data.pageCount;
         var result = '<ul>';
 
+        if (data.page != 1) {
+            result += '<button class="paginator-button" data-page="1">&lt;&lt;</button>';
+            result += '<button class="paginator-button" data-page="' + (data.page - 1) + '">&lt;</button>';
+        }
         for (var i = startPage; i <= endPage; i++) {
             result += '<button class="paginator-button' + (data.page == i ? ' active' : '') + '" data-page="' + i + '">' + i + '</button>';
+        }
+        if (data.page != data.pageCount) {
+            result += '<button class="paginator-button" data-page="' + (data.page + 1) + '">&gt;</button>';
+            result += '<button class="paginator-button" data-page="' + data.pageCount + '">&gt;&gt;</button>';
         }
 
         result += '</ul>';

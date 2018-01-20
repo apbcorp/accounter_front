@@ -56,7 +56,7 @@ function MeterServiceDocumentModel(params) {
         if (data && data[0].groundId) {
             this.groundId = data[0].groundId;
         }
-        
+
         this.meterList = [];
         for (var i = 0; i < data.length; i++) {
             this.meterList[data[i].id] = data[i].number + '(' + data[i].type + ')';

@@ -33,7 +33,7 @@ function AbstractCardModel(object) {
         if (!this.backUrl) {
             return;
         }
-        
+
         kernel.getServiceContainer().get('helper.navigator').goTo(this.backUrl);
     };
 

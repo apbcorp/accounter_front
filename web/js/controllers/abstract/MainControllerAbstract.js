@@ -15,6 +15,9 @@ function MainControllerAbstract() {
         this.onGetMetersReportEvent = this.onGetMetersReport.bind(this);
         this.onGetBalanceReportEvent = this.onGetBalanceReport.bind(this);
         this.onGetSmsReportEvent = this.onGetSmsReport.bind(this);
+        this.onInvoiceReportEvent = this.onInvoiceReport.bind(this);
+        this.onMeterInvoiceReportEvent = this.onMeterInvoiceReport.bind(this);
+        this.onSocialInvoiceReportEvent = this.onSocialInvoiceReport.bind(this);
 
         this.events.push({'selector': '.ground_dictionary_button', 'action': 'click', 'event': this.onGetGroundDictionaryEvent});
         this.events.push({'selector': '.services_dictionary_button', 'action': 'click', 'event': this.onGetServicesDictionaryEvent});
@@ -29,6 +32,9 @@ function MainControllerAbstract() {
         this.events.push({'selector': '.meters_report_button', 'action': 'click', 'event': this.onGetMetersReportEvent});
         this.events.push({'selector': '.balance_report_button', 'action': 'click', 'event': this.onGetBalanceReportEvent});
         this.events.push({'selector': '.sms_report_button', 'action': 'click', 'event': this.onGetSmsReportEvent});
+        this.events.push({'selector': '.invoice_report_button', 'action': 'click', 'event': this.onInvoiceReportEvent});
+        this.events.push({'selector': '.meter_invoice_report_button', 'action': 'click', 'event': this.onMeterInvoiceReportEvent});
+        this.events.push({'selector': '.social_invoice_report_button', 'action': 'click', 'event': this.onSocialInvoiceReportEvent});
     };
 
     this.onGetConsumerDictionary = function () {
@@ -81,5 +87,17 @@ function MainControllerAbstract() {
 
     this.onGetSmsReport = function () {
         kernel.getServiceContainer().get('helper.navigator').goTo('/report/sms.html');
+    };
+
+    this.onInvoiceReport = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo('/report/invoice.html');
+    };
+
+    this.onMeterInvoiceReport = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo('/report/meter_invoice.html');
+    };
+
+    this.onSocialInvoiceReport = function () {
+        kernel.getServiceContainer().get('helper.navigator').goTo('/report/social_invoice.html');
     };
 }

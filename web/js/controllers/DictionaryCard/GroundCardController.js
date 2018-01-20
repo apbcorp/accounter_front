@@ -52,12 +52,12 @@ function GroundCardController() {
 
         if (this.model.isValidData(data)) {
             this.model.appendDataToRequest(data);
-            
+
             return true;
         } else {
             alert(this.model.getErrors())
         }
-        
+
         return false;
     };
 
@@ -69,7 +69,7 @@ function GroundCardController() {
         area = area ? area : 0;
         freeArea = freeArea ? freeArea : 0;
         commonArea = commonArea ? commonArea : 0;
-        
+
         var sum = parseFloat(area) + parseFloat(freeArea) + parseFloat(commonArea);
         $('[name="allArea"]')[0].value = !sum ? 0 : sum.toFixed(3);
     };

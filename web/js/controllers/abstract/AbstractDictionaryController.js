@@ -65,15 +65,19 @@ function AbstractDictionaryController() {
     };
 
     this.onEditRecord = function (event) {
+        var id = 0;
         if (event.currentTarget.class == 'table_row') {
             this.onSelectRecord(event);
+            id = event.currentTarget.childNodes[0].innerHTML;
+        } else {
+            id = this.model.currentId;
         }
 
         if (this.model.currentId === undefined) {
             return;
         }
 
-        kernel.getServiceContainer().get('helper.navigator').goTo(this.cardPath + this.model.currentId + '.html')
+        kernel.getServiceContainer().get('helper.navigator').goTo(this.cardPath + id + '.html')
     };
 
     this.onDeleteRecord = function () {
@@ -92,7 +96,7 @@ function AbstractDictionaryController() {
 
         event.currentTarget.classList.add('active');
     };
-    
+
     this.pageChanged = function (event) {
         var urlHelper = kernel.getServiceContainer().get('helper.url');
         this.model.appendDataToRequest({
@@ -106,7 +110,7 @@ function AbstractDictionaryController() {
             )
         );
     };
-    
+
     this.onFilterRecords = function () {
         var urlHelper = kernel.getServiceContainer().get('helper.url');
         var elements = $('input');
@@ -125,7 +129,7 @@ function AbstractDictionaryController() {
             )
         );
     };
-    
+
     this.onClearFilters = function () {
         var elements = $('input');
 

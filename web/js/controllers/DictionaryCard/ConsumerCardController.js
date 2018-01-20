@@ -27,18 +27,18 @@ function ConsumerCardController() {
             name: $('[name="name"]')[0].value,
             surname: $('[name="surname"]')[0].value,
             name2: $('[name="name2"]')[0].value,
-            phone: $('[name="phone"]')[0].value,
-            adress: $('[name="adress"]')[0].value
+            phone: !$('[name="phone"]')[0].value ? '' : $('[name="phone"]')[0].value,
+            adress: !$('[name="adress"]')[0].value ? '' : $('[name="adress"]')[0].value
         };
 
         if (this.model.isValidData(data)) {
             this.model.appendDataToRequest(data);
-            
+
             return true;
         } else {
             alert(this.model.getErrors())
         }
-        
+
         return false;
     };
 

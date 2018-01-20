@@ -58,8 +58,14 @@ const SERVICES_LIST = {
     'view.meterDocument': {'class': 'MeterDocumentView', 'args': {}},
     'view.meterServiceDocument': {'class': 'MeterServiceDocumentView', 'args': {}},
     'view.serviceDocument': {'class': 'ServiceDocumentView', 'args': {}},
-    'view.balanceReports': {'class': 'BalanceReportsView', 'args': {}},
-    'view.mainReports': {'class': 'MainReportsView', 'args': {}},
-    'view.metersReports': {'class': 'MetersReportsView', 'args': {}},
-    'view.smsReports': {'class': 'SmsReportsView', 'args': {}}
+    'view.balanceReports': {'class': 'BalanceReportView', 'args': {}},
+    'view.mainReport': {'class': 'MainReportView', 'args': {}},
+    'view.metersReport': {'class': 'MetersReportView', 'args': {}},
+    'view.smsReports': {'class': 'SmsReportsView', 'args': {}},
+    'controller.invoiceReport': {'class': 'InvoiceReportController', 'args': {}},
+    'controller.meterInvoiceReport': {'class': 'MeterInvoiceReportController', 'args': {}},
+    'controller.socialInvoiceReport': {'class': 'SocialInvoiceReportController', 'args': {}},
+    'view.invoiceReportView': {'class': 'InvoiceReportView', 'args': {}},
+    'view.meterInvoiceReportView': {'class': 'MeterInvoiceReportView', 'args': {}},
+    'view.socialInvoiceReportView': {'class': 'SocialInvoiceReportView', 'args': {}},
 };

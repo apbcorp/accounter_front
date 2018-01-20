@@ -6,7 +6,7 @@ function UserContainer() {
         this.onGetUserSuccessEvent = this.onGetUserSuccess.bind(this);
         this.onGetUserErrorEvent = this.onGetUserError.bind(this);
     };
-    
+
     this.isLogin = function () {
         if (this.user === undefined) {
             this.getUser();
@@ -14,7 +14,7 @@ function UserContainer() {
 
         this.onGetUserSuccess();
     };
-    
+
     this.getUser = function () {
         var requester = kernel.getServiceContainer().get('requester.ajax');
         requester.setUrl(this.url);
@@ -24,7 +24,7 @@ function UserContainer() {
         requester.setError(this.onGetUserErrorEvent);
         requester.request();
     };
-    
+
     this.onGetUserSuccess = function (data) {
         if (data !== undefined && data.result !== undefined) {
             this.setUserData(data.result);
@@ -32,7 +32,7 @@ function UserContainer() {
 
         kernel.processShow();
     };
-    
+
     this.onGetUserError = function () {
         kernel.redirectToLogin();
     };

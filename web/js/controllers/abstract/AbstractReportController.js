@@ -11,15 +11,24 @@ function AbstractReportController() {
         this.getData();
     };
 
-    this.getData = function () {
-        var requester = kernel.getServiceContainer().get('requester.ajax');
+    this.getRequestData = function () {
         var dataHelper = kernel.getServiceContainer().get('helper.date');
         var selector = $('[name="dateStart"]');
         var startDate = selector.length ? selector[0].value : dataHelper.getFirstDayOfMonth(new Date());
         selector = $('[name="dateEnd"]');
         var endDate = selector.length ? selector[0].value : dataHelper.getLastDayOfMonth(new Date());
-        requester.setUrl(this.reportUrl);
-        requester.setData({dateStart: startDate, dateEnd: endDate});
+
+        return {dateStart: startDate, dateEnd: endDate};
+    };
+
+    this.getRequestUrl = function () {
+        return this.reportUrl;
+    };
+
+    this.getData = function () {
+        var requester = kernel.getServiceContainer().get('requester.ajax');
+        requester.setUrl(this.getRequestUrl());
+        requester.setData(this.getRequestData());
         requester.setMethod(HTTP_METHOD_GET);
         requester.setSuccess(this.onRender.bind(this));
         requester.request();
@@ -28,5 +37,8 @@ function AbstractReportController() {
     this.onRender = function (data) {
         var view = kernel.getServiceContainer().get(this.view);
         view.render(data);
+
+        var eventContainer = kernel.getServiceContainer().get('container.event');
+        eventContainer.setEvents(this.events);
     };
 }

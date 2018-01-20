@@ -26,7 +26,7 @@ function DictionaryAbstractModel() {
         if (!Object.keys(this.filters).length) {
             return {};
         }
-        
+
         if (this.filters.period) {
             if (this.getRequestData('filter[periodStart]') && this.filters.period) {
                 this.filters.period['periodStart'] = this.getRequestData('filter[periodStart]');
