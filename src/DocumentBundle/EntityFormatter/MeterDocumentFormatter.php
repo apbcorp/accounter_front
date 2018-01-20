@@ -66,7 +66,7 @@ class MeterDocumentFormatter extends EntityFormatterAbstract
                 $subEntity = $this->entityManager->getRepository(MeterRow::class)->find($row['id']);
             } else {
                 $subEntity = $this->entityFactory->createMeterRow();
-                $subEntity->setCreated(new \DateTime());
+                $subEntity->setCreated(new \DateTime($data['date']));
                 $subEntity->setIsDeleted(false);
 
                 $this->entityManager->persist($subEntity);

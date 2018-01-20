@@ -991,6 +991,7 @@ function MetersDocumentsController() {
     this.model = new MetersDocumentsModel(this);
     this.cardPath = '/document/meters/';
     this.viewName = 'view.metersDocuments';
+    this.apiPath = '/document/meter/';
 
     this.AbstractDocumentsController();
 }
@@ -1142,6 +1143,38 @@ function MainReportController() {
 
     this.MainReportController();
 }
+function MeterInvoiceReportController() {
+    AbstractReportController.call(this);
+    this.view = 'view.meterInvoiceReportView';
+    this.reportUrl = '/api/v1.0/document/meter_service/';
+
+    this.MeterInvoiceReportController = function () {
+        this.events.push({'selector': '.submit', 'action': 'click', 'event': this.refreshReport.bind(this)});
+        this.AbstractReportController();
+    };
+
+    this.refreshReport = function () {
+        this.getData();
+    };
+
+    this.getRequestData = function () {
+        return {};
+    };
+
+    this.getRequestUrl = function () {
+        var selector = $('[name="id"]');
+
+        if (selector.length) {
+            return this.reportUrl + selector[0].value;
+        }
+
+        var data = kernel.getServiceContainer().get('helper.url').getUrlParamsObject(document.location.href);
+
+        return data['id'] === undefined ? this.reportUrl + '1' : this.reportUrl + data['id'];
+    };
+
+    this.MeterInvoiceReportController();
+}
 function MetersReportController() {
     AbstractReportController.call(this);
     this.view = 'view.metersReport';
@@ -1160,6 +1193,38 @@ function MetersReportController() {
 }
 function SmsReportController() {
     AbstractReportController.call(this);
+}
+function SocialInvoiceReportController() {
+    AbstractReportController.call(this);
+    this.view = 'view.socialInvoiceReportView';
+    this.reportUrl = '/api/v1.0/document/service_document/';
+
+    this.SocialInvoiceReportController = function () {
+        this.events.push({'selector': '.submit', 'action': 'click', 'event': this.refreshReport.bind(this)});
+        this.AbstractReportController();
+    };
+
+    this.refreshReport = function () {
+        this.getData();
+    };
+
+    this.getRequestData = function () {
+        return {};
+    };
+
+    this.getRequestUrl = function () {
+        var selector = $('[name="id"]');
+
+        if (selector.length) {
+            return this.reportUrl + selector[0].value;
+        }
+
+        var data = kernel.getServiceContainer().get('helper.url').getUrlParamsObject(document.location.href);
+
+        return data['id'] === undefined ? this.reportUrl + '1' : this.reportUrl + data['id'];
+    };
+
+    this.SocialInvoiceReportController();
 }
 function AbstractCardController() {
     MainControllerAbstract.call(this);
@@ -3332,7 +3397,7 @@ function LoginView() {
 }
 function MainView() {
     AbstractView.call(this);
-    this.template = '<div><ul class="menu"><li class="menu_element"><p>Справочники</p><ul class="submenu"><li class="submenu_element consumer_dictionary_button"><p>Потребители</p></li><li class="submenu_element ground_dictionary_button"><p>Участки</p></li><li class="submenu_element meters_dictionary_button"><p>Счетчики</p></li><li class="submenu_element services_dictionary_button"><p>Усуги</p></li></ul></li><li class="menu_element"><p>Документы</p><ul class="submenu"><li class="submenu_element pay_documents_button"><p>Оплаты</p></li><li class="submenu_element service_documents_button"><p>Начисления услуг</p></li><li class="submenu_element service_meter_documents_button"><p>Начисления услуг по счетчикам</p></li><li class="submenu_element meters_documents_button"><p>Показания счетчиков</p></li><li class="submenu_element tarifs_documents_button"><p>Тарифы</p></li></ul></li><li class="menu_element"><p>Отчеты</p><ul class="submenu"><li class="submenu_element main_report_button"><p>Основной отчет</p></li><li class="submenu_element meters_report_button"><p>Отчет по счетчикам</p></li><li class="submenu_element balance_report_button"><p>Баланс расчетов</p></li><li class="submenu_element sms_report_button"><p>Отчет о смс</p></li></ul></li></ul></div>';
+    this.template = '<div class="noprint"><ul class="menu"><li class="menu_element"><p>Справочники</p><ul class="submenu"><li class="submenu_element consumer_dictionary_button"><p>Потребители</p></li><li class="submenu_element ground_dictionary_button"><p>Участки</p></li><li class="submenu_element meters_dictionary_button"><p>Счетчики</p></li><li class="submenu_element services_dictionary_button"><p>Усуги</p></li></ul></li><li class="menu_element"><p>Документы</p><ul class="submenu"><li class="submenu_element pay_documents_button"><p>Оплаты</p></li><li class="submenu_element service_documents_button"><p>Начисления услуг</p></li><li class="submenu_element service_meter_documents_button"><p>Начисления услуг по счетчикам</p></li><li class="submenu_element meters_documents_button"><p>Показания счетчиков</p></li><li class="submenu_element tarifs_documents_button"><p>Тарифы</p></li></ul></li><li class="menu_element"><p>Отчеты</p><ul class="submenu"><li class="submenu_element main_report_button"><p>Основной отчет</p></li><li class="submenu_element meters_report_button"><p>Отчет по счетчикам</p></li><li class="submenu_element balance_report_button"><p>Баланс расчетов</p></li><li class="submenu_element sms_report_button"><p>Отчет о смс</p></li><li class="submenu_element invoice_report_button"><p>Квитанции</p></li><li class="submenu_element meter_invoice_report_button"><p>Квитанции по счетчикам</p></li><li class="submenu_element social_invoice_report_button"><p>Квитанции по общественным платежам</p></li></ul></li></ul></div>';
 
     this.buildTemplate = function () {
         return this.template;
@@ -3556,6 +3621,36 @@ function MainReportView() {
         return result;
     }
 }
+function MeterInvoiceReportView() {
+    AbstractCardView.call(this);
+
+    this.buildTemplate = function (data) {
+        data = data.result;
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+        var id = 1;
+        if (data.id === undefined) {
+            alert('Квитанция с таким номером не найдена');
+        } else {
+            id = data.id;
+        }
+
+        html += '<div class="reportSheet"><li><ul><table><tr><td class="noprint">Номер квитанции&nbsp;<input name="id" value="';
+        html += id + '">&nbsp;&nbsp;<button class="submit">Сформировать</button></td></tr>';
+
+        if (data.id === undefined) {
+            html += '</table></div>';
+
+            return html;
+        }
+
+        html += '<tr><td><table border="1" cellspacing="0">';
+
+        html += '</table></td></tr>';
+        html += '</table></div>';
+
+        return html;
+    }
+}
 function MetersReportView() {
     AbstractCardView.call(this);
 
@@ -3634,6 +3729,36 @@ function MetersReportView() {
 }
 function SmsReportView() {
     
+}
+function SocialInvoiceReportView() {
+    AbstractCardView.call(this);
+
+    this.buildTemplate = function (data) {
+        data = data.result;
+        var html = '<div>' + kernel.getServiceContainer().get('view.main').buildTemplate();
+        var id = 1;
+        if (data.id === undefined) {
+            alert('Квитанция с таким номером не найдена');
+        } else {
+            id = data.id;
+        }
+
+        html += '<div class="reportSheet"><li><ul><table><tr><td class="noprint">Номер квитанции&nbsp;<input name="id" value="';
+        html += id + '">&nbsp;&nbsp;<button class="submit">Сформировать</button></td></tr>';
+
+        if (data.id === undefined) {
+            html += '</table></div>';
+
+            return html;
+        }
+
+        html += '<tr><td><table border="1" cellspacing="0">';
+
+        html += '</table></td></tr>';
+        html += '</table></div>';
+
+        return html;
+    }
 }
 function TableHeadView() {
     this.template = [

@@ -57,9 +57,11 @@ class MeterDocumentRepository extends ListRepositoryAbstract
                 ->where(
                     $qb->expr()->andX(
                         $qb->expr()->eq('q.meter', ':id'),
-                        $qb->expr()->lt('d.date', ':date')
+                        $qb->expr()->lt('d.date', ':date'),
+                        $qb->expr()->eq('q.deleted', ':false')
                     )
                 )
+                ->setParameter('false', false)
                 ->setParameter('id', $row['id'])
                 ->setParameter('date', $date)
                 ->orderBy('d.date', 'desc')
