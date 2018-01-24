@@ -1,5 +1,6 @@
 function InvoiceReportView() {
     AbstractCardView.call(this);
+    this.template = '<compose type=template path=js/templates/Reports/InvoiceReportTemplate.html>';
 
     this.buildTemplate = function (data) {
         var id = data.currentId;

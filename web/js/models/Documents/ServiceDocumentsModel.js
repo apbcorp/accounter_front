@@ -6,8 +6,8 @@ function ServiceDocumentsModel(params) {
         "id": RECORD_NUMBER_LANG,
         "date": DOCUMENT_DATE_LANG,
         "kontragent": OWNER_FULL_NAME_LANG,
-        "doc": RECEIPT,
-        "docSoc": RECEIPT_SOC
+        "doc": RECEIPT
+        //"docSoc": RECEIPT_SOC
     };
     this.filters = {
         'period': {name: PERIOD_LANG, type:'period'},

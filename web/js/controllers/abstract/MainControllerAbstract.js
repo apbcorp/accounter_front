@@ -90,14 +90,14 @@ function MainControllerAbstract() {
     };
 
     this.onInvoiceReport = function () {
-        kernel.getServiceContainer().get('helper.navigator').goTo('/report/invoice.html?id=2');
+        kernel.getServiceContainer().get('helper.navigator').goTo('/report/invoice.html');
     };
 
     this.onMeterInvoiceReport = function () {
-        kernel.getServiceContainer().get('helper.navigator').goTo('/report/meter_invoice.html?id=2');
+        kernel.getServiceContainer().get('helper.navigator').goTo('/report/meter_invoice.html');
     };
 
     this.onSocialInvoiceReport = function () {
-        kernel.getServiceContainer().get('helper.navigator').goTo('/report/social_invoice.html?id=2');
+        kernel.getServiceContainer().get('helper.navigator').goTo('/report/social_invoice.html');
     };
 }
