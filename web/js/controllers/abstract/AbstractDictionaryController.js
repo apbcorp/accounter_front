@@ -90,7 +90,10 @@ function AbstractDictionaryController() {
 
     this.onSelectRecord = function (event) {
         if (this.model.currentId !== undefined) {
-            $('.table_row[data-id="' + this.model.currentId + '"]')[0].classList.remove('active');
+            var activeRow = $('.table_row[data-id="' + this.model.currentId + '"]');
+            if (activeRow.length) {
+                activeRow[0].classList.remove('active');
+            }
         }
         this.model.currentId = event.currentTarget.dataset.id;
 
